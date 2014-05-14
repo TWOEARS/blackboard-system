@@ -1,0 +1,111 @@
+% Structure File Identification Information
+0 location 0 72 D 0 1 0 
+1 obs 0 0 C 0 1 1 location 0 
+0 0 
+@@@!!!TRIFILE_END_OF_ID_STRING!!!@@@ 
+
+% ---
+% GMTK Triangulation File Created: Monday April 07 2014, 15:22:36 BST
+% Options-: triangulationHeuristic: R, jtWeight: T, jtwUB: F, jtwPUI: 0.000000, jtwMC: F, jtwSNSC: 1.000000, jtwDNSC: 1.000000, pfCobWeight: 0.000000, findBestBoundary: T, traverseFraction: 1.000000, noBoundaryMemoize: F, forceLeftRight: , boundaryHeuristic: S, 
+% ---
+
+
+% ---
+% --- M, number of chunks in which to find interface boundary
+1 
+
+% ---
+% --- S, chunk skip
+1 
+
+% ---
+% --- interface method
+LEFT 
+
+% ---
+% --- boundary method
+Left_interface:Run_Bdry_Alg(T),Bnd_Heurs(S),TravFrac(1.000000),Tri_Heur(R) 
+
+% ---
+% --- P partition information: variables and their neighbors
+% --- P partition definition
+P_PARTITION 0 
+
+% ---
+% --- C partition information: variables and their neighbors
+% location(0) : obs(0),
+% obs(0) : location(0),
+% --- C partition definition
+C_PARTITION 2 location 0 obs 0 
+
+% ---
+% --- E partition information: variables and their neighbors
+% location(1) : obs(1),
+% obs(1) : location(1),
+% --- E partition definition
+E_PARTITION 2 location 1 obs 1 
+
+% ---
+% --- PC information : variables and their neighbors
+% --- PC interface definition
+PC_PARTITION 0 
+
+% ---
+% --- CE information : variables and their neighbors
+% --- CE interface definition
+CE_PARTITION 0 
+
+% ---
+% ---- P Partitions Cliques and their weights
+% ---- 0 total max-cliques 
+% Maximum clique state space = 1e-1.000000, total state space = 1e-1.000000
+UNKNOWN_TRIANGULATION_METHOD 
+0 
+
+% ---
+% ---- C Partitions Cliques and their weights
+% ---- 1 total max-cliques 
+% ---- Triangulation came from method: 1-R
+% 0 : 2  1.857332
+%    location(0)
+%    obs(0)
+% Maximum clique state space = 1e1.857332, total state space = 1e1.857332
+1-R 
+1 
+0 2 location 0 obs 0 
+
+% ---
+% ---- E Partitions Cliques and their weights
+% ---- 1 total max-cliques 
+% ---- Triangulation came from method: 1-R
+% 0 : 2  1.857332
+%    location(1)
+%    obs(1)
+% Maximum clique state space = 1e1.857332, total state space = 1e1.857332
+1-R 
+1 
+0 2 location 1 obs 1 
+
+
+% ----
+% ----
+% ----
+% ---- Printing final clique set and clique weights---
+%   --- Prologue summary, 0 cliques
+%   --- Prologue max clique weight = -1.000000, total weight = -1.000000, jt_weight = 0.000000
+%   --- Chunk summary, 1 cliques
+%    --- C curWeight = 1.857332
+%   --- Chunk max clique weight = 1.857332, total Cx1 weight = 1.857332, per-chunk total C weight = 1.857332, jt_weight = 1.000000
+%   --- Epilogue summary, 1 cliques
+%    --- E curWeight = 1.857332
+%   --- Epilogue max clique weight = 1.857332, total weight = 1.857332, jt_weight = 1.000000
+% --- Final set (P,Cx1,E) has max clique weight = 1.857332, total state space = 2.158664 ---
+% --- Total weight when unrolling 1x = 2.158664 ---
+% --- Total weight when unrolling 2x = 2.334655 ---
+% --- Total weight when unrolling 5x = 2.635584 ---
+% --- Total weight when unrolling 10x = 2.898780 ---
+% --- Total weight when unrolling 20x = 3.179580 ---
+% --- Total weight when unrolling 50x = 3.564914 ---
+% --- Total weight when unrolling 100x = 3.861660 ---
+% --- Total weight when unrolling 500x = 4.557171 ---
+% --- Total weight when unrolling 1000x = 4.857767 ---

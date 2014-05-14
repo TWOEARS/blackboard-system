@@ -24,7 +24,7 @@ simParams = initSimulationParameters('default');
 %% Initialize all WP2 related parameters
 
 % Specify cues that should be computed
-strCues = {'itd_xcorr' 'ild'};
+strCues = {'itd_xcorr' 'ild' 'ic_xcorr' 'ratemap_magnitude'};
 
 % Specify features that should be extracted
 strFeatures = {};

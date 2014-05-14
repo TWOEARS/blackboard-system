@@ -1,11 +1,13 @@
 % Structure File Identification Information
 0 location 0 72 D 0 1 0 
 1 obs 0 0 C 0 1 1 location 0 
-0 0 
+2 location 1 72 D 0 1 0 
+3 obs 1 0 C 0 1 1 location 0 
+1 1 
 @@@!!!TRIFILE_END_OF_ID_STRING!!!@@@ 
 
 % ---
-% GMTK Triangulation File Created: Monday April 07 2014, 15:22:36 BST
+% GMTK Triangulation File Created: Wednesday May 14 2014, 14:29:20 BST
 % Options-: triangulationHeuristic: R, jtWeight: T, jtwUB: F, jtwPUI: 0.000000, jtwMC: F, jtwSNSC: 1.000000, jtwDNSC: 1.000000, pfCobWeight: 0.000000, findBestBoundary: T, traverseFraction: 1.000000, noBoundaryMemoize: F, forceLeftRight: , boundaryHeuristic: S, 
 % ---
 
@@ -28,22 +30,24 @@ Left_interface:Run_Bdry_Alg(T),Bnd_Heurs(S),TravFrac(1.000000),Tri_Heur(R)
 
 % ---
 % --- P partition information: variables and their neighbors
+% location(0) :
+% obs(0) :
 % --- P partition definition
-P_PARTITION 0 
+P_PARTITION 2 location 0 obs 0 
 
 % ---
 % --- C partition information: variables and their neighbors
-% location(0) :
-% obs(0) :
+% location(1) :
+% obs(1) :
 % --- C partition definition
-C_PARTITION 2 location 0 obs 0 
+C_PARTITION 2 location 1 obs 1 
 
 % ---
 % --- E partition information: variables and their neighbors
-% location(1) :
-% obs(1) :
+% location(2) :
+% obs(2) :
 % --- E partition definition
-E_PARTITION 2 location 1 obs 1 
+E_PARTITION 2 location 2 obs 2 
 
 % ---
 % --- PC information : variables and their neighbors
@@ -57,46 +61,55 @@ CE_PARTITION 0
 
 % ---
 % ---- P Partitions Cliques and their weights
-% ---- 0 total max-cliques 
-% Maximum clique state space = 1e-1.000000, total state space = 1e-1.000000
-UNKNOWN_TRIANGULATION_METHOD 
-0 
+% ---- 2 total max-cliques 
+% ---- Triangulation came from method: 1-R
+% 0 : 1  0.000000
+%    location(0)
+% 1 : 1  0.000000
+%    obs(0)
+% Maximum clique state space = 1e0.000000, total state space = 1e0.301030
+1-R 
+2 
+0 1 location 0 
+1 1 obs 0 
 
 % ---
 % ---- C Partitions Cliques and their weights
 % ---- 2 total max-cliques 
 % ---- Triangulation came from method: 1-R
 % 0 : 1  0.000000
-%    obs(0)
+%    obs(1)
 % 1 : 1  0.000000
-%    location(0)
+%    location(1)
 % Maximum clique state space = 1e0.000000, total state space = 1e0.301030
 1-R 
 2 
-0 1 obs 0 
-1 1 location 0 
+0 1 obs 1 
+1 1 location 1 
 
 % ---
 % ---- E Partitions Cliques and their weights
 % ---- 2 total max-cliques 
 % ---- Triangulation came from method: 1-R
 % 0 : 1  0.000000
-%    location(1)
+%    obs(2)
 % 1 : 1  0.000000
-%    obs(1)
+%    location(2)
 % Maximum clique state space = 1e0.000000, total state space = 1e0.301030
 1-R 
 2 
-0 1 location 1 
-1 1 obs 1 
+0 1 obs 2 
+1 1 location 2 
 
 
 % ----
 % ----
 % ----
 % ---- Printing final clique set and clique weights---
-%   --- Prologue summary, 0 cliques
-%   --- Prologue max clique weight = -1.000000, total weight = -1.000000, jt_weight = 0.000000
+%   --- Prologue summary, 2 cliques
+%    --- P curWeight = 0.000000
+%    --- P curWeight = 0.000000
+%   --- Prologue max clique weight = 0.000000, total weight = 0.301030, jt_weight = 1.301030
 %   --- Chunk summary, 2 cliques
 %    --- C curWeight = 0.000000
 %    --- C curWeight = 0.000000
@@ -105,13 +118,13 @@ UNKNOWN_TRIANGULATION_METHOD
 %    --- E curWeight = 0.000000
 %    --- E curWeight = 0.000000
 %   --- Epilogue max clique weight = 0.000000, total weight = 0.301030, jt_weight = 1.301030
-% --- Final set (P,Cx1,E) has max clique weight = 0.000000, total state space = 0.612784 ---
-% --- Total weight when unrolling 1x = 0.612784 ---
-% --- Total weight when unrolling 2x = 0.785330 ---
-% --- Total weight when unrolling 5x = 1.082785 ---
-% --- Total weight when unrolling 10x = 1.344392 ---
-% --- Total weight when unrolling 20x = 1.624282 ---
-% --- Total weight when unrolling 50x = 2.009026 ---
-% --- Total weight when unrolling 100x = 2.305566 ---
-% --- Total weight when unrolling 500x = 3.000911 ---
-% --- Total weight when unrolling 1000x = 3.301486 ---
+% --- Final set (P,Cx1,E) has max clique weight = 0.000000, total state space = 0.778151 ---
+% --- Total weight when unrolling 1x = 0.778151 ---
+% --- Total weight when unrolling 2x = 0.903090 ---
+% --- Total weight when unrolling 5x = 1.146128 ---
+% --- Total weight when unrolling 10x = 1.380211 ---
+% --- Total weight when unrolling 20x = 1.643453 ---
+% --- Total weight when unrolling 50x = 2.017033 ---
+% --- Total weight when unrolling 100x = 2.309630 ---
+% --- Total weight when unrolling 500x = 3.001734 ---
+% --- Total weight when unrolling 1000x = 3.301898 ---

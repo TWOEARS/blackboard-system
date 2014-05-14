@@ -22,5 +22,25 @@ frame: 0 {
 
 }
 
-chunk 0:0
+frame: 1 {
+
+   variable : location {
+      type: discrete hidden cardinality NUM_LOCATIONS;
+      symboltable : collection("locationTable");
+      switchingparents: nil;
+      % No parents, and use a CPT with uniform probs of locations
+      conditionalparents: nil using DenseCPT("locationCPT");
+   }
+
+   variable : obs {
+      type: continuous observed OBS_RANGE_FEATURE;
+      switchingparents: nil;
+      conditionalparents: location(0) using mixture
+         collection("colObs")
+         mapping("directMappingWithOneParent");
+   }
+
+}
+
+chunk 1:1
 

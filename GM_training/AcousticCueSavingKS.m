@@ -23,13 +23,13 @@ classdef AcousticCueSavingKS < AbstractKS
             if obj.activeIndex < 1
                 numSpatialCues = obj.blackboard.getNumSpatialCues;
                 for n=1:numSpatialCues
-                    if obj.blackboard.spatialCues{n}.seenByLocationKS == false
+                    if obj.blackboard.acousticCues{n}.seenByLocationKS == false
                         obj.activeIndex = n;
                         b = true;
                         break
                     end
                 end
-            elseif obj.blackboard.spatialCues{obj.activeIndex}.seenByLocationKS == false
+            elseif obj.blackboard.acousticCues{obj.activeIndex}.seenByLocationKS == false
                 b = true;
             end
         end
@@ -37,17 +37,17 @@ classdef AcousticCueSavingKS < AbstractKS
             if obj.activeIndex < 1
                 return
             end
-            spatialCues = obj.blackboard.spatialCues{obj.activeIndex};
-            if spatialCues.seenByLocationKS
+            acousticCues = obj.blackboard.acousticCues{obj.activeIndex};
+            if acousticCues.seenByLocationKS
                 return
             end
             
             fprintf('-------- AcousticCueSavingKS has fired\n');
             
             % Add spatial cues to the feature array
-            featureBlock = [spatialCues.itds; spatialCues.ilds];
-            fprintf('Saving spatial data for block %d\n', spatialCues.blockNo);
-            fn = fullfile(obj.dataPath, sprintf('%s_location%d_block%d', 'spatial_cues', obj.label, spatialCues.blockNo));
+            featureBlock = [acousticCues.itds; acousticCues.ilds];
+            fprintf('Saving spatial data for block %d\n', acousticCues.blockNo);
+            fn = fullfile(obj.dataPath, sprintf('%s_location%d_block%d', 'spatial_cues', obj.label, acousticCues.blockNo));
             writehtk(strcat(fn, '.htk'), featureBlock);
 
             % Label for each frame
@@ -56,7 +56,7 @@ classdef AcousticCueSavingKS < AbstractKS
             fclose(fid);
 
             obj.activeIndex = 0;
-            spatialCues.setSeenByLocationKS;
+            acousticCues.setSeenByLocationKS;
             obj.blackboard.setReadyForNextBlock(true);
         end
     end

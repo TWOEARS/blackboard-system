@@ -1,9 +1,9 @@
 function sim_stage1
 
-% addpath(genpath(pwd));
-
-clear all;
 clc;
+clear all;
+
+addpath(genpath(pwd));
 
 
 %% Initialize simulation
@@ -17,14 +17,17 @@ simParams = initSimulationParameters('default');
 
 % Some global settings
 dimFeatures = (simParams.nChannels-1) * 2;
+
 % Define angular resolution
 numAngles = 360 / simParams.angularResolution;
 angles = linspace(0, 360 - simParams.angularResolution, numAngles);
 
-% Initialize scene to be simulated (at the moment, just the 'stage1_random'
-% setting is supported, which generates a scene containing one speech
-% source at a random azimuth position)
-[scene, sourcePos, out] = initSceneParameters('stage1_random', simParams);
+% Initialize scene to be simulated.
+% Select between 'stage1_freefield' or 'stage1_reverb'
+%
+% WARNING: HRIRs for freefield conditions have changed but GM has not
+% been retrained yet.
+[scene, sourcePos, out] = initSceneParameters('stage1_freefield', simParams);
 
 %% Initialize all WP2 related parameters
 
@@ -43,7 +46,7 @@ wp2States = init_WP2(strFeatures, strCues, simParams);
 bb = Blackboard(scene);
 
 % Init SignalBlockKS
-ksSignalBlock = SignalBlockKS(bb, simParams);
+ksSignalBlock = SignalBlockKS(bb);
 bb.addKS(ksSignalBlock);
 ksPeriphery = PeripheryKS(bb, simParams, wp2States);
 bb.addKS(ksPeriphery);
@@ -70,7 +73,7 @@ bm.registerEvent('NewConfusionHypothesis', ksRotate);
 %% Add event listeners for plotting
 addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
 addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
-addlistener(bb, 'NewAcousticCues', @plotSpatialCues);
+addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
 addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
 addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
 figure(1)
@@ -117,16 +120,15 @@ function plotSignalBlocks(bb, evnt)
 sigBlock = bb.signalBlocks{evnt.data};
 subplot(4, 4, [15, 16])
 plot(sigBlock.signals(:,1));
-axis tight; ylim([-1 1]);
+axis tight; ylim([-5 5]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, left ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, [13, 14])
 plot(sigBlock.signals(:,2));
-axis tight; ylim([-1 1]);
+axis tight; ylim([-5 5]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
-
 
 function plotPeripherySignal(bb, evnt)
 sigBlock = bb.peripherySignals{evnt.data};
@@ -145,39 +147,39 @@ xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear IHC', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
 
-function plotSpatialCues(bb, evnt)
-spaCue = bb.spatialCues{evnt.data};
+function plotAcousticCues(bb, evnt)
+acousticCue = bb.acousticCues{evnt.data};
 subplot(4, 4, 5)
-imagesc(spaCue.itds);
+imagesc(acousticCue.itds);
 set(gca,'YDir','normal');
 ylabel('GFB Channels');
 xlabel('Frame index');
 caxis([-1 1]);
-title(sprintf('Block %d, head orientation: %d deg, ITD', spaCue.blockNo, spaCue.headOrientation), 'FontSize', 12);
+title(sprintf('Block %d, head orientation: %d deg, ITD', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, 6)
-imagesc(spaCue.ilds);
+imagesc(acousticCue.ilds);
 set(gca,'YDir','normal');
 ylabel('GFB Channels');
 xlabel('Frame index');   
 caxis([-10 10]);
-title(sprintf('Block %d, head orientation: %d deg, ILD', spaCue.blockNo, spaCue.headOrientation), 'FontSize', 12);
+title(sprintf('Block %d, head orientation: %d deg, ILD', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, 7)
-imagesc(spaCue.ic);
+imagesc(acousticCue.ic);
 set(gca,'YDir','normal');
 ylabel('GFB Channels');
 xlabel('Frame index');   
 caxis([0 1]);
-title(sprintf('Block %d, head orientation: %d deg, IC', spaCue.blockNo, spaCue.headOrientation), 'FontSize', 12);
+title(sprintf('Block %d, head orientation: %d deg, IC', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, 8)
-imagesc(spaCue.ratemap(:, :, 1));
+imagesc(acousticCue.ratemap(:, :, 1));
 set(gca,'YDir','normal');
 ylabel('GFB Channels');
 xlabel('Frame index');   
 caxis([0 1]);
-title(sprintf('Block %d, head orientation: %d deg, RATEMAP', spaCue.blockNo, spaCue.headOrientation), 'FontSize', 12);
+title(sprintf('Block %d, head orientation: %d deg, RATEMAP', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 drawnow
 
 
@@ -201,4 +203,4 @@ ylabel('Probability', 'FontSize', 12);
 axis([0 361 0 1]);
 title(sprintf('Block %d, head orientation: %d deg, perceived location', pLoc.blockNo, pLoc.headOrientation), 'FontSize', 12);
 
-%
+%%
