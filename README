@@ -8,7 +8,7 @@ FOLDERS:
 * GM_stage1/       Contains relevant files (structure, learned parameters) 
                    for the graphical model
 
-* GM_training/     Contains the training blackboard for training the GM
+* GM_training/     Contains a training blackboard for training the GM
 
 * gmtk/            Matlab wrapper for using GMTK
 
