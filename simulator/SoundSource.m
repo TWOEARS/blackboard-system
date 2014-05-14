@@ -20,7 +20,6 @@ classdef SoundSource < handle
         distance                % Distance to listener in m
         azimuth                 % Horizontal angular position with respect
                                 % to the listener in deg
-        trajectory              % Trajectory of the sound source
     end
     
     methods (Access = public)
@@ -72,7 +71,7 @@ classdef SoundSource < handle
             obj.name = name;
             
             % Read and assign audio data
-            [audioSignal, obj.fs] = audioread(audioFile);
+            [audioSignal, obj.fs] = wavread(audioFile);
             
             % Assign signal length
             obj.numSamples = length(audioSignal);
@@ -128,7 +127,7 @@ classdef SoundSource < handle
             end
             
             % Check if reference distance is of type double
-            if ~isa(referenceDistance, 'double')
+            if ~isa(referenceDistance, 'numeric')
                 error('Reference distance has to be of type double.');
             end
             
@@ -141,8 +140,9 @@ classdef SoundSource < handle
             attenuation = referenceDistance / obj.distance;
             
             % Output processed signal
-            processedSignal = [zeros(timeDelay, 1); ...
-                attenuation * obj.signal];
+            %processedSignal = [zeros(timeDelay, 1); ...
+                %attenuation * obj.signal];
+            processedSignal = obj.signal;
         end
     end
     

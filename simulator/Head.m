@@ -17,18 +17,17 @@ classdef Head < handle
     
     properties (Access = private)
         hrirs                   % HRIR data structure
-        servoSounds = {};       % Time domain signals of servo-sounds as
-                                % 3D-Cell array
+        angles                  % Angular representation deg/rad
     end
     
     methods (Access = public)
-        function obj = Head(hrirFile, initLookDirection)
+        function obj = Head(hrirFile, fs, initLookDirection)
             % HEAD Class constructor
             
             %% Error handling
             
             % Check number of input arguments
-            if nargin < 1 || nargin > 2
+            if nargin < 1 || nargin > 3
                 error('Incorrect number of input arguments.');
             end
             
@@ -38,7 +37,7 @@ classdef Head < handle
             end
             
             % Check if initial look direction is correctly specified
-            if nargin == 2
+            if nargin == 3
                 if ~isa(initLookDirection, 'double') || ...
                         initLookDirection < 0 || initLookDirection > 360
                     error('Invalid specification of look direction.');
@@ -47,23 +46,35 @@ classdef Head < handle
             
             %% Parameter initialization
             
-            % Load HRIR file
-            obj.hrirs = read_irs(hrirFile);
+            % Load MIRO file
+            miroObject = load(hrirFile);
+            objectName = fieldnames(miroObject); 
+            
+            % Assign MIRO object to hrirs parameter
+            obj.hrirs = miroObject.(objectName{1});
+            
+            % Get angular representation
+            obj.angles = obj.hrirs.angles;            
             
             % Assign sampling frequency
             obj.fs = obj.hrirs.fs;
             
+            % Resample if necessary
+            if fs ~= obj.hrirs.fs
+                obj.hrirs.setResampling(fs);
+            end
+            
             % Assign reference distance
-            obj.distance = obj.hrirs.distance;
+            obj.distance = obj.hrirs.sourceDistance;
             
             % Assign HRIR length
-            obj.numSamples = size(obj.hrirs.left, 1);
+            obj.numSamples = obj.hrirs.taps;
             
             % Assign angular increment
-            obj.increment = size(obj.hrirs.left, 2) / 360;
+            obj.increment = obj.hrirs.nIr / 360;
             
             % Assign initial look direction            
-            if nargin == 2
+            if nargin == 3
                 obj.lookDirection = initLookDirection;
             end
         end
@@ -84,8 +95,20 @@ classdef Head < handle
             
             % Check if linear interpolation is necessary
             if mod(azimuth, obj.increment) == 0
-                % If not, return measured HRIR's
-                hrirPair = get_ir(obj.hrirs, azimuth);
+                if strcmp(obj.angles, 'RAD')
+                    azimuth = azimuth / 180 * pi;
+                    elevation = pi / 2;
+                else
+                    elevation = 90;
+                end
+                
+                hrirID = obj.hrirs.closestIr(azimuth, elevation);
+                hrirPair = obj.hrirs.getIR(hrirID);    
+                
+                for k = 1 : 2
+                    % Normalize
+                    hrirPair(:, k) = hrirPair(:, k) / max(hrirPair(:, k));
+                end
             else
                 % If yes, ...
                 
@@ -93,9 +116,20 @@ classdef Head < handle
                 lowerAzimuth = floor(azimuth);
                 upperAzimuth = mod(lowerAzimuth + obj.increment, 360);
                 
+                if strcmp(obj.angles, 'RAD')
+                    lowerAzimuth = lowerAzimuth / 180 * pi;
+                    upperAzimuth = upperAzimuth / 180 * pi;
+                    elevation = pi / 2;
+                else
+                    elevation = 90;
+                end
+                
                 % Load corresponding HRIR's
-                lowerHrirs = get_ir(obj.hrirs, lowerAzimuth);
-                upperHrirs = get_ir(obj.hrirs, upperAzimuth);
+                lowerID = obj.hrirs.closestIr(lowerAzimuth, elevation);
+                upperID = obj.hrirs.closestIr(upperAzimuth, elevation);
+                
+                lowerHrirs = obj.hrirs.getIR(lowerID);
+                upperHrirs = obj.hrirs.getIR(upperID);
                 
                 % Initialize output HRIR's
                 hrirPair = zeros(obj.numSamples, 2);
@@ -108,6 +142,9 @@ classdef Head < handle
                 for k = 1 : 2
                     hrirPair(:, k) = a * lowerHrirs(:, k) + ...
                         b * upperHrirs(:, k);
+                    
+                    % Normalize
+                    hrirPair(:, k) = hrirPair(:, k) / max(hrirPair(:, k));
                 end
             end
         end

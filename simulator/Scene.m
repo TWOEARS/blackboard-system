@@ -11,7 +11,6 @@ classdef Scene < handle
         numSamples              % Total number of samples in time-domain
         frameLength             % Frame length in samples
         frameShift              % Frame shift in samples
-        convLength              % Length of convoluted signal in samples
         
     end
     
@@ -94,10 +93,6 @@ classdef Scene < handle
             % Assign number of sources
             obj.numberOfSources = length(varargin);
             
-            % Assign length of convoluted signal
-            obj.convLength = obj.frameLength + ceil(obj.fs / ...
-                obj.head.fs * obj.head.numSamples) - 1;
-            
             % Compute and assign source signals
             for k = 1 : length(varargin)
                 tempSignal = varargin{k}.getSignal(obj.head.distance);
@@ -147,7 +142,7 @@ classdef Scene < handle
             endIndex = startIndex + obj.frameLength - 1;
             
             % Pre-allocate output frames
-            convLength = ceil(obj.fs / obj.head.fs * obj.head.numSamples);
+            convLength = ceil(obj.head.numSamples);
             rSignal = zeros(obj.frameLength + convLength - 1, 1);
             lSignal = zeros(obj.frameLength + convLength - 1, 1);
             
@@ -175,17 +170,9 @@ classdef Scene < handle
                 % Get hrirs
                 hrirs = obj.head.getHrirs(relativeAzimuth);
                 
-                % Resample hrirs if necessary
-                if obj.head.fs ~= obj.fs
-                    rHrir = resample(hrirs(:, 1), obj.fs, obj.head.fs);
-                    lHrir = resample(hrirs(:, 2), obj.fs, obj.head.fs);
-                    
-                    hrirs = [rHrir lHrir];
-                end
-                
                 % Apply convolution
-                rSignal = rSignal + fastconv(signalFrame, hrirs(:, 1));
-                lSignal = lSignal + fastconv(signalFrame, hrirs(:, 2));
+                rSignal = rSignal + fastconv(signalFrame, hrirs(:, 2));
+                lSignal = lSignal + fastconv(signalFrame, hrirs(:, 1));
             end
             
             % Return processed signals
