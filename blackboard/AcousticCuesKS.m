@@ -40,13 +40,13 @@ classdef AcousticCuesKS < AbstractKS
                 acousticCues = AcousticCues(wp2Periphery.blockNo, ...
                     wp2Periphery.headOrientation, itds, ilds, ic, ratemap);
                 
-                % Remove old spatial cues from the bb
-                if obj.blackboard.getNumSpatialCues > 0
-                    obj.blackboard.removeSpatialCues();
+                % Remove old acoustic cues from the bb
+                if obj.blackboard.getNumAcousticCues > 0
+                    obj.blackboard.removeAcousticCues();
                 end
                 
-                % Add spatial cues to the blackboard
-                idx = obj.blackboard.addSpatialCues(acousticCues);
+                % Add acoustic cues to the blackboard
+                idx = obj.blackboard.addAcousticCues(acousticCues);
                 
                 % Display that KS has fired
                 fprintf('-------- AcousticCuesKS has fired.\n');

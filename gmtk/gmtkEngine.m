@@ -229,7 +229,9 @@ classdef gmtkEngine < handle
                     fprintf(fid, '        -strFile %s \\\n', obj.gmStruct);
                     fprintf(fid, '        -inputMasterFile %s \\\n', obj.inputMaster);
                     fprintf(fid, '        -inputTrainableParameters %s.gmp \\\n', obj.learedParams);
+                    fprintf(fid, '        -pCliquePrintRange %d \\\n', cliqueNo);
                     fprintf(fid, '        -cCliquePrintRange %d \\\n', cliqueNo);
+                    fprintf(fid, '        -eCliquePrintRange %d \\\n', cliqueNo);
                     fprintf(fid, '        -cliqueOutputFileName %s \\\n', obj.outputCliqueFile);
                     fprintf(fid, '        -cliqueListFileName %s \\\n', obj.outputCliqueFile);
                     fprintf(fid, '        -cliquePrintFormat ascii\n');

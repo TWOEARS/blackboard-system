@@ -5,7 +5,7 @@ classdef LocationKS < AbstractKS
     
     properties (SetAccess = private)
         gmtkLoc;               % GMTK engine
-        activeIndex = 0;       % The index of SpatialFeature to be processed
+        activeIndex = 0;       % The index of AcousticCues to be processed
         angles;                % All azimuth angles to be considered
         tempPath;              % A path for temporary files
     end
@@ -26,15 +26,15 @@ classdef LocationKS < AbstractKS
         function b = canExecute(obj)
             b = false;
             if obj.activeIndex < 1
-                numSpatialCues = obj.blackboard.getNumSpatialCues;
-                for n=1:numSpatialCues
-                    if obj.blackboard.spatialCues{n}.seenByLocationKS == false
+                numAcousticCues = obj.blackboard.getNumAcousticCues;
+                for n=1:numAcousticCues
+                    if obj.blackboard.acousticCues{n}.seenByLocationKS == false
                         obj.activeIndex = n;
                         b = true;
                         break
                     end
                 end
-            elseif obj.blackboard.spatialCues{obj.activeIndex}.seenByLocationKS == false
+            elseif obj.blackboard.acousticCues{obj.activeIndex}.seenByLocationKS == false
                 b = true;
             end
         end
@@ -42,15 +42,15 @@ classdef LocationKS < AbstractKS
             if obj.activeIndex < 1
                 return
             end
-            spatialCues = obj.blackboard.spatialCues{obj.activeIndex};
-            if spatialCues.seenByLocationKS
+            acousticCues = obj.blackboard.acousticCues{obj.activeIndex};
+            if acousticCues.seenByLocationKS
                 return
             end
             
             fprintf('-------- LocationKS has fired\n');
             
             % Generate a temporary feature flist for GMTK
-            featureBlock = [spatialCues.itds; spatialCues.ilds];
+            featureBlock = [acousticCues.itds; acousticCues.ilds];
             tempID = datestr(now,'yyyymmdd.HHMMSSFFF');
             fn = sprintf('%s/spatial_cues_%s', obj.tempPath, tempID);
             htkfn = strcat(fn, '.htk');
@@ -85,12 +85,12 @@ classdef LocationKS < AbstractKS
 
             % We simply take the average of posteriors across all the
             % samples for this block
-            locHyp = LocationHypothesis(spatialCues.blockNo, spatialCues.headOrientation, obj.angles, mean(post,1));
+            locHyp = LocationHypothesis(acousticCues.blockNo, acousticCues.headOrientation, obj.angles, mean(post,1));
             idx = obj.blackboard.addLocationHypothesis(locHyp);
             notify(obj.blackboard, 'NewLocationHypothesis', BlackboardEventData(idx));
             
             obj.activeIndex = 0;
-            spatialCues.setSeenByLocationKS;
+            acousticCues.setSeenByLocationKS;
         end
     end
 end

@@ -9,7 +9,7 @@ classdef Blackboard < handle
         scene;                          % Scene object to be rendered
         signalBlocks = {};              % Layer 1a: Signals
         peripherySignals = {};          % Layer 1b: Periphery
-        spatialCues = {};               % Layer 2: Acoustic cues
+        acousticCues = {};              % Layer 2: Acoustic cues
         locationHypotheses = [];        % Layer 3: Location hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
         perceivedLocations = [];        % Layer 5: Perceived source locations
@@ -65,16 +65,16 @@ classdef Blackboard < handle
             obj.peripherySignals = {};
         end
         
-        %% Add new spatial features to layer 2
-        function n = addSpatialCues(obj, spatialCues)
-            n_old = length(obj.spatialCues);
+        %% Add new acoustic features to layer 2
+        function n = addAcousticCues(obj, acousticCues)
+            n_old = length(obj.acousticCues);
             n = n_old + 1;
-            obj.spatialCues{n} = spatialCues;
+            obj.acousticCues{n} = acousticCues;
         end
         
-        %% Remove old spatial cues from layer 2
-        function removeSpatialCues(obj)
-            obj.spatialCues = {};
+        %% Remove old acoustic cues from layer 2
+        function removeAcousticCues(obj)
+            obj.acousticCues = {};
         end
             
         %% Add new location hypothesis to layer 3a            
@@ -105,9 +105,9 @@ classdef Blackboard < handle
             n = length(obj.peripherySignals);
         end
         
-        %% Get number of spatial features on the BB
-        function n = getNumSpatialCues(obj)
-            n = length(obj.spatialCues);
+        %% Get number of acoustic cues on the BB
+        function n = getNumAcousticCues(obj)
+            n = length(obj.acousticCues);
         end
                 
         %% Get number of location hypotheses on the BB

@@ -1,11 +1,13 @@
 #!/bin/sh
 
-c:\cygwin64\usr\local\bin\gmtkJT.exe -iswp1 -of1 C:\Users\schymura\Documents\twoears-software\toy_scenario_stage1_dev\GM_stage1\flists/spatial_cues_20140416.142644893.flist -nf1 62 -fmt1 htk \
-        -strFile C:\Users\schymura\Documents\twoears-software\toy_scenario_stage1_dev\GM_stage1\stage1.str \
-        -inputMasterFile C:\Users\schymura\Documents\twoears-software\toy_scenario_stage1_dev\GM_stage1\stage1.master \
-        -inputTrainableParameters C:\Users\schymura\Documents\twoears-software\toy_scenario_stage1_dev\GM_stage1\stage1_learned_params.gmp \
+/usr/local/bin/gmtkJT -iswp1 -of1 GM_stage1/flists/spatial_cues_20140514.152601173.flist -nf1 62 -fmt1 htk \
+        -strFile GM_stage1/stage1.str \
+        -inputMasterFile GM_stage1/stage1.master \
+        -inputTrainableParameters GM_stage1/stage1_learned_params.gmp \
+        -pCliquePrintRange 0 \
         -cCliquePrintRange 0 \
-        -cliqueOutputFileName C:\Users\schymura\Documents\twoears-software\toy_scenario_stage1_dev\GM_stage1\stage1.post \
-        -cliqueListFileName C:\Users\schymura\Documents\twoears-software\toy_scenario_stage1_dev\GM_stage1\stage1.post \
+        -eCliquePrintRange 0 \
+        -cliqueOutputFileName GM_stage1/stage1.post \
+        -cliqueListFileName GM_stage1/stage1.post \
         -cliquePrintFormat ascii
 
