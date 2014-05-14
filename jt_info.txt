@@ -1,0 +1,92 @@
+===============================
+   P1 partition information: JT_weight = 0.000000
+=== Clique Information ===
+Number of cliques = 0
+
+=== Separator Information ===
+Number of separators = 0
+
+
+===============================
+   Co partition information: JT_weight = 1.000000
+=== Clique Information ===
+Number of cliques = 1
+== Clique number: 0, root/right-interface clique, root/right-interface clique, leaf/left-interface clique
+Clique information: 7 packed bits, 1 unsigned words (0 splits), weight = 1.857332, jt_weight = 1.000000
+2 Nodes: location(0)[72],obs(0)
+2 Assigned: location(0),obs(0)
+2 Assigned Sorted: location(0)[72],obs(0)
+2 Dispositions: 0 0
+2 Assigned Prob: location(0),obs(0)
+0 Cum Assigned Prob: 
+0 Union Incomming Seps: 
+0 Unassigned Iterated: 
+0 Cumulative Unassigned: 
+1 Hidden/Hashable: location(0)[72]
+0 Clique Neighbors: 
+0 Clique Children: 
+1 Receive Seps: 0,
+0 incomming VE Separators
+Send Sep: -1
+
+=== Separator Information ===
+Number of separators = 1
+== Separator number: 0
+Separator information: 0 acc packed bits (0 words, 0 splits), 0 rem packed bits (0 words, 0 splits)
+0 Nodes: 
+0 Acc Inter: 
+0 Hid Acc Inter: 
+0 remainder: 
+0 hRemainder: 
+
+
+===============================
+   E1 partition information: JT_weight = 1.000000
+=== Clique Information ===
+Number of cliques = 1
+== Clique number: 0, root/right-interface clique, root clique, leaf/left-interface clique
+Clique information: 7 packed bits, 1 unsigned words (0 splits), weight = 1.857332, jt_weight = 1.000000
+2 Nodes: location(1)[72],obs(1)
+2 Assigned: location(1),obs(1)
+2 Assigned Sorted: location(1)[72],obs(1)
+2 Dispositions: 0 0
+2 Assigned Prob: location(1),obs(1)
+2 Cum Assigned Prob: location(0),obs(0)
+0 Union Incomming Seps: 
+0 Unassigned Iterated: 
+0 Cumulative Unassigned: 
+1 Hidden/Hashable: location(1)[72]
+0 Clique Neighbors: 
+0 Clique Children: 
+1 Receive Seps: 0,
+0 incomming VE Separators
+Send Sep: -1
+
+=== Separator Information ===
+Number of separators = 1
+== Separator number: 0
+Separator information: 0 acc packed bits (0 words, 0 splits), 0 rem packed bits (0 words, 0 splits)
+0 Nodes: 
+0 Acc Inter: 
+0 Hid Acc Inter: 
+0 remainder: 
+0 hRemainder: 
+
+
+===============================
+
+===============================
+   P1 message order
+Number of messages: 0
+
+
+===============================
+   Co message order
+Number of messages: 0
+
+
+===============================
+   E1 message order
+Number of messages: 0
+
+
