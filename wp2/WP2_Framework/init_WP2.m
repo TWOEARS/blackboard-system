@@ -453,6 +453,21 @@ for ii = 1 : nFeatures
                 S.dim = {'nFilter x nFrames'};
             end
             
+        case 'ratemap_feature1'
+            % Ratemap feature
+            S.fHandle       = 'calcRatemapFeatures';
+            S.unit          = {};
+                        
+            S.set.compress  = 'cuberoot';
+            S.set.normalize = 'maxwhole';
+            S.set.bBinaural = true;
+            
+            if S.set.bBinaural
+                S.dim = {'nFilter x nFrames x [left right]'};
+            else
+                S.dim = {'nFilter x nFrames'};
+            end
+            
         case 'pitch'
             % Pitch estimation based on SACF
             S.fHandle       = 'estPitch_SACF';

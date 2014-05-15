@@ -72,6 +72,17 @@ switch lower(method)
         
         % Perform normalization
         out = in./repmat(scale,[size(in,1) 1]);
+    case 'maxwhole'
+        % Maximum value of one
+        scale = max(max(abs(in)));
+        
+        % Check normalization constant
+        if any(scale==0) || any(~isfinite(scale))
+            error('Normalization constant is zero/not finite')
+        end
+        
+        % Perform normalization
+        out = in./repmat(scale,size(in));
     otherwise
         error('%s: Normalization ''%s'' is not supported',mfilename,method);
 end 
