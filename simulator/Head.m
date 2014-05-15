@@ -61,7 +61,7 @@ classdef Head < handle
             
             % Resample if necessary
             if fs ~= obj.hrirs.fs
-                obj.hrirs.setResampling(fs);
+                obj.hrirs = obj.hrirs.setResampling(fs);
             end
             
             % Assign reference distance
