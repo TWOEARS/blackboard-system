@@ -62,13 +62,14 @@ classdef Head < handle
             % Resample if necessary
             if fs ~= obj.hrirs.fs
                 obj.hrirs = obj.hrirs.setResampling(fs);
+                obj.fs = fs;
             end
             
             % Assign reference distance
             obj.distance = obj.hrirs.sourceDistance;
             
             % Assign HRIR length
-            obj.numSamples = obj.hrirs.taps;
+            obj.numSamples = ceil(obj.hrirs.taps*fs/obj.hrirs.fs);
             
             % Assign angular increment
             obj.increment = obj.hrirs.nIr / 360;
