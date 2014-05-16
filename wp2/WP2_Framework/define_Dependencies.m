@@ -35,6 +35,12 @@ featureDEP2{nIter} = {'ratemap_magnitude'}; % List of cue dependencies
 
 nIter = nIter + 1;
 
+featureList{nIter} = 'ratemap_feature1';    % Feature name
+featureDEP1{nIter} = {};                    % List of feature dependencies
+featureDEP2{nIter} = {'ratemap_magnitude'}; % List of cue dependencies
+
+nIter = nIter + 1;
+
 featureList{nIter} = 'azimuth';
 featureDEP1{nIter} = {};
 featureDEP2{nIter} = {'itd_xcorr'};
