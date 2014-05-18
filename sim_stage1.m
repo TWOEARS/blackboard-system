@@ -13,7 +13,7 @@ gmName = 'stage1';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
-simParams = initSimulationParameters('default');
+simParams = initSimulationParameters('ident');
 
 % Some global settings
 dimFeatures = (simParams.nChannels-1) * 2;
@@ -27,7 +27,7 @@ angles = linspace(0, 360 - simParams.angularResolution, numAngles);
 %
 % WARNING: HRIRs for freefield conditions have changed but GM has not
 % been retrained yet.
-[scene, sourcePos, out] = initSceneParameters('stage1_freefield', simParams);
+[scene, sourcePos, out] = initSceneParameters('stage1_freefield_ident', simParams);
 
 %% Initialize all WP2 related parameters
 
@@ -35,7 +35,7 @@ angles = linspace(0, 360 - simParams.angularResolution, numAngles);
 strCues = {'itd_xcorr' 'ild' 'ic_xcorr' 'ratemap_magnitude'};
 
 % Specify features that should be extracted
-strFeatures = {};
+strFeatures = {'ratemap_feature1'};
 
 % Initialize WP2 parameter struct
 wp2States = init_WP2(strFeatures, strCues, simParams);
@@ -54,6 +54,8 @@ ksAcousticCues = AcousticCuesKS(bb, wp2States);
 bb.addKS(ksAcousticCues);
 ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
 bb.addKS(ksLoc);
+ksIdent = IdentityKS( bb, 'identificationModels\keys_ratemap_feature1_msFeatures' );
+bb.addKS( ksIdent );
 ksConf = ConfusionKS(bb);
 bb.addKS(ksConf);
 ksConfSolver = ConfusionSolvingKS(bb);
@@ -66,8 +68,9 @@ bm = BlackboardMonitor(bb);
 bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
 bm.registerEvent('NewSignalBlock', ksPeriphery);
 bm.registerEvent('NewPeripherySignal', ksAcousticCues);
-bm.registerEvent('NewAcousticCues', ksLoc);
+bm.registerEvent('NewAcousticCues', ksLoc, ksIdent);
 bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
+bm.registerEvent( 'NewIdentityHypothesis' );
 bm.registerEvent('NewConfusionHypothesis', ksRotate);
 
 %% Add event listeners for plotting
@@ -75,6 +78,7 @@ addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
 addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
 addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
 addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
+addlistener(bb, 'NewIdentityHypothesis', @plotIdentityHypothesis);
 addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
 figure(1)
 movegui('northwest');
@@ -111,6 +115,14 @@ for n=1:bb.getNumConfusionHypotheses
                 cf.blockNo, cf.locations(m)+cf.headOrientation, cf.headOrientation, cf.locations(m), cf.posteriors(m));
         end
     end
+end
+fprintf('---------------------------------------------------------------------------\n');
+fprintf('-------------------- Identity Hypotheses ----------------------------------\n');
+fprintf('Block (time)\t\tclass\t\t\t\tdecision value\n');
+for n=1:length( bb.identityHypotheses )
+    id = bb.identityHypotheses(n);
+    shiftDuration = scene.frameShift/simParams.fsHz;
+    fprintf( '%d (%g-%gs)\t%s\t%d\n', id.blockNo, (id.blockNo-1)*shiftDuration, id.blockNo*shiftDuration, id.getIdentityText(), id.decVal );
 end
 fprintf('---------------------------------------------------------------------------\n');
 
@@ -202,5 +214,10 @@ xlabel('Azimuth (degrees)', 'FontSize', 12);
 ylabel('Probability', 'FontSize', 12);
 axis([0 361 0 1]);
 title(sprintf('Block %d, head orientation: %d deg, perceived location', pLoc.blockNo, pLoc.headOrientation), 'FontSize', 12);
+
+function plotIdentityHypothesis( bb, evnt )
+identHyp = bb.identityHypotheses( evnt.data );
+disp( identHyp.getIdentityText() );
+
 
 %%
