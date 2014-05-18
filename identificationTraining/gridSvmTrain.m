@@ -6,7 +6,7 @@ bestVal = 0;
 for kernel = [0]
 for c = logspace( -4, 3, 7 )
 for cn = [1]
-for cp = [0.5*(1-lpShare)/lpShare, (1-lpShare)/lpShare, 1.5*(1-lpShare)/lpShare]
+for cp = [0.66*(1-lpShare)/lpShare, (1-lpShare)/lpShare, 1.5*(1-lpShare)/lpShare]
 for gamma = logspace( -12, 2, 10 )
     svmParamString = sprintf( '-t %d -g %e -c %e -w-1 %e -w1 %e -q', kernel, gamma, c, cn, cp);
     disp( ['cv with ' svmParamString] );

@@ -1,8 +1,5 @@
 function [trLabels, trInstances, identities, translators, factors] = createTrainingData( soundsDir, className, checkForPrecomputedData, saveTmpData, niState )
 
-addpath( genpath( getMFilePath() ) );
-addpath( genpath( [getMFilePath() '..\..\software\stage1_blackboard_system'] ) );
-
 angles = [0];
 
 [soundFileNames, soundFileNamesOther] = makeSoundLists( soundsDir, className );

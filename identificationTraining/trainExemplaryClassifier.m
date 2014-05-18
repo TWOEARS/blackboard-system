@@ -1,10 +1,10 @@
 addpath( genpath( getMFilePath() ) );
-addpath( genpath( [getMFilePath() '..\..\software\stage1_blackboard_system'] ) );
+addpath( genpath( [getMFilePath() '..\'] ) );
 
 soundsDir = 'C:\Users\ivot\Projekte\twoEars\testSoundsIEEE_AASP';
-className = 'keys';
+className = 'knock';
 niState = makeTrainingState();
-[l, d, ids, translate, scale] = createTrainingData( soundsDir, className, 0, 1, niState );
+[l, d, ids, translate, scale] = createTrainingData( soundsDir, className, 1, 1, niState );
 
 [ltr, lte, dtr, dte, idstr, idste] = splitDataPermutation( l, d, ids, 0.75 );
 
