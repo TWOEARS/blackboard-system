@@ -6,7 +6,7 @@ function produceModel( soundsDir, className, niState )
 
 model = trainSvm( ltr, dtr, 5 );
 
-savePreStr = [soundsDir '\' className '\' className '_' niState.name '_' niState.strFeatures{:} '_' func2str(niState.featureFunction)];
+savePreStr = [soundsDir '/' className '/' className '_' niState.name '_' niState.strFeatures{:} '_' func2str(niState.featureFunction)];
 save( [savePreStr '_model.mat'], 'model', 'val' );
 
 [pl, val] = libsvmPredictExt( lte, dte, model );
