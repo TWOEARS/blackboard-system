@@ -124,7 +124,7 @@ fprintf('Block (time)\t\tclass\t\t\t\tdecision value\n');
 for n=1:length( bb.identityHypotheses )
     id = bb.identityHypotheses(n);
     shiftDuration = scene.frameShift/simParams.fsHz;
-    fprintf( '%d (%g-%gs)\t%s\t%d\n', id.blockNo, (id.blockNo-1)*shiftDuration, id.blockNo*shiftDuration, id.getIdentityText(), id.decVal );
+    fprintf( '%d\t(%g-%gs)\t\t%s\t%d\n', id.blockNo, (id.blockNo-1)*shiftDuration, id.blockNo*shiftDuration, id.getIdentityText(), id.decVal );
 end
 fprintf('---------------------------------------------------------------------------\n');
 
