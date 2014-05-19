@@ -159,7 +159,6 @@ title(sprintf('Interaural Time Difference (ITD)'), 'FontSize', 14);
 
 subplot(4, 4, 6)
 imagesc(acousticCue.ilds);
-axis xy
 set(gca,'YDir','normal');
 %ylabel('GFB Channels', 'FontSize', 12);
 xlabel('Frame index', 'FontSize', 12); 
@@ -168,7 +167,6 @@ title('Interaural Level Difference (ILD)', 'FontSize', 14);
 
 subplot(4, 4, 7)
 imagesc(acousticCue.ic);
-axis xy
 set(gca,'YDir','normal');
 %ylabel('GFB Channels', 'FontSize', 12);
 xlabel('Frame index', 'FontSize', 12);  
@@ -177,7 +175,6 @@ title('Interaural Coherence (IC)', 'FontSize', 14);
 
 subplot(4, 4, 8)
 imagesc(acousticCue.ratemap(:, :, 1));
-axis xy
 set(gca,'YDir','normal');
 %ylabel('GFB Channels', 'FontSize', 12);
 xlabel('Frame index', 'FontSize', 12);   
