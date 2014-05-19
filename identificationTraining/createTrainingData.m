@@ -43,7 +43,7 @@ end
 
 [trInstances, translators, factors] = scaleTrainingData( trInstances );
 
-savePreStr = [soundsDir '\' className '\' className '_' niState.name '_' niState.strFeatures{:} '_' func2str(niState.featureFunction)];
+savePreStr = [soundsDir '/' className '/' className '_' niState.name '_' niState.strFeatures{:} '_' func2str(niState.featureFunction)];
 save( [savePreStr '_data.mat'], 'trInstances', 'trLabels', 'identities' );
 save( [savePreStr '_scale.mat'], 'translators', 'factors' );
 dynSaveMFun( @scaleData, [], [savePreStr '_scaleFunction'] );

@@ -1,7 +1,7 @@
 addpath( genpath( getMFilePath() ) );
-addpath( genpath( [getMFilePath() '..\'] ) );
+addpath( genpath( [getMFilePath() '../'] ) );
 
-soundsDir = 'C:\Users\ivot\Projekte\twoEars\testSoundsIEEE_AASP';
+soundsDir = 'C:/Users/ivot/Projekte/twoEars/testSoundsIEEE_AASP';
 className = 'knock';
 niState = makeTrainingState();
 [l, d, ids, translate, scale] = createTrainingData( soundsDir, className, 1, 1, niState );
@@ -9,7 +9,7 @@ niState = makeTrainingState();
 [ltr, lte, dtr, dte, idstr, idste] = splitDataPermutation( l, d, ids, 0.75 );
 
 model = trainSvm( ltr, dtr, 5 );
-save( [soundsDir '\' className '\' className '_' niState.strFeatures{:} '_' func2str(niState.featureFunction) '_model.mat'], 'model' );
+save( [soundsDir '/' className '/' className '_' niState.strFeatures{:} '_' func2str(niState.featureFunction) '_model.mat'], 'model' );
 
 [pl, val] = libsvmPredictExt( lte, dte, model );
 
