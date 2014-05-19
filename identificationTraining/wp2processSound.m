@@ -1,4 +1,4 @@
-function wp2Features = wp2processSound( soundFile, angles, niState )
+function wp2Features = wp2processSound( soundFile, niState )
 
 %read audio
 [stereoSound, fsHz] = audioread( soundFile );
@@ -9,7 +9,7 @@ monoSound = [monoSound; zeros(2 * niState.samplesPerBlock,1)];
 fprintf( '.' );
 head = Head( 'HRIR_CIRC360.mat', niState.simParams.fsHz );
 wp2Features = [];
-for angle = angles
+for angle = niState.angles
     earSignals = makeEarsignals( monoSound, head, angle, niState );
 
     if size( earSignals, 1 ) < niState.samplesPerBlock + niState.hopSamples

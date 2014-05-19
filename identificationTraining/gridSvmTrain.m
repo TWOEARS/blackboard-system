@@ -1,29 +1,39 @@
-function [bestVal, bestKernel, bestGamma, bestC, bestCn, bestCp] = gridSvmTrain( trInstances, trLabels, cvFolds )
+function [bestVal, bestKernel, bestGamma, bestC, bestCp, vals] = gridSvmTrain( trInstances, trLabels, cvFolds, niState )
 
 lpShare = (mean(trLabels) + 1 ) * 0.5;
+cp = (1-lpShare)/lpShare;
 
-bestVal = 0;
-for kernel = [0]
-for c = logspace( -4, 3, 7 )
-for cn = [1]
-for cp = [0.66*(1-lpShare)/lpShare, (1-lpShare)/lpShare, 1.5*(1-lpShare)/lpShare]
-for gamma = logspace( -12, 2, 10 )
-    svmParamString = sprintf( '-t %d -g %e -c %e -w-1 %e -w1 %e -q', kernel, gamma, c, cn, cp);
-    disp( ['cv with ' svmParamString] );
-    val = libsvmCVext( trLabels, trInstances, svmParamString, cvFolds, bestVal );
-    if val > bestVal
-        bestVal = val;
-        bestKernel = kernel;
-        bestGamma = gamma;
-        bestC = c;
-        bestCn = cn;
-        bestCp = cp;
-    end
-    if kernel == 0
-        break;
-    end
+kernels = [0 2];
+cs = logspace( -4, 4, 9 );
+gammas = logspace( -12, 2, 9 );
+
+vals = [];
+
+switch( lower( niState.hyperParamSearch ) )
+    case 'grid':
+        bestVal = 0;
+        for kernel = kernels
+        for c = cs
+        for gamma = gammas
+            svmParamString = sprintf( '-t %d -g %e -c %e -w-1 1 -w1 %e -q', kernel, gamma, c, cp );
+            disp( ['cv with ' svmParamString] );
+            val = libsvmCVext( trLabels, trInstances, svmParamString, cvFolds, bestVal );
+            vals = [vals; {kernel, c, gamma, val}];
+            if val > bestVal
+                bestVal = val;
+                bestKernel = kernel;
+                bestGamma = gamma;
+                bestC = c;
+                bestCp = cp;
+            end
+            if kernel == 0
+                break;
+            end
+        end
+        end
+        end
+
+    case 'random':
 end
-end
-end
-end
-end
+
+save( [niState.name '_' niState.hyperParamSearch '.mat'], 'vals' );
