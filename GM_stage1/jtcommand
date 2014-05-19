@@ -1,6 +1,6 @@
 #!/bin/sh
 
-/usr/local/bin/gmtkJT -iswp1 -of1 GM_stage1/flists/spatial_cues_20140519.123904570.flist -nf1 62 -fmt1 htk \
+/usr/local/bin/gmtkJT -iswp1 -of1 GM_stage1/flists/spatial_cues_20140519.130913226.flist -nf1 62 -fmt1 htk \
         -strFile GM_stage1/stage1.str \
         -inputMasterFile GM_stage1/stage1.master \
         -inputTrainableParameters GM_stage1/stage1_learned_params.gmp \
