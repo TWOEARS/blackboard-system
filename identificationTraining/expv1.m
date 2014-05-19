@@ -1,5 +1,5 @@
 addpath( genpath( getMFilePath() ) );
-addpath( genpath( [getMFilePath() '..\'] ) );
+addpath( genpath( [getMFilePath() '../'] ) );
 
 ns = makeTrainingState();
 
