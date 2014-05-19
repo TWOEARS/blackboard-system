@@ -41,9 +41,9 @@ classdef SignalBlockKS < AbstractKS
             end
             
             % Get current preprocessed left/right ear signals
-            signalL = obj.renderedSignals(startIndex : startIndex + ...
-                obj.scene.frameLength - 1, 1);
             signalR = obj.renderedSignals(startIndex : startIndex + ...
+                obj.scene.frameLength - 1, 1);
+            signalL = obj.renderedSignals(startIndex : startIndex + ...
                 obj.scene.frameLength - 1, 2);
             
             signalFrame = [signalR signalL];
