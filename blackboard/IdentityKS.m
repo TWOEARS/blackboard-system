@@ -22,6 +22,7 @@ classdef IdentityKS < AbstractKS
             obj.scale.factors = v.factors;
             [obj.scaleFunc, obj.tmpFuncs{1}, ~] = dynLoadMFun( [modelFileName '_scaleFunction.mat'] );
             [obj.featureFunc, obj.tmpFuncs{2}, obj.featureParam] = dynLoadMFun( [modelFileName '_featureFunction.mat'] );
+            %dynLoadMFun can be found at software/tools
         end
         
         function delete( obj )
@@ -46,6 +47,7 @@ classdef IdentityKS < AbstractKS
             features = obj.featureFunc( obj.featureParam, acousticCues.ratemapF1 );
             features = obj.scaleFunc( features', obj.scale.translators, obj.scale.factors );
             [label, ~, decVal] = libsvmpredict( [0], features, obj.model, '-q' );
+            %libsvmpredict is the renamed svmpredict of the LIBSVM package
             
             if label == +1
                 identHyp = IdentityHypothesis( acousticCues.blockNo, obj.modelname, decVal );
