@@ -18,7 +18,7 @@ switch(lower(preset))
         % Auditory periphery
         sp.nErbs      = 1;          % ERB spacing of gammatone filters
         sp.nChannels  = 32;         % Number of GFB channels
-        sp.mEarF      = true;       % Use middle ear filter
+        %sp.mEarF      = true;       % Use middle ear filter
         sp.fLowHz     = 80;         % Lowest center frequency in Hertz
         sp.fHighHz    = 8E3;        % Highest center frequency in Hertz
         sp.bAlign     = false;      % Time-align auditory channels
