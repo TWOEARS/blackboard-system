@@ -10,7 +10,7 @@ gammas = logspace( -12, 2, 9 );
 vals = [];
 
 switch( lower( niState.hyperParamSearch ) )
-    case 'grid':
+    case 'grid'
         bestVal = 0;
         for kernel = kernels
         for c = cs
@@ -33,7 +33,7 @@ switch( lower( niState.hyperParamSearch ) )
         end
         end
 
-    case 'random':
+    case 'random'
 end
 
 save( [niState.name '_' niState.hyperParamSearch '.mat'], 'vals' );
