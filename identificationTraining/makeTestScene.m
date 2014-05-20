@@ -21,18 +21,18 @@ while currentSceneLength < sceneLength_s
         pCasesUsed = [pCasesUsed randi(size(testWavsP,1))];
         wavname = testWavsP{pCasesUsed(end)};
         testWavsP(pCasesUsed(end)) = [];
-        annotFid = fopen( [wavname '.txt'] );
-        annotLine = fgetl( annotFid );
-        onsetOffset = sscanf( annotLine, '%f' );
-        fclose( annotFid );
-        pdesc = [pdesc; currentSceneLength+onsetOffset(1), currentSceneLength+onsetOffset(2)];
     else
         nCasesUsed = [nCasesUsed randi(size(testWavsN,1))];
         wavname = testWavsN{nCasesUsed(end)};
         testWavsN(nCasesUsed(end)) = [];
     end
     s = audioread( wavname );
-    description = [description; {wavname, currentSceneLength}];
+    annotFid = fopen( [wavname '.txt'] );
+    annotLine = fgetl( annotFid );
+    onsetOffset = sscanf( annotLine, '%f' );
+    fclose( annotFid );
+    description = [description; {wavname, currentSceneLength+onsetOffset(1), currentSceneLength+onsetOffset(2)}];
+    pdesc = [pdesc; currentSceneLength+onsetOffset(1), currentSceneLength+onsetOffset(2)];
     [~,maxchan] = max( std(s) );
     s = s(:,maxchan);
     scene = [scene; s];

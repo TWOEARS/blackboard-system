@@ -54,9 +54,9 @@ ksAcousticCues = AcousticCuesKS(bb, wp2States);
 bb.addKS(ksAcousticCues);
 ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
 bb.addKS(ksLoc);
-ksIdent = IdentityKS( bb, 'identificationModels\keys_ratemap_feature1_msFeatures' );
+ksIdent = IdentityKS( bb, 'identificationModels/keys_ratemap_feature1_msFeatures' );
 bb.addKS( ksIdent );
-ksIdent1 = IdentityKS( bb, 'identificationModels\knock_ratemap_feature1_msFeatures' );
+ksIdent1 = IdentityKS( bb, 'identificationModels/knock_v1_ratemap_feature1_msFeatures' );
 bb.addKS( ksIdent1 );
 ksConf = ConfusionKS(bb);
 bb.addKS(ksConf);
@@ -126,6 +126,8 @@ for n=1:length( bb.identityHypotheses )
     shiftDuration = scene.frameShift/simParams.fsHz;
     fprintf( '%d\t(%g-%gs)\t\t%s\t%d\n', id.blockNo, (id.blockNo-1)*shiftDuration, id.blockNo*shiftDuration, id.getIdentityText(), id.decVal );
 end
+v = load( 'niMixDesc.mat', 'description' );
+fis = plotIdentificationScene( 'niMix.wav', v.description, bb.identityHypotheses, scene );
 fprintf('---------------------------------------------------------------------------\n');
 
 
