@@ -2,7 +2,7 @@ function produceModel( soundsDir, className, niState )
 
 [l, d, ids, ~, ~] = createTrainingData( soundsDir, className, 1, 1, niState );
 
-[ltr, lte, dtr, dte, idstr, idste] = splitDataPermutation( l, d, ids, 0.75 );
+[ltr, lte, dtr, dte, idstr, idste] = splitDataPermutation( l, d, ids, niState.trteSplitRatio );
 
 model = trainSvm( ltr, dtr, 5, niState );
 [pl, val] = libsvmPredictExt( lte, dte, model );

@@ -38,25 +38,24 @@ dte = [];
 lte = [];
 idste = [];
 for i = 1:length( ctr )
-    for j = 1:length( ids )
-        if strcmp( ids{j}, ctr{i} ) == 1
-            dtr = [dtr; d(j,:)];
-            ltr = [ltr; l(j)];
-            idstr = [idstr; ids(j)];
-        end
-    end 
+    ctrpos = strfind( ids, ctr{i} );
+    ctrposa = ~cellfun( @isempty, ctrpos );
+    dtr = [dtr; d( ctrposa,: )];
+    ltr = [ltr; l( ctrposa )];
+    idstr = [idstr; ids( ctrposa )];
+    ids( ctrposa ) = [];
+    d( ctrposa,: ) = [];
+    l( ctrposa ) = [];
 end
 
 fprintf( '.' );
 
 for i = 1:length( cte )
-    for j = 1:length( ids )
-        if strcmp( ids{j}, cte{i} ) == 1
-            dte = [dte; d(j,:)];
-            lte = [lte; l(j)];
-            idste = [idste; ids(j)];
-        end
-    end 
+    ctepos = strfind( ids, cte{i} );
+    cteposa = ~cellfun( @isempty, ctepos );
+    dte = [dte; d( cteposa,: )];
+    lte = [lte; l( cteposa )];
+    idste = [idste; ids( cteposa )];
 end
     
 fprintf( '.' );
