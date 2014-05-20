@@ -118,33 +118,33 @@ fprintf('-----------------------------------------------------------------------
 %% Plotting functions
 function plotSignalBlocks(bb, evnt)
 sigBlock = bb.signalBlocks{evnt.data};
-subplot(4, 4, [13, 14])
+subplot(4, 4, [15, 16])
 plot(sigBlock.signals(:,1));
 axis tight; ylim([-5 5]);
-xlabel('Time', 'FontSize', 12);
-title(sprintf('Left ear waveform'), 'FontSize', 14);
+xlabel('k');
+title(sprintf('Block %d, head orientation: %d deg, left ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
-subplot(4, 4, [15, 16])
+subplot(4, 4, [13, 14])
 plot(sigBlock.signals(:,2));
 axis tight; ylim([-5 5]);
-xlabel('Time', 'FontSize', 12);
-title(sprintf('Right ear waveform'), 'FontSize', 14);
+xlabel('k');
+title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
 function plotPeripherySignal(bb, evnt)
 sigBlock = bb.peripherySignals{evnt.data};
-subplot(4, 4, [9, 10])
+subplot(4, 4, [11, 12])
 imagesc(sigBlock.signals(3).data(:, :, 1)');
 set(gca,'YDir','normal');
-ylabel('GFB Channels', 'FontSize', 12);
-xlabel('Time', 'FontSize', 12);
-title(sprintf('Left ear IHC'), 'FontSize', 14);
+ylabel('GFB Channels');
+xlabel('k');
+title(sprintf('Block %d, head orientation: %d deg, left ear IHC', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
-subplot(4, 4, [11, 12])
+subplot(4, 4, [9, 10])
 imagesc(sigBlock.signals(3).data(:, :, 2)');
 set(gca,'YDir','normal');
 ylabel('GFB Channels');
-xlabel('Time', 'FontSize', 12);    
-title(sprintf('Right ear IHC'), 'FontSize', 14);
+xlabel('k');      
+title(sprintf('Block %d, head orientation: %d deg, right ear IHC', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
 
 function plotAcousticCues(bb, evnt)
@@ -152,45 +152,46 @@ acousticCue = bb.acousticCues{evnt.data};
 subplot(4, 4, 5)
 imagesc(acousticCue.itds);
 set(gca,'YDir','normal');
-ylabel('GFB Channels', 'FontSize', 12);
-xlabel('Frame index', 'FontSize', 12);
+ylabel('GFB Channels');
+xlabel('Frame index');
 caxis([-1 1]);
-title(sprintf('Interaural Time Difference (ITD)'), 'FontSize', 14);
+title(sprintf('Block %d, head orientation: %d deg, ITD', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, 6)
 imagesc(acousticCue.ilds);
 set(gca,'YDir','normal');
-%ylabel('GFB Channels', 'FontSize', 12);
-xlabel('Frame index', 'FontSize', 12); 
+ylabel('GFB Channels');
+xlabel('Frame index');   
 caxis([-10 10]);
-title('Interaural Level Difference (ILD)', 'FontSize', 14);
+title(sprintf('Block %d, head orientation: %d deg, ILD', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, 7)
 imagesc(acousticCue.ic);
 set(gca,'YDir','normal');
-%ylabel('GFB Channels', 'FontSize', 12);
-xlabel('Frame index', 'FontSize', 12);  
+ylabel('GFB Channels');
+xlabel('Frame index');   
 caxis([0 1]);
-title('Interaural Coherence (IC)', 'FontSize', 14);
+title(sprintf('Block %d, head orientation: %d deg, IC', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, 8)
 imagesc(acousticCue.ratemap(:, :, 1));
 set(gca,'YDir','normal');
-%ylabel('GFB Channels', 'FontSize', 12);
-xlabel('Frame index', 'FontSize', 12);   
-%caxis([0 1]);
-title('RATEMAP', 'FontSize', 14);
+ylabel('GFB Channels');
+xlabel('Frame index');   
+caxis([0 1]);
+title(sprintf('Block %d, head orientation: %d deg, RATEMAP', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 drawnow
 
 
 function plotLocationHypothesis(bb, evnt)
 subplot(4, 4, [1, 2])
 locHyp = bb.locationHypotheses(evnt.data);
-bar(locHyp.locations, locHyp.posteriors, 'FaceColor',[0.75 0.87 0.77], 'EdgeColor',[0.23 0.44 0.34]);
+bar(locHyp.locations, locHyp.posteriors);
 xlabel('Azimuth (degrees)', 'FontSize', 12);
 ylabel('Probability', 'FontSize', 12);
 axis([0 361 0 1]);
-title('Probability distribution for all azimuth locations', 'FontSize', 14);
+title(sprintf('Block %d, head orientation: %d deg, distribution', locHyp.blockNo, locHyp.headOrientation), 'FontSize', 12);
+%colormap(summer);
 
 
 function plotPerceivedLocation(bb, evnt)
@@ -200,7 +201,6 @@ bar(pLoc.location, pLoc.score);
 xlabel('Azimuth (degrees)', 'FontSize', 12);
 ylabel('Probability', 'FontSize', 12);
 axis([0 361 0 1]);
-title(sprintf('Perceived source location. Current head orientation: %d deg', pLoc.headOrientation), 'FontSize', 14);
-
+title(sprintf('Block %d, head orientation: %d deg, perceived location', pLoc.blockNo, pLoc.headOrientation), 'FontSize', 12);
 
 %%
