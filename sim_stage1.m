@@ -1,7 +1,7 @@
 function sim_stage1
 
 clc;
-clearAllButBreakpoints;
+%clearAllButBreakpoints;
 
 addpath(genpath(pwd));
 
