@@ -4,7 +4,7 @@ function produceModel( soundsDir, className, niState )
 
 [ltr, lte, dtr, dte, idstr, idste] = splitDataPermutation( l, d, ids, 0.75 );
 
-model = trainSvm( ltr, dtr, 5 );
+model = trainSvm( ltr, dtr, 5, niState );
 
 savePreStr = [soundsDir '/' className '/' className '_' niState.name '_' niState.strFeatures{:} '_' func2str(niState.featureFunction)];
 save( [savePreStr '_model.mat'], 'model', 'val' );
