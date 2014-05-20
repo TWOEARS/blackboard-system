@@ -10,4 +10,4 @@ ns.featureFunction = @polyFeatures;
 
 ns.name = 'v3';
 
-produceModel( '../../../testSoundsIEEE_AASP', 'knock', ns );
+produceModel( '../../../testSoundsIEEE_AASP', 'alert', ns );
