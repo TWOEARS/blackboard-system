@@ -134,7 +134,7 @@ classdef Head < handle
                 
                 % Initialize output HRIR's
                 hrirPair = zeros(obj.numSamples, 2);
-                
+
                 % Calculate interpolation coefficients:
                 a = mod(azimuth, obj.increment) / obj.increment;
                 b = 1 - a;

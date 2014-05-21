@@ -171,8 +171,8 @@ classdef Scene < handle
                 hrirs = obj.head.getHrirs(relativeAzimuth);
                 
                 % Apply convolution
-                rSignal = rSignal + fastconv(signalFrame, hrirs(:, 2));
-                lSignal = lSignal + fastconv(signalFrame, hrirs(:, 1));
+                rSignal = rSignal + conv(signalFrame, hrirs(:, 2));
+                lSignal = lSignal + conv(signalFrame, hrirs(:, 1));
             end
             
             % Return processed signals
