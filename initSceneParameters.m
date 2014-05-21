@@ -1,4 +1,4 @@
-function [scene, sourcePos, out] = initSceneParameters(preset, sp)
+function [scene, sourcePos, out] = initSceneParameters(preset, sp, duration)
 
 %% Error handling
 
@@ -15,9 +15,6 @@ end
 switch(lower(preset))
     
     case 'stage1_freefield'
-        % Scene parameters
-        duration = 10;               % Scene duration in seconds
-        
         % Source signals and positions
         angles = 0:sp.angularResolution:359;
         %s1Pos = angles(randi(length(angles)));
@@ -25,7 +22,7 @@ switch(lower(preset))
         s1 = SoundSource('Speech', 'speech.wav', 'Polar', [1, s1Pos]);
         
         % Define dummy head
-        dummyHead = Head('QU_KEMAR_anechoic_3m.mat', sp.fsHz);
+        dummyHead = Head('HRIR_CIRC360.mat', sp.fsHz);
         
         % Create scene
         scene = Scene(duration, sp.fsHz, sp.blockSize * sp.fsHz, ...
@@ -41,9 +38,6 @@ switch(lower(preset))
         disp(['Source position: ', num2str(s1Pos)]);
         
     case 'stage1_reverb'
-        % Scene parameters
-        duration = 10;               % Scene duration in seconds
-        
         % Possible source positions
         sPos = [0, 30, 45, 90, 110, 135, 180, 225, 250, 270, 315, 330];
         
