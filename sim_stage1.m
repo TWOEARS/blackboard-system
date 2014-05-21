@@ -5,7 +5,6 @@ clc;
 
 addpath(genpath(pwd));
 
-
 %% Initialize simulation
 
 % Name of the graphical model
@@ -22,12 +21,13 @@ dimFeatures = (simParams.nChannels-1) * 2;
 numAngles = 360 / simParams.angularResolution;
 angles = linspace(0, 360 - simParams.angularResolution, numAngles);
 
+%Scene duration in seconds
+duration = 2;
+
 % Initialize scene to be simulated.
 % Select between 'stage1_freefield' or 'stage1_reverb'
-%
-% WARNING: HRIRs for freefield conditions have changed but GM has not
-% been retrained yet.
-[scene, sourcePos, out] = initSceneParameters('stage1_freefield', simParams);
+[scene, sourcePos, out] = ...
+    initSceneParameters('stage1_freefield', simParams, duration);
 
 %% Initialize all WP2 related parameters
 
@@ -94,6 +94,9 @@ fprintf('Perceived source locations (* indicates confusion)\n');
 fprintf('---------------------------------------------------------------------------\n');
 fprintf('Block\tLocation   (head orientation    relative location)\tProbability\n');
 fprintf('---------------------------------------------------------------------------\n');
+
+estLocations = zeros(bb.getNumPerceivedLocations, 1);
+
 for n=1:bb.getNumPerceivedLocations
     fprintf('%d\t%d degrees\t(%d degrees\t%d degrees)\t\t%.2f\n', ...
         bb.perceivedLocations(n).blockNo, ...
@@ -101,6 +104,8 @@ for n=1:bb.getNumPerceivedLocations
         bb.perceivedLocations(n).headOrientation, ...
         bb.perceivedLocations(n).location, ...
         bb.perceivedLocations(n).score);
+    
+    estLocations(n) = bb.perceivedLocations(n).location;
 end
 fprintf('---------------------------------------------------------------------------\n');
 for n=1:bb.getNumConfusionHypotheses
@@ -112,6 +117,12 @@ for n=1:bb.getNumConfusionHypotheses
         end
     end
 end
+fprintf('---------------------------------------------------------------------------\n');
+
+estError = 1 / length(estLocations) * sum(abs(estLocations - ...
+    sourcePos * ones(bb.getNumPerceivedLocations, 1)));
+
+fprintf('Mean localisation error: %.2f degrees\n', estError);
 fprintf('---------------------------------------------------------------------------\n');
 
 
@@ -129,7 +140,7 @@ plot(sigBlock.signals(:,2));
 axis tight; ylim([-5 5]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
-
+% soundsc([sigBlock.signals(:,1), sigBlock.signals(:,2)], 44100)
 
 function plotPeripherySignal(bb, evnt)
 sigBlock = bb.peripherySignals{evnt.data};
@@ -203,5 +214,3 @@ xlabel('Azimuth (degrees)', 'FontSize', 12);
 ylabel('Probability', 'FontSize', 12);
 axis([0 361 0 1]);
 title(sprintf('Block %d, head orientation: %d deg, perceived location', pLoc.blockNo, pLoc.headOrientation), 'FontSize', 12);
-
-%%
