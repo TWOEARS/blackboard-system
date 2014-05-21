@@ -1,73 +1,55 @@
-function [ltr, lte, dtr, dte, idstr, idste] = splitDataPermutation( l, d, ids, trShare )
+function [lfolds, dfolds, idsfolds] = splitDataPermutation( l, d, ids, folds )
 
-disp( 'splitting data into training and test set.' );
+disp( 'splitting data into training/test folds.' );
 
 uniqueIds = unique( ids );
+perm = randperm( length( uniqueIds ) );
+uniqueIdsPerm = uniqueIds(perm);
 
 for i = 1: length( uniqueIds )
     uniqueClasses(i, 1) = { uniqueIds{i}(1:end-6) };
 end
 uniqueClasses = unique( uniqueClasses );
 
-perm = randperm( length( uniqueIds ) );
-idsp = uniqueIds(perm);
-
 fprintf( '.' );
 
-ctr = [];
-cte = [];
+cfolds{folds} = [];
 for i = 1:length( uniqueClasses )
-    thisClassIds = [];
-    for j = 1:length( idsp )
-        if isempty( strfind( idsp{j}, uniqueClasses{i} ) )
-            continue;
-        end
-        thisClassIds = [thisClassIds; {idsp{j}}];
+    ucpos = strfind( uniqueIdsPerm, uniqueClasses{i} );
+    ucposa = ~cellfun( @isempty, ucpos );
+    thisClassIds = uniqueIdsPerm(ucposa);
+    share = int64( size( thisClassIds, 1 )/folds );
+    for j = 1:folds
+        cfolds{j} = [cfolds{j}; thisClassIds(share*(j-1)+1:min(end,share*j))];
     end
-    share = int64( trShare *  size( thisClassIds, 1 ) );
-    ctr = [ctr; thisClassIds(1:share,:)];
-    cte = [cte; thisClassIds(share+1:end,:)];
 end
 
 fprintf( '.' );
 
-dtr = [];
-ltr = [];
-idstr = [];
-dte = [];
-lte = [];
-idste = [];
-for i = 1:length( ctr )
-    ctrpos = strfind( ids, ctr{i} );
-    ctrposa = ~cellfun( @isempty, ctrpos );
-    dtr = [dtr; d( ctrposa,: )];
-    ltr = [ltr; l( ctrposa )];
-    idstr = [idstr; ids( ctrposa )];
-    ids( ctrposa ) = [];
-    d( ctrposa,: ) = [];
-    l( ctrposa ) = [];
-end
-
-fprintf( '.' );
-
-for i = 1:length( cte )
-    ctepos = strfind( ids, cte{i} );
-    cteposa = ~cellfun( @isempty, ctepos );
-    dte = [dte; d( cteposa,: )];
-    lte = [lte; l( cteposa )];
-    idste = [idste; ids( cteposa )];
+dfolds{folds} = [];
+lfolds{folds} = [];
+idsfolds{folds} = [];
+for j = 1:folds
+    for i = 1:length( cfolds{j} )
+        cpos = strfind( ids, cfolds{j}{i} );
+        cposa = ~cellfun( @isempty, cpos );
+        dfolds{j} = [dfolds{j}; d( cposa,: )];
+        lfolds{j} = [lfolds{j}; l( cposa )];
+        idsfolds{j} = [idsfolds{j}; ids( cposa )];
+        ids( cposa ) = [];
+        d( cposa,: ) = [];
+        l( cposa ) = [];
+    end
+    fprintf( '.' );
 end
     
 fprintf( '.' );
 
-perm = randperm( length(ltr) );
-ltr = ltr(perm);
-dtr = dtr(perm,:);
-idstr = idstr(perm);
-
-perm = randperm( length(lte) );
-lte = lte(perm);
-dte = dte(perm,:);
-idste = idste(perm);
+for i = 1:folds
+    perm = randperm( length(lfolds{i}) );
+    lfolds{i} = lfolds{i}(perm);
+    dfolds{i} = dfolds{i}(perm,:);
+    idsfolds{i} = idsfolds{i}(perm);
+end
 
 disp( '.' );
