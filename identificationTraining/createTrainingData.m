@@ -11,12 +11,12 @@ for i = 1:length( soundFileNamesAll )
     disp( ['processing ' soundFileNamesAll{i}] );
     
     % do wp2 processing 
-    soundwp2mat = [soundFileNamesAll{i} '.' niState.name '.wp2.mat'];
+    soundwp2mat = [soundFileNamesAll{i} '.' createNiStateWP2id(niState) '.wp2.mat'];
     if checkForPrecomputedData && exist( soundwp2mat, 'file' )
         load( soundwp2mat, 'wp2Features' );
     else
         wp2Features = wp2processSound( soundFileNamesAll{i}, niState );
-        if saveTmpData; save( soundwp2mat, 'wp2Features' ); end
+        if saveTmpData; save( soundwp2mat, 'wp2Features', 'niState' ); end
     end
 
     % create labels
@@ -43,9 +43,9 @@ end
 
 [trInstances, translators, factors] = scaleTrainingData( trInstances );
 
-savePreStr = [soundsDir '/' className '/' className '_' niState.name '_' niState.strFeatures{:} '_' func2str(niState.featureFunction)];
-save( [savePreStr '_data.mat'], 'trInstances', 'trLabels', 'identities' );
-save( [savePreStr '_scale.mat'], 'translators', 'factors' );
+savePreStr = [soundsDir '/' className '/' className '_' createNiStateDataId(niState)];
+save( [savePreStr '_data.mat'], 'trInstances', 'trLabels', 'identities', 'niState' );
+save( [savePreStr '_scale.mat'], 'translators', 'factors', 'niState' );
 dynSaveMFun( @scaleData, [], [savePreStr '_scaleFunction'] );
 dynSaveMFun( niState.featureFunction, niState.featureFunctionParam, [savePreStr '_featureFunction'] );
 

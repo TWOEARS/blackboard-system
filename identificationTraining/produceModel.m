@@ -1,20 +1,47 @@
 function produceModel( soundsDir, className, niState )
 
+savePreStr = [soundsDir '/' className '/' className '_' createNiStateModelId(niState)];
+delete( [savePreStr '.log'] );
+diary( [savePreStr '.log'] );
+disp('--------------------------------------------------------');
+disp('--------------------------------------------------------');
+fn_structdisp( niState )
+disp('--------------------------------------------------------');
+
 [l, d, ids, ~, ~] = createTrainingData( soundsDir, className, 1, 1, niState );
 
-[ltr, lte, dtr, dte, idstr, idste] = splitDataPermutation( l, d, ids, niState.trteSplitRatio );
+[lfolds, dfolds, idsfolds] = splitDataPermutation( l, d, ids, niState.folds );
 
-model = trainSvm( ltr, dtr, 5, niState );
-[pl, val] = libsvmPredictExt( lte, dte, model );
+savePreStr = [soundsDir '/' className '/' className '_' createNiStateSplitDataId(niState)];
+save( [savePreStr '_splitdata.mat'], 'lfolds', 'dfolds', 'idsfolds', 'niState' );
 
-savePreStr = [soundsDir '/' className '/' className '_' niState.name '_' niState.strFeatures{:} '_' func2str(niState.featureFunction)];
-save( [savePreStr '_model.mat'], 'model', 'val' );
+for i = 1:niState.folds
+    tridx = 1:niState.folds;
+    tridx(i) = [];
+    
+    fprintf( '\n%i. run of generalization assessment CV\ntraining\n', i );
 
-if mean(pl) == -1
-    disp( 'Produced trivial model.' );
+    model = trainSvm( vertcat( lfolds{tridx} ), vertcat( dfolds{tridx} ), 5, niState );
+    
+    fprintf( '\n%i. run of generalization assessment CV\ntesting\n', i );
+
+    [pl, ~, dec] = libsvmPredictExt( lfolds{i}, dfolds{i}, model );
+    
+    if model.Label(1) < 0;
+        dec = dec * -1;
+    end
+    val(i) = validation_function( dec, lfolds{i} );
 end
+genVal = mean( val );
+genValStd = std( val );
+fprintf( '\nGeneralization perfomance as evaluated by %i-fold CV is %g +-%g\n\n', niState.folds, genVal, genValStd );
 
-save( [savePreStr '_splitdata.mat'], 'ltr', 'lte', 'dtr', 'dte', 'idstr', 'idste' );
+disp( 'training model on whole dataset' );
+model = trainSvm( vertcat( lfolds{:} ), vertcat( dfolds{:} ), 5, niState );
+fprintf( '\nPerfomance on whole dataset:' );
+[~, val, ~] = libsvmPredictExt( vertcat( lfolds{:} ), vertcat( dfolds{:} ), model );
 
-save( [savePreStr '_niState.mat'], 'niState' );
+savePreStr = [soundsDir '/' className '/' className '_' createNiStateModelId(niState)];
+save( [savePreStr '_model.mat'], 'model', 'val', 'genVal', 'genValStd', 'niState' );
 
+diary off;
