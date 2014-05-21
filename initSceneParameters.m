@@ -16,7 +16,7 @@ switch(lower(preset))
     
     case 'stage1_freefield'
         % Scene parameters
-        duration = 2;               % Scene duration in seconds
+        duration = 10;               % Scene duration in seconds
         
         % Source signals and positions
         angles = 0:sp.angularResolution:359;
