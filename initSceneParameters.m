@@ -18,7 +18,7 @@ switch(lower(preset))
         % Source signals and positions
         angles = 0:sp.angularResolution:359;
         %s1Pos = angles(randi(length(angles)));
-        s1Pos = 60;
+        s1Pos = 90;
         s1 = SoundSource('Speech', 'speech.wav', 'Polar', [1, s1Pos]);
         
         % Define dummy head

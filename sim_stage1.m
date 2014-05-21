@@ -22,12 +22,12 @@ numAngles = 360 / simParams.angularResolution;
 angles = linspace(0, 360 - simParams.angularResolution, numAngles);
 
 %Scene duration in seconds
-duration = 2;
+duration = 1;
 
 % Initialize scene to be simulated.
 % Select between 'stage1_freefield' or 'stage1_reverb'
 [scene, sourcePos, out] = ...
-    initSceneParameters('stage1_freefield', simParams, duration);
+    initSceneParameters('stage1_reverb', simParams, duration);
 
 %% Initialize all WP2 related parameters
 
@@ -105,7 +105,8 @@ for n=1:bb.getNumPerceivedLocations
         bb.perceivedLocations(n).location, ...
         bb.perceivedLocations(n).score);
     
-    estLocations(n) = bb.perceivedLocations(n).location;
+    estLocations(n) = bb.perceivedLocations(n).location + ...
+        bb.perceivedLocations(n).headOrientation;
 end
 fprintf('---------------------------------------------------------------------------\n');
 for n=1:bb.getNumConfusionHypotheses
@@ -140,7 +141,7 @@ plot(sigBlock.signals(:,2));
 axis tight; ylim([-5 5]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
-% soundsc([sigBlock.signals(:,1), sigBlock.signals(:,2)], 44100)
+%soundsc([sigBlock.signals(:,1), sigBlock.signals(:,2)], 44100)
 
 function plotPeripherySignal(bb, evnt)
 sigBlock = bb.peripherySignals{evnt.data};
