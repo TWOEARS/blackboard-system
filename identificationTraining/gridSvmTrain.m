@@ -9,6 +9,11 @@ gammas = logspace( -12, 2, 9 );
 
 vals = [];
 
+if strcmpi( niState.hyperParamSearch, 'gridLinear' )
+    kernels = 0;
+    niState.hyperParamSearch = 'grid';
+end
+
 switch( lower( niState.hyperParamSearch ) )
     case 'grid'
         bestVal = 0;
@@ -36,4 +41,4 @@ switch( lower( niState.hyperParamSearch ) )
     case 'random'
 end
 
-save( [niState.name '_' niState.hyperParamSearch '.mat'], 'vals' );
+%save( [niState.name '_' niState.hyperParamSearch '.mat'], 'vals' );
