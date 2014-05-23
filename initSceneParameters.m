@@ -17,8 +17,8 @@ switch(lower(preset))
     case 'stage1_freefield'
         % Source signals and positions
         angles = 0:sp.angularResolution:359;
-        %s1Pos = angles(randi(length(angles)));
-        s1Pos = 90;
+        s1Pos = angles(randi(length(angles)));
+        %s1Pos = 90;
         s1 = SoundSource('Speech', 'speech.wav', 'Polar', [1, s1Pos]);
         
         % Define dummy head
@@ -45,7 +45,7 @@ switch(lower(preset))
         s1Pos = sPos(randi(length(sPos)));
         
         % Get BRIR file
-        filename = ['SBSBRIR_x-0pt5y-0pt5_LS', num2str(s1Pos), 'deg.mat'];
+        filename = 'SBSBRIR.mat';
         
         s1 = SoundSource('Speech', 'speech.wav', 'Polar', [1, 0]);
         
