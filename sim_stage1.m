@@ -1,7 +1,6 @@
 function sim_stage1
 
 clc;
-%clear all;
 
 addpath(genpath(pwd));
 
@@ -22,7 +21,7 @@ numAngles = 360 / simParams.angularResolution;
 angles = linspace(0, 360 - simParams.angularResolution, numAngles);
 
 %Scene duration in seconds
-duration = 1;
+duration = 2;
 
 % Initialize scene to be simulated.
 % Select between 'stage1_freefield' or 'stage1_reverb'
@@ -123,7 +122,7 @@ fprintf('-----------------------------------------------------------------------
 estError = 1 / length(estLocations) * sum(abs(estLocations - ...
     sourcePos * ones(bb.getNumPerceivedLocations, 1)));
 
-fprintf('Mean localisation error: %.2f degrees\n', estError);
+fprintf('Mean localisation error: %.4f degrees\n', estError);
 fprintf('---------------------------------------------------------------------------\n');
 
 
