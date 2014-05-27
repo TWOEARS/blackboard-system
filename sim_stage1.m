@@ -140,7 +140,7 @@ plot(sigBlock.signals(:,2));
 axis tight; ylim([-5 5]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
-%soundsc([sigBlock.signals(:,1), sigBlock.signals(:,2)], 44100)
+
 
 function plotPeripherySignal(bb, evnt)
 sigBlock = bb.peripherySignals{evnt.data};

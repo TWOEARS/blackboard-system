@@ -24,9 +24,13 @@ switch(lower(preset))
         % Define dummy head
         dummyHead = Head('QU_KEMAR_anechoic_3m.mat', sp.fsHz);
         
+        % Generate environmental noise with specified SNR
+        envNoise = Environment('bus01.wav', -5); % - 5dB
+        
         % Create scene
+        % For no diffuse noise, just put in [] instead of envNoise
         scene = Scene(duration, sp.fsHz, sp.blockSize * sp.fsHz, ...
-            sp.blockSize * sp.fsHz, dummyHead, s1);
+            sp.blockSize * sp.fsHz, dummyHead, envNoise, s1);
         
         % Return source position
         sourcePos = s1Pos;
@@ -54,7 +58,7 @@ switch(lower(preset))
         
         % Create scene
         scene = Scene(duration, sp.fsHz, sp.blockSize * sp.fsHz, ...
-            sp.blockSize * sp.fsHz, dummyHead, s1);
+            sp.blockSize * sp.fsHz, dummyHead, [], s1);
         
         % Return source position
         sourcePos = s1Pos;
