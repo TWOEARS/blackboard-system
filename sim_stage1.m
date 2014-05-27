@@ -119,8 +119,8 @@ for n=1:bb.getNumConfusionHypotheses
 end
 fprintf('---------------------------------------------------------------------------\n');
 
-estError = 1 / length(estLocations) * sum(abs(estLocations - ...
-    sourcePos * ones(bb.getNumPerceivedLocations, 1)));
+estError = 1 / (length(estLocations) - 1) * sum(abs(estLocations(1:end-1) - ...
+    sourcePos * ones(bb.getNumPerceivedLocations - 1, 1)));
 
 fprintf('Mean localisation error: %.4f degrees\n', estError);
 fprintf('---------------------------------------------------------------------------\n');
