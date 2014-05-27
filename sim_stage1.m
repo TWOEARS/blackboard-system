@@ -1,8 +1,12 @@
 function sim_stage1
 
-clc;
+%% Add relevant paths
+addpath('blackboard');
+addpath('gmtk');
+addpath(genpath('simulator'));
+addpath(genpath('wp2'));
 
-addpath(genpath(pwd));
+plotting = 1;
 
 %% Initialize simulation
 
@@ -11,7 +15,7 @@ gmName = 'fa2014';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
-simParams = initSimulationParameters('fa2014');
+simParams = initSimulationParameters(gmName);
 
 % Some global settings
 dimFeatures = (simParams.nChannels-1) * 2;
@@ -19,15 +23,7 @@ dimFeatures = (simParams.nChannels-1) * 2;
 % Define angular resolution
 numAngles = 360 / simParams.angularResolution;
 angles = linspace(0, 360 - simParams.angularResolution, numAngles);
-
-%Scene duration in seconds
-duration = 2;
-
-% Initialize scene to be simulated.
-% Select between 'stage1_freefield' or 'stage1_reverb'
-[scene, sourcePos, out] = ...
-    initSceneParameters('stage1_freefield', simParams, duration);
-
+   
 %% Initialize all WP2 related parameters
 
 % Specify cues that should be computed
@@ -39,6 +35,18 @@ strFeatures = {};
 % Initialize WP2 parameter struct
 wp2States = init_WP2(strFeatures, strCues, simParams);
 
+srcPos = 30;
+
+wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
+
+% Initialize scene to be simulated.
+src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
+% Define dummy head
+dummyHead = Head('QU_KEMAR_anechoic_3m.mat', simParams.fsHz);
+% Create scene
+scene = Scene(src.numSamples/src.fs, simParams.fsHz, simParams.blockSize * simParams.fsHz, ...
+    simParams.blockSize * simParams.fsHz, dummyHead, src);
+     
 %% Initialize blackboard, KSs and the blackboard monitor
 
 % Create blackboard instance
@@ -69,15 +77,17 @@ bm.registerEvent('NewAcousticCues', ksLoc);
 bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
 bm.registerEvent('NewConfusionHypothesis', ksRotate);
 
-%% Add event listeners for plotting
-addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
-addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
-addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
-addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
-addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
-figure(1)
-movegui('northwest');
-    
+if plotting
+    %% Add event listeners for plotting
+    addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
+    addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
+    addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
+    addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
+    addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
+    figure(1)
+    movegui('northwest');
+end
+
 %% Start the scheduler
 bb.setReadyForNextBlock(true);
 scheduler = Scheduler(bm);
@@ -87,7 +97,7 @@ while ok
 end
 
 fprintf('\n---------------------------------------------------------------------------\n');
-fprintf('Source location: %d degrees\n', sourcePos);
+fprintf('Source location: %d degrees\n', srcPos);
 fprintf('---------------------------------------------------------------------------\n');
 fprintf('Perceived source locations (* indicates confusion)\n');
 fprintf('---------------------------------------------------------------------------\n');
@@ -120,7 +130,7 @@ end
 fprintf('---------------------------------------------------------------------------\n');
 
 estError = 1 / length(estLocations) * sum(abs(estLocations - ...
-    sourcePos * ones(bb.getNumPerceivedLocations, 1)));
+    srcPos * ones(bb.getNumPerceivedLocations, 1)));
 
 fprintf('Mean localisation error: %.4f degrees\n', estError);
 fprintf('---------------------------------------------------------------------------\n');
@@ -131,13 +141,13 @@ function plotSignalBlocks(bb, evnt)
 sigBlock = bb.signalBlocks{evnt.data};
 subplot(4, 4, [15, 16])
 plot(sigBlock.signals(:,1));
-axis tight; ylim([-5 5]);
+axis tight; ylim([-1 1]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, left ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, [13, 14])
 plot(sigBlock.signals(:,2));
-axis tight; ylim([-5 5]);
+axis tight; ylim([-1 1]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 %soundsc([sigBlock.signals(:,1), sigBlock.signals(:,2)], 44100)

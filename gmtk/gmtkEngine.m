@@ -234,6 +234,7 @@ classdef gmtkEngine < handle
                     fprintf(fid, '        -eCliquePrintRange %d \\\n', cliqueNo);
                     fprintf(fid, '        -cliqueOutputFileName %s \\\n', obj.outputCliqueFile);
                     fprintf(fid, '        -cliqueListFileName %s \\\n', obj.outputCliqueFile);
+                    fprintf(fid, '        -verbosity 0 \\\n');
                     fprintf(fid, '        -cliquePrintFormat ascii\n');
                     fprintf(fid, '\n');
                     fclose(fid);

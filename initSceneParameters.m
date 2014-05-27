@@ -13,7 +13,7 @@ end
 %% Define scene
 
 switch(lower(preset))
-    
+        
     case 'stage1_freefield'
         % Source signals and positions
         %angles = 0:sp.angularResolution:359;
