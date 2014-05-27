@@ -19,7 +19,7 @@ end
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
-simParams = initSimulationParameters('default');
+simParams = initSimulationParameters('fa2014');
 
 %% Initialize all WP2 related parameters
 

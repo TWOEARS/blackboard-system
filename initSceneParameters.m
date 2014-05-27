@@ -16,13 +16,13 @@ switch(lower(preset))
     
     case 'stage1_freefield'
         % Source signals and positions
-        angles = 0:sp.angularResolution:359;
-        s1Pos = angles(randi(length(angles)));
-        %s1Pos = 90;
-        s1 = SoundSource('Speech', 'speech.wav', 'Polar', [1, s1Pos]);
+        %angles = 0:sp.angularResolution:359;
+        %s1Pos = angles(randi(length(angles)));
+        s1Pos = 45;
+        s1 = SoundSource('Speech', 'lwwi8p.wav', 'Polar', [1, s1Pos]);
         
         % Define dummy head
-        dummyHead = Head('HRIR_CIRC360.mat', sp.fsHz);
+        dummyHead = Head('QU_KEMAR_anechoic_3m.mat', sp.fsHz);
         
         % Create scene
         scene = Scene(duration, sp.fsHz, sp.blockSize * sp.fsHz, ...

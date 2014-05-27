@@ -27,11 +27,11 @@ end
 if nargin < 2
     genData = 0;
 end
-
+tic
 %--------------------------------------------------------------------------
 % Some global parameters
 %--------------------------------------------------------------------------
-gmName = 'stage1';
+gmName = 'fa2014';
 
 % Define angular resolution
 angularResolution = 5;
@@ -42,7 +42,7 @@ angles = linspace(0, 360 - angularResolution, numAngles);
 dimFeatures = 62;
 
 % Training data duration in seconds
-trainDurationSec = 3;
+trainDurationSec = 540;
 
 %--------------------------------------------------------------------------
 % Initialise GMTK engine
@@ -84,7 +84,7 @@ end
 %--------------------------------------------------------------------------
 % Estimate GM parameters
 %--------------------------------------------------------------------------
-numTrainingBlocks = 5;
+numTrainingBlocks = 3;
 if updateGM
     fprintf('----------------- Estimating GM parameters\n');
     % Generate feature list and label list
@@ -128,6 +128,7 @@ for n=1:numAngles
     post = load(strcat(gmtkLoc.outputCliqueFile, '_0'));
     meanPosts(n,:) = mean(post,1);
 end
+toc
 mesh(meanPosts);
 
 %     % Plotting results

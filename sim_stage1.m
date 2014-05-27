@@ -7,11 +7,11 @@ addpath(genpath(pwd));
 %% Initialize simulation
 
 % Name of the graphical model
-gmName = 'stage1';
+gmName = 'fa2014';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
-simParams = initSimulationParameters('default');
+simParams = initSimulationParameters('fa2014');
 
 % Some global settings
 dimFeatures = (simParams.nChannels-1) * 2;
@@ -26,7 +26,7 @@ duration = 2;
 % Initialize scene to be simulated.
 % Select between 'stage1_freefield' or 'stage1_reverb'
 [scene, sourcePos, out] = ...
-    initSceneParameters('stage1_reverb', simParams, duration);
+    initSceneParameters('stage1_freefield', simParams, duration);
 
 %% Initialize all WP2 related parameters
 
