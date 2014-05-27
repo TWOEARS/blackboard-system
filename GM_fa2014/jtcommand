@@ -1,6 +1,6 @@
 #!/bin/sh
 
-/usr/local/bin/gmtkJT -iswp1 -of1 GM_fa2014/flists/test_features.flist -nf1 62 -fmt1 htk \
+/usr/local/bin/gmtkJT -iswp1 -of1 GM_fa2014/flists/spatial_cues_20140527.134354094.flist -nf1 62 -fmt1 htk \
         -strFile GM_fa2014/fa2014.str \
         -inputMasterFile GM_fa2014/fa2014.master \
         -inputTrainableParameters GM_fa2014/fa2014_learned_params.gmp \
@@ -9,5 +9,6 @@
         -eCliquePrintRange 0 \
         -cliqueOutputFileName GM_fa2014/fa2014.post \
         -cliqueListFileName GM_fa2014/fa2014.post \
+        -verbosity 0 \
         -cliquePrintFormat ascii
 

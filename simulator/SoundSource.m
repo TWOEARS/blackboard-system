@@ -72,13 +72,14 @@ classdef SoundSource < handle
             
             % Read and assign audio data
             [audioSignal, obj.fs] = wavread(audioFile);
-            
+
             % Assign signal length
             obj.numSamples = length(audioSignal);
             
             % Normalize and assign time-domain signal
             obj.signal = audioSignal / max(audioSignal);
             
+
             % Compute and assign sound source position            
             if strcmp(varargin{1}, 'Cartesian')
                 % Get cartesian coordinates
