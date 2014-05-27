@@ -129,8 +129,8 @@ for n=1:bb.getNumConfusionHypotheses
 end
 fprintf('---------------------------------------------------------------------------\n');
 
-estError = 1 / length(estLocations) * sum(abs(estLocations - ...
-    srcPos * ones(bb.getNumPerceivedLocations, 1)));
+estError = 1 / (length(estLocations) - 1) * sum(abs(estLocations(1:end-1) - ...
+    srcPos * ones(bb.getNumPerceivedLocations - 1, 1)));
 
 fprintf('Mean localisation error: %.4f degrees\n', estError);
 fprintf('---------------------------------------------------------------------------\n');
@@ -150,7 +150,7 @@ plot(sigBlock.signals(:,2));
 axis tight; ylim([-1 1]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
-%soundsc([sigBlock.signals(:,1), sigBlock.signals(:,2)], 44100)
+
 
 function plotPeripherySignal(bb, evnt)
 sigBlock = bb.peripherySignals{evnt.data};
