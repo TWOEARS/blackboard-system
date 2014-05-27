@@ -21,7 +21,7 @@ for i = 1:niState.folds
     
     fprintf( '\n%i. run of generalization assessment CV\ntraining\n', i );
 
-    model = trainSvm( vertcat( lfolds{tridx} ), vertcat( dfolds{tridx} ), 5, niState );
+    model = trainSvm( tridx, lfolds, dfolds, 5, niState );
     
     fprintf( '\n%i. run of generalization assessment CV\ntesting\n', i );
 
@@ -37,7 +37,7 @@ genValStd = std( val );
 fprintf( '\nGeneralization perfomance as evaluated by %i-fold CV is %g +-%g\n\n', niState.folds, genVal, genValStd );
 
 disp( 'training model on whole dataset' );
-model = trainSvm( vertcat( lfolds{:} ), vertcat( dfolds{:} ), 5, niState );
+model = trainSvm( 1:niState.folds, lfolds, dfolds, 5, niState );
 fprintf( '\nPerfomance on whole dataset:' );
 [~, val, ~] = libsvmPredictExt( vertcat( lfolds{:} ), vertcat( dfolds{:} ), model );
 

@@ -14,5 +14,7 @@ niState.angles = [0];
 niState.featureFunction = @msFeatures;
 niState.featureFunctionParam.derivations = 1;
 
+niState.terminationTolerance = 0.001;
 niState.hyperParamSearch = 'grid';
+niState.searchBudget = 9;
 niState.folds = 4;
