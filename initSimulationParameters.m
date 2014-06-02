@@ -55,14 +55,13 @@ switch(lower(preset))
         sp.maxDelaySec = 1.0E-3;
         
         % Framing parameters
-        sp.blockSize  = 200E-3;     % 200 msec = 20 frames
+        sp.blockSize  = 200E-3;     % Block size in seconds
         sp.winSizeSec = 20E-3;      % Window size in seconds
         sp.hopSizeSec = 10E-3;      % Window step size in seconds
         sp.winType    = 'hann';     % Window type
         
-        % Angles and head rotation
+        % Angular resolution
         sp.angularResolution = 5;
-        sp.headRotateAngle = 10;
         
     otherwise
         error('Preset is not supported');

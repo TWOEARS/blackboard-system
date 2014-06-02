@@ -8,6 +8,7 @@ classdef LocationHypothesis < Hypothesis
         locations;                         % Relative locations
         headOrientation;                   % Head orientation angle. Negative values mean left turn                
         seenByConfusionKS = false;
+        seenByConfusionSolvingKS = false;
     end
     
     methods
@@ -19,6 +20,9 @@ classdef LocationHypothesis < Hypothesis
         end
         function obj = setSeenByConfusionKS(obj)
             obj.seenByConfusionKS = true;
+        end
+        function obj = setSeenByConfusionSolvingKS(obj)
+            obj.seenByConfusionSolvingKS = true;
         end
     end
     

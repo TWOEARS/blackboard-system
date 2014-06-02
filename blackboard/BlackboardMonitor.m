@@ -53,7 +53,10 @@ classdef BlackboardMonitor < handle
         end
         
         function handleEvent(obj, src, evnt)
-            fprintf('\n-------- [New Event] %s\n', evnt.EventName);
+            
+            if obj.blackboard.verbosity > 0
+                fprintf('\n-------- [New Event] %s\n', evnt.EventName);
+            end
             
             if ~obj.eventRegister.isKey(evnt.EventName)
                 error('Unknown event in handleBlackboardEvent: %s', evnt.EventName);
