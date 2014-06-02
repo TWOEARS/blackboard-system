@@ -47,15 +47,16 @@ classdef LocationKS < AbstractKS
                 return
             end
             
-            fprintf('-------- LocationKS has fired\n');
+            if obj.blackboard.verbosity > 0
+                fprintf('-------- LocationKS has fired\n');
+            end
             
             % Generate a temporary feature flist for GMTK
             featureBlock = [acousticCues.itds; acousticCues.ilds];
-            tempID = datestr(now,'yyyymmdd.HHMMSSFFF');
-            fn = sprintf('%s/spatial_cues_%s', obj.tempPath, tempID);
-            htkfn = strcat(fn, '.htk');
+            tmpfn = tempname;
+            htkfn = strcat(tmpfn, '.htk');
             writehtk(htkfn, featureBlock);
-            flist = strcat(fn, '.flist');
+            flist = strcat(tmpfn, '.flist');
             fidFlist = fopen(flist, 'w');
             fprintf(fidFlist, '%s\n', htkfn);
             fclose(fidFlist);

@@ -13,6 +13,7 @@ classdef Blackboard < handle
         locationHypotheses = [];        % Layer 3: Location hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
         perceivedLocations = [];        % Layer 5: Perceived source locations
+        verbosity = 0;                  % Verbosity of 0 switches off screen output
     end
     
     events
@@ -27,8 +28,11 @@ classdef Blackboard < handle
     
     methods
         %% Class constructor
-        function obj = Blackboard(scene)
+        function obj = Blackboard(scene, verbosity)
             obj.scene = scene;
+            if exist('verbosity', 'var')
+                obj.verbosity = verbosity;
+            end
         end
         
         %% Add KS to the blackboard system
@@ -135,7 +139,7 @@ classdef Blackboard < handle
         
         %% Change head orientation
         function adjustHeadOrientation(obj, angle)
-            obj.headOrientation = obj.headOrientation + angle;
+            obj.headOrientation = mod(obj.headOrientation + angle, 360);
             obj.scene.turnHead(angle);
         end
         

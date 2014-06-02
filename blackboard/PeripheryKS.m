@@ -52,7 +52,9 @@ classdef PeripheryKS < AbstractKS
                 obj.blackboard.signalBlocks{1}.setSeenByPeripheryKS();
                 
                 % Display that KS has fired
-                fprintf('-------- PeripheryKS has fired.\n');
+                if obj.blackboard.verbosity > 0
+                    fprintf('-------- PeripheryKS has fired.\n');
+                end
                 
                 % Trigger event
                 notify(obj.blackboard, 'NewPeripherySignal', BlackboardEventData(idx));

@@ -46,7 +46,9 @@ classdef SimpleGMMLocalisationKS < AbstractKS
                 return
             end
             
-            fprintf('-------- SimpleGMMLocalisationKS has fired\n');
+            if obj.blackboard.verbosity > 0
+                fprintf('-------- SimpleGMMLocalisationKS has fired\n');
+            end
             
             % Generate a temporary feature flist for GMTK
             featureBlock = [acousticCues.itds; acousticCues.ilds];

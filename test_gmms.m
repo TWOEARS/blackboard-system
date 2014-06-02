@@ -1,4 +1,12 @@
-function test_gmms
+function [locErrors, srcPositions] = test_gmms(snr)
+
+%% Testing parameters
+if nargin < 1
+    snr = inf;
+end
+envNoiseType = 'busystreet';
+srcPositions = [270 300 330 0 30 60 90];
+flist = 'fa2014_GRID_data/testset.flist';
 
 %% Add relevant paths
 addpath('blackboard');
@@ -6,7 +14,7 @@ addpath('gmtk');
 addpath(genpath('simulator'));
 addpath(genpath('wp2'));
 
-%% Initialize simulation
+plotting = 0;
 
 % Name of the graphical model
 gmName = 'fa2014';
@@ -33,83 +41,90 @@ strFeatures = {};
 % Initialize WP2 parameter struct
 wp2States = init_WP2(strFeatures, strCues, simParams);
 
+fid = fopen(flist);
+C = textscan(fid, '%s');
+fclose(fid);
+testFiles = C{1};
+clear C;
 
-wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
-srcPositions = [330]; %[270 300 330 0 30 60 90];
+nFiles = length(testFiles);
 nPositions = length(srcPositions);
-errorRates = zeros(nPositions, 1);
+locErrors = zeros(nPositions, nFiles);
+
 for p=1:nPositions
     srcPos = srcPositions(p);
+    
+    for f=1:nFiles
+        clc;
+        fprintf('---- Localising target source at %d degrees: file %d (%s)\n', srcPos, f, testFiles{f});
+        
+        % Initialize scene to be simulated.
+        scene = create_scene(simParams, srcPos, testFiles{f}, snr, envNoiseType);
 
-    % Initialize scene to be simulated.
-    src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
-    % Define dummy head
-    dummyHead = Head('QU_KEMAR_anechoic_3m.mat', simParams.fsHz);
-    % Create scene
-    scene = Scene(src.numSamples/src.fs, simParams.fsHz, simParams.blockSize * simParams.fsHz, ...
-        simParams.blockSize * simParams.fsHz, dummyHead, src);
+        %% Initialize blackboard, KSs and the blackboard monitor
 
-    %% Initialize blackboard, KSs and the blackboard monitor
+        % Create blackboard instance
+        bb = Blackboard(scene);
 
-    % Create blackboard instance
-    bb = Blackboard(scene);
+        % Init SignalBlockKS
+        ksSignalBlock = SignalBlockKS(bb);
+        bb.addKS(ksSignalBlock);
+        ksPeriphery = PeripheryKS(bb, simParams, wp2States);
+        bb.addKS(ksPeriphery);
+        ksAcousticCues = AcousticCuesKS(bb, wp2States);
+        bb.addKS(ksAcousticCues);
+        ksLoc = SimpleGMMLocalisationKS(bb, gmName, dimFeatures, angles);
+        bb.addKS(ksLoc);
 
-    % Init SignalBlockKS
-    ksSignalBlock = SignalBlockKS(bb);
-    bb.addKS(ksSignalBlock);
-    ksPeriphery = PeripheryKS(bb, simParams, wp2States);
-    bb.addKS(ksPeriphery);
-    ksAcousticCues = AcousticCuesKS(bb, wp2States);
-    bb.addKS(ksAcousticCues);
-    ksLoc = SimpleGMMLocalisationKS(bb, gmName, dimFeatures, angles);
-    bb.addKS(ksLoc);
-
-    % Register events with a list of KSs that should be triggered
-    bm = BlackboardMonitor(bb);
-    bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
-    bm.registerEvent('NewSignalBlock', ksPeriphery);
-    bm.registerEvent('NewPeripherySignal', ksAcousticCues);
-    bm.registerEvent('NewAcousticCues', ksLoc);
+        % Register events with a list of KSs that should be triggered
+        bm = BlackboardMonitor(bb);
+        bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
+        bm.registerEvent('NewSignalBlock', ksPeriphery);
+        bm.registerEvent('NewPeripherySignal', ksAcousticCues);
+        bm.registerEvent('NewAcousticCues', ksLoc);
 
 
-    %% Start the scheduler
-    bb.setReadyForNextBlock(true);
-    scheduler = Scheduler(bm);
-    ok = scheduler.iterate;
-    while ok
+        %% Start the scheduler
+        bb.setReadyForNextBlock(true);
+        scheduler = Scheduler(bm);
         ok = scheduler.iterate;
+        while ok
+            ok = scheduler.iterate;
+        end
+
+        if plotting
+            fprintf('\n---------------------------------------------------------------------------\n');
+            fprintf('Reference location: %d degrees\n', srcPos);
+            fprintf('---------------------------------------------------------------------------\n');
+            fprintf('Target source locations\n');
+            fprintf('---------------------------------------------------------------------------\n');
+            fprintf('Block\tLocation   (head orientation    relative location)\tProbability\n');
+            fprintf('---------------------------------------------------------------------------\n');
+        end
+        
+        estLocations = zeros(bb.getNumPerceivedLocations, 1);
+
+        for n=1:bb.getNumPerceivedLocations
+            if plotting
+                fprintf('%d\t%d degrees\t(%d degrees\t%d degrees)\t\t%.2f\n', ...
+                    bb.perceivedLocations(n).blockNo, ...
+                    bb.perceivedLocations(n).location + bb.perceivedLocations(n).headOrientation, ...
+                    bb.perceivedLocations(n).headOrientation, ...
+                    bb.perceivedLocations(n).location, ...
+                    bb.perceivedLocations(n).score);
+            end
+            estLocations(n) = bb.perceivedLocations(n).location + ...
+                bb.perceivedLocations(n).headOrientation;
+        end
+        locErrors(p,f) = mean(calc_localisation_errors(srcPos, estLocations));
     end
-
-    fprintf('\n---------------------------------------------------------------------------\n');
-    fprintf('Source location: %d degrees\n', srcPos);
-    fprintf('---------------------------------------------------------------------------\n');
-    fprintf('Perceived source locations (* indicates confusion)\n');
-    fprintf('---------------------------------------------------------------------------\n');
-    fprintf('Block\tLocation   (head orientation    relative location)\tProbability\n');
-    fprintf('---------------------------------------------------------------------------\n');
-
-    estLocations = zeros(bb.getNumPerceivedLocations, 1);
-
-    for n=1:bb.getNumPerceivedLocations
-        fprintf('%d\t%d degrees\t(%d degrees\t%d degrees)\t\t%.2f\n', ...
-            bb.perceivedLocations(n).blockNo, ...
-            bb.perceivedLocations(n).location + bb.perceivedLocations(n).headOrientation, ...
-            bb.perceivedLocations(n).headOrientation, ...
-            bb.perceivedLocations(n).location, ...
-            bb.perceivedLocations(n).score);
-
-        estLocations(n) = bb.perceivedLocations(n).location + ...
-            bb.perceivedLocations(n).headOrientation;
+    if nargout < 1
+        if isinf(snr)
+            save('localisation_errors_GMM_clean', 'locErrors', 'srcPositions');
+        else
+            save(sprintf('localisation_errors_GMM_%s_%ddB', envNoiseType, snr), 'locErrors', 'srcPositions');
+        end
     end
-    fprintf('---------------------------------------------------------------------------\n');
-
-    errorRates(p) = 1 / length(estLocations) * sum(abs(estLocations - ...
-        srcPos * ones(bb.getNumPerceivedLocations, 1)));
-
-    fprintf('Mean localisation error: %.4f degrees\n', errorRates(p));
-    fprintf('---------------------------------------------------------------------------\n');
 end
-
-errorRates
 
 

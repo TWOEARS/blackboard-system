@@ -83,7 +83,7 @@ classdef Scene < handle
             obj.frameShift = frameShift;
             
             % Assign number of samples
-            obj.numSamples = duration * fs;
+            obj.numSamples = floor(duration * fs);
             
             % Compute and assign number of time steps
             overlap = frameLength - frameShift;
