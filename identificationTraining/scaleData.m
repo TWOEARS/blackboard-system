@@ -1,4 +1,4 @@
-function dataScaled = scaleData( data, translators, factors )
+function x = scaleData( x, translators, factors )
 
-dataScaled = data - repmat( translators, size(data,1), 1 );
-dataScaled = dataScaled .* repmat( factors, size(data,1), 1 );
+x = x - repmat( translators, size(x,1), 1 );
+x = x .* repmat( factors, size(x,1), 1 );

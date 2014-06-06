@@ -1,9 +1,9 @@
-function [trInstancesScaled, featureTranslators, featureFactors] = scaleTrainingData( trInstances )
+function [xScaled, featureTranslators, featureFactors] = scaleTrainingData( x )
 
 % translate data to 0 mean
-featureTranslators = mean( trInstances );
+featureTranslators = mean( x );
 
 % transform data to 1 std
-featureFactors = 1 ./ std( trInstances );
+featureFactors = 1 ./ std( x );
 
-trInstancesScaled = scaleData( trInstances, featureTranslators, featureFactors );
+xScaled = scaleData( x, featureTranslators, featureFactors );
