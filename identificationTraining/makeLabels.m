@@ -1,38 +1,38 @@
-function l = makeLabels( soundFile, niState, nBlocks )
+function [labels, identities, idFiles] = makeLabels( soundsDir, className, niState )
 
-fprintf( 'labels ' );
+fprintf( 'make labels ' );
 
-%read annotations
-annotFid = fopen( [soundFile '.txt'] );
-if annotFid ~= -1
-    annotLine = fgetl( annotFid );
-    onsetOffset = sscanf( annotLine, '%f' );
+[classSoundFileNames, soundFileNames, classNames] = makeSoundLists( soundsDir, className );
+
+labelsSaveName = [soundsDir '/' className '/' className '_' getLabelsHash( niState ) '.labels.mat'];
+if ~exist( labelsSaveName, 'file' )
+    
+    labels = [];
+    identities = [];
+    for i = 1:length( soundFileNames )
+        
+        fprintf( '.' );
+        
+        blocksSaveName = [soundFileNames{i} '.' getBlockDataHash( niState ) '.blocks.mat'];
+        ls = load( blocksSaveName, 'wp2BlockFeatures' );
+        wp2BlockFeatures = ls.wp2BlockFeatures;
+        
+        if ~isempty( cell2mat( strfind( classSoundFileNames, soundFileNames{i} ) ) )
+            blockLabels = labelBlocks( soundFileNames{i}, wp2BlockFeatures, niState );
+        else
+            blockLabels = -1 * ones( size( wp2BlockFeatures, 2 ), 1 );
+        end
+        
+        labels = [labels; blockLabels];
+        
+        identities = [identities; repmat( [i, classNames{i,2}], size( wp2BlockFeatures, 2 ), 1 )];
+        
+    end
+    idFiles = soundFileNames;
+    
+    save( labelsSaveName, 'labels', 'identities', 'idFiles', 'niState' );
 else
-    onsetOffset = [ inf, inf ];
-end
-eventLength = onsetOffset(2) - onsetOffset(1);
-maxBlockSoundLength = min( niState.simParams.blockSize, eventLength );
-
-
-% split in blocks, for every block:
-l = zeros( nBlocks, 1 );
-for blockno = 1:nBlocks 
-
-    fprintf( '.' );
-
-    % extract label and add to trLabels
-    blockOnset = (blockno - 1) * niState.shiftSize;
-    blockOffset = blockOnset + niState.simParams.blockSize;
-    soundInBlockLength = min( blockOffset, onsetOffset(2) ) - max( blockOnset, onsetOffset(1) );
-    ratioBlockToSoundEvent = soundInBlockLength / maxBlockSoundLength;
-    blockIsSoundEvent = ratioBlockToSoundEvent > 0.66;
-    l(blockno,1) = blockIsSoundEvent;
+    load( labelsSaveName, 'labels', 'identities', 'idFiles' );
 end
 
-if annotFid ~= -1
-    fclose( annotFid );
-end
-
-%scaling l to [-1..1]
-l = (l * 2) - 1;
-
+disp( ';' );
