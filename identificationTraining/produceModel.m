@@ -1,47 +1,64 @@
 function produceModel( soundsDir, className, niState )
 
-savePreStr = [soundsDir '/' className '/' className '_' createNiStateModelId(niState)];
-delete( [savePreStr '.log'] );
-diary( [savePreStr '.log'] );
+%% start debug output
+
+modelSavePreStr = [soundsDir '/' className '/' className '_' getModelHash(niState)];
+delete( [modelSavePreStr '.log'] );
+diary( [modelSavePreStr '.log'] );
 disp('--------------------------------------------------------');
 disp('--------------------------------------------------------');
-fn_structdisp( niState )
+flatPrintStruct( niState )
 disp('--------------------------------------------------------');
 
-[l, d, ids, ~, ~] = createTrainingData( soundsDir, className, 1, 1, niState );
+%% data pipeline: load sounds - wp2 process - extract blocks - create labels & features
 
-[lfolds, dfolds, idsfolds] = splitDataPermutation( l, d, ids, niState.folds );
+wp2processSounds( soundsDir, className, niState );
+blockifyData( soundsDir, className, niState );
+[y, identities] = makeLabels( soundsDir, className, niState );
+x = makeFeatures( soundsDir, className, niState );
 
-savePreStr = [soundsDir '/' className '/' className '_' createNiStateSplitDataId(niState)];
-save( [savePreStr '_splitdata.mat'], 'lfolds', 'dfolds', 'idsfolds', 'niState' );
+%%  split data for outer CV
+[yfolds, xfolds, idsfolds] = splitDataPermutation( y, x, identities, niState.generalizationEstimation.folds );
+save( [soundsDir '/' className '/' className '_' getSplitDataHash(niState) '.splitdata.mat'], 'yfolds', 'xfolds', 'idsfolds', 'niState' );
 
-for i = 1:niState.folds
-    tridx = 1:niState.folds;
-    tridx(i) = [];
+%% outer CV for estimating generalization performance
+
+for i = 1:niState.generalizationEstimation.folds
     
-    fprintf( '\n%i. run of generalization assessment CV\ntraining\n', i );
-
-    model = trainSvm( tridx, lfolds, dfolds, 5, niState );
+    foldsIdx = 1:niState.generalizationEstimation.folds;
+    foldsIdx(i) = [];
     
-    fprintf( '\n%i. run of generalization assessment CV\ntesting\n', i );
-
-    [pl, ~, dec] = libsvmPredictExt( lfolds{i}, dfolds{i}, model );
+    fprintf( '\n%i. run of generalization assessment CV -- training\n\n', i );
+    [model, translators, factors, predGenVals(i), hps{i}, cvtrVals(i)] = trainSvm( foldsIdx, yfolds, xfolds, idsfolds, niState );
     
-    if model.Label(1) < 0;
-        dec = dec * -1;
-    end
-    val(i) = validation_function( dec, lfolds{i} );
+    fprintf( '\n%i. run of generalization assessment CV -- testing\n', i );
+    [~, genVals(i), ~] = libsvmPredictExt( yfolds{i}, xfolds{i}, model, translators, factors );
+    
 end
-genVal = mean( val );
-genValStd = std( val );
-fprintf( '\nGeneralization perfomance as evaluated by %i-fold CV is %g +-%g\n\n', niState.folds, genVal, genValStd );
+
+%% get perfomance numbers
+
+cvtrVal = mean( cvtrVals );
+cvtrValStd = std( cvtrVals );
+genVal = mean( genVals );
+genValStd = std( genVals );
+predGenVal = mean( predGenVals );
+predGenValStd = std( predGenVals );
+fprintf( '\nTraining perfomance as evaluated by %i-fold CV is %g +-%g\n', niState.generalizationEstimation.folds, cvtrVal, cvtrValStd );
+fprintf( '\nGeneralization perfomance as evaluated by %i-fold CV is %g +-%g\n', niState.generalizationEstimation.folds, genVal, genValStd );
+fprintf( 'Prediction of CV was %g +-%g\n\n', predGenVal, predGenValStd );
+
+%% final production of a model, using the whole dataset
 
 disp( 'training model on whole dataset' );
-model = trainSvm( 1:niState.folds, lfolds, dfolds, 5, niState );
-fprintf( '\nPerfomance on whole dataset:' );
-[~, val, ~] = libsvmPredictExt( vertcat( lfolds{:} ), vertcat( dfolds{:} ), model );
+[model, translators, factors, trPredGenVal, trHps, trVal] = trainSvm( 1:niState.generalizationEstimation.folds, yfolds, xfolds, idsfolds, niState );
 
-savePreStr = [soundsDir '/' className '/' className '_' createNiStateModelId(niState)];
-save( [savePreStr '_model.mat'], 'model', 'val', 'genVal', 'genValStd', 'niState' );
+%% saving model and perfomance numbers, end debug output
+
+modelhashes = {['wp2hash: ' getWp2dataHash( niState )]; ['blockdatahash: ' getBlockDataHash( niState )]; ['labelhash: ' getLabelsHash( niState )]; ['featureshash: ' getFeaturesHash( niState )]; ['splitdatahash: ' getSplitDataHash( niState )]; ['modelhash: ' getModelHash( niState )]}
+save( [modelSavePreStr '_model.mat'], 'model', 'genVal', 'genValStd', 'genVals', 'cvtrVal', 'cvtrValStd', 'cvtrVals', 'predGenVal', 'predGenValStd', 'predGenVals', 'trPredGenVal', 'trVal', 'hps', 'trHps', 'modelhashes', 'niState' );
+save( [modelSavePreStr '_scale.mat'], 'translators', 'factors', 'niState' );
+dynSaveMFun( @scaleData, [], [modelSavePreStr '_scaleFunction'] );
 
 diary off;
+
