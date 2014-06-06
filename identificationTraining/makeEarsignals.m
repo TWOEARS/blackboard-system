@@ -1,12 +1,11 @@
-function signals = makeEarsignals( monoSound, head, angle, niState )
+function signals = makeEarsignals( monoSound, angle, niState )
 
-convLength = ceil( niState.simParams.fsHz / head.fs * head.numSamples);
-signals = zeros(length(monoSound) + convLength - 1, 2);
+head = Head( niState.wp2dataCreation.head, niState.wp2dataCreation.fsHz );
+hrirs = head.getHrirs( angle );
 
-% Get hrirs
-hrirs = head.getHrirs(angle);
+convLength = ceil( niState.wp2dataCreation.fsHz / head.fs * head.numSamples );
+signals = zeros( length( monoSound ) + convLength - 1, 2 );
 
-% Apply convolution
-signals(:,1) = fastconv( monoSound, hrirs(:, 2) );
-signals(:,2) = fastconv( monoSound, hrirs(:, 1) );
+signals(:,1) = fastconv( monoSound, hrirs(:, 1) );
+signals(:,2) = fastconv( monoSound, hrirs(:, 2) );
 
