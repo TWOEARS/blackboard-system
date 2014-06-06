@@ -16,7 +16,7 @@ for ie = 1:nExperiments
         currentSoundDir = [soundsDir '/' soundDirNames(ic).name '/'];
         modelfile = dir( [currentSoundDir sprintf( '*%s_model.mat', modelhash )] );
         if ~isempty( modelfile )
-            classes{ie} = [classes{ie}; {soundDirNames(ic).name}];
+            classes{ie} = [classes{ie}; {['c_' soundDirNames(ic).name]}];
         end
         modelfile = {modelfile(:).name}';
         modelfile = strcat( currentSoundDir, modelfile );
