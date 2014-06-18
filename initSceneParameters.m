@@ -1,4 +1,4 @@
-function [scene, sourcePos, out] = initSceneParameters(preset, sp)
+function [scene, sourcePos, out] = initSceneParameters(preset, sp, duration)
 
 %% Error handling
 
@@ -13,23 +13,24 @@ end
 %% Define scene
 
 switch(lower(preset))
-    
-    case 'stage1_freefield'
-        % Scene parameters
-        duration = 10;               % Scene duration in seconds
         
+    case 'stage1_freefield'
         % Source signals and positions
-        angles = 0:sp.angularResolution:359;
+        %angles = 0:sp.angularResolution:359;
         %s1Pos = angles(randi(length(angles)));
-        s1Pos = 60;
-        s1 = SoundSource('Speech', 'speech.wav', 'Polar', [1, s1Pos]);
+        s1Pos = 45;
+        s1 = SoundSource('Speech', 'lwwi8p.wav', 'Polar', [1, s1Pos]);
         
         % Define dummy head
-        dummyHead = Head('HRIR_CIRC360.mat', sp.fsHz);
+        dummyHead = Head('QU_KEMAR_anechoic_3m.mat', sp.fsHz);
+        
+        % Generate environmental noise with specified SNR
+        envNoise = Environment('bus01.wav', -5); % - 5dB
         
         % Create scene
+        % For no diffuse noise, just put in [] instead of envNoise
         scene = Scene(duration, sp.fsHz, sp.blockSize * sp.fsHz, ...
-            sp.blockSize * sp.fsHz, dummyHead, s1);
+            sp.blockSize * sp.fsHz, dummyHead, envNoise, s1);
         
         % Return source position
         sourcePos = s1Pos;
@@ -65,9 +66,6 @@ switch(lower(preset))
         disp(['Source position: ', num2str(s1Pos)]);
         
     case 'stage1_reverb'
-        % Scene parameters
-        duration = 10;               % Scene duration in seconds
-        
         % Possible source positions
         sPos = [0, 30, 45, 90, 110, 135, 180, 225, 250, 270, 315, 330];
         
@@ -75,7 +73,7 @@ switch(lower(preset))
         s1Pos = sPos(randi(length(sPos)));
         
         % Get BRIR file
-        filename = ['SBSBRIR_x-0pt5y-0pt5_LS', num2str(s1Pos), 'deg.mat'];
+        filename = 'SBSBRIR.mat';
         
         s1 = SoundSource('Speech', 'speech.wav', 'Polar', [1, 0]);
         
@@ -84,7 +82,7 @@ switch(lower(preset))
         
         % Create scene
         scene = Scene(duration, sp.fsHz, sp.blockSize * sp.fsHz, ...
-            sp.blockSize * sp.fsHz, dummyHead, s1);
+            sp.blockSize * sp.fsHz, dummyHead, [], s1);
         
         % Return source position
         sourcePos = s1Pos;

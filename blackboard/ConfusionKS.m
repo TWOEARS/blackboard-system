@@ -5,7 +5,7 @@ classdef ConfusionKS < AbstractKS
     
     properties (SetAccess = private)
         activeIndex = 0;            % Index of the location hypothesis to be processed
-        postThreshold = 0.05;       % Posterior probability threshold for a valid LocationHypothesis
+        postThreshold = 0.1;       % Posterior probability threshold for a valid LocationHypothesis
     end
     
     methods
@@ -37,7 +37,9 @@ classdef ConfusionKS < AbstractKS
                 return
             end
             
-            fprintf('-------- ConfusionKS has fired\n');
+            if obj.blackboard.verbosity > 0
+                fprintf('-------- ConfusionKS has fired\n');
+            end
             
             locHyp = obj.blackboard.locationHypotheses(obj.activeIndex);
             
@@ -47,8 +49,8 @@ classdef ConfusionKS < AbstractKS
             if numLoc > 1
                 % Assume there is a confusion when there are more than 1
                 % valid location
-                cf = ConfusionHypothesis(locHyp.blockNo, locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
-                idx = obj.blackboard.addConfusionHypothesis(cf);
+                % cf = ConfusionHypothesis(locHyp.blockNo, locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
+                idx = obj.blackboard.addConfusionHypothesis(locHyp);
                 notify(obj.blackboard, 'NewConfusionHypothesis', BlackboardEventData(idx));
             elseif numLoc == 1
                 % No confusion, generate Perceived Location

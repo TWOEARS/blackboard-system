@@ -1,7 +1,6 @@
-classdef LocationKS < AbstractKS
-    % LocationKS calculates posterior probabilities for each azimuth angle
-    % and generates LocationHypothesis when provided with spatial 
-    % observation
+classdef SimpleGMMLocalisationKS < AbstractKS
+    % SimpleGMMLocalisationKS localises the source using GMMs with the MAP 
+    % criterion 
     
     properties (SetAccess = private)
         gmtkLoc;               % GMTK engine
@@ -11,7 +10,7 @@ classdef LocationKS < AbstractKS
     end
     
     methods
-        function obj = LocationKS(blackboard, gmName, dimFeatures, angles)
+        function obj = SimpleGMMLocalisationKS(blackboard, gmName, dimFeatures, angles)
             obj = obj@AbstractKS(blackboard);
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures);
             obj.angles = angles;
@@ -48,15 +47,16 @@ classdef LocationKS < AbstractKS
             end
             
             if obj.blackboard.verbosity > 0
-                fprintf('-------- LocationKS has fired\n');
+                fprintf('-------- SimpleGMMLocalisationKS has fired\n');
             end
             
             % Generate a temporary feature flist for GMTK
             featureBlock = [acousticCues.itds; acousticCues.ilds];
-            tmpfn = tempname;
-            htkfn = strcat(tmpfn, '.htk');
+            tempID = datestr(now,'yyyymmdd.HHMMSSFFF');
+            fn = sprintf('%s/spatial_cues_%s', obj.tempPath, tempID);
+            htkfn = strcat(fn, '.htk');
             writehtk(htkfn, featureBlock);
-            flist = strcat(tmpfn, '.flist');
+            flist = strcat(fn, '.flist');
             fidFlist = fopen(flist, 'w');
             fprintf(fidFlist, '%s\n', htkfn);
             fclose(fidFlist);
@@ -71,15 +71,16 @@ classdef LocationKS < AbstractKS
             % Now if successful, posteriors are written in output files 
             % with an appendix of _0 for the first utterance
             post = load(strcat(obj.gmtkLoc.outputCliqueFile, '_0'));
-            
-            %bar(obj.angles, mean(post,1))
-            %bar(mod(obj.angles+headRotation,360), mean(post,1));
-            
+
             % We simply take the average of posteriors across all the
             % samples for this block
-            locHyp = LocationHypothesis(acousticCues.blockNo, acousticCues.headOrientation, obj.angles, mean(post,1));
-            idx = obj.blackboard.addLocationHypothesis(locHyp);
-            notify(obj.blackboard, 'NewLocationHypothesis', BlackboardEventData(idx));
+            meanPost = mean(post,1);
+            [m,locIdx] = max(meanPost);
+            ploc = PerceivedLocation(acousticCues.blockNo, acousticCues.headOrientation, obj.angles(locIdx), m);
+            idx = obj.blackboard.addPerceivedLocation(ploc);
+            notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(idx));
+            % Now it's ready for the next block
+            obj.blackboard.setReadyForNextBlock(true);
             
             obj.activeIndex = 0;
             acousticCues.setSeenByLocationKS;

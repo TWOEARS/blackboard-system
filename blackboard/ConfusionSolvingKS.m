@@ -4,7 +4,7 @@ classdef ConfusionSolvingKS < AbstractKS
     properties (SetAccess = private)
         activeIndex = 0;                    % Index of LocationHypothesis that has just arrived
         confusionHypothesis = [];           % Confusion
-        postThreshold = 0.05;               % Posterior probability threshold for a valid LocationHypothesis
+        postThreshold = 0.1;                % Posterior probability threshold for a valid LocationHypothesis
     end
     
     methods
@@ -37,51 +37,36 @@ classdef ConfusionSolvingKS < AbstractKS
                 return
             end
             
-            fprintf('-------- ConfusionSolvingKS has fired\n');
+            if obj.blackboard.verbosity > 0
+                fprintf('-------- ConfusionSolvingKS has fired\n');
+            end
             
             headRotation = obj.blackboard.headOrientation - obj.confusionHypothesis.headOrientation;
-            predictedLocations = mod(obj.confusionHypothesis.locations - headRotation, 360);
-%             numHyp = length(obj.activeIndices);
-%             currentLocations = zeros(numHyp, 1);
-%             for n=1:numHyp
-%                 currentLocations(n) = obj.blackboard.locationHypotheses(obj.activeIndices(n)).location;
-%             end
-            locHyp = obj.blackboard.locationHypotheses(obj.activeIndex);
-            locIdx = locHyp.posteriors > obj.postThreshold;
-            newLocations = locHyp.locations(locIdx);
-            if ~isempty(newLocations)
-                srcLocations = [];
-                srcScores = [];
-                for n=1:length(predictedLocations)
-                    % Check if the predicted location occurs after head 
-                    % rotation. If yes, consider it a localised source
-                    if sum(predictedLocations(n)==newLocations) > 0
-                        srcLocations = [srcLocations obj.confusionHypothesis.locations(n)];
-                        srcScores = [srcScores obj.confusionHypothesis.posteriors(n)];
-                    end
-                end
-                % We check if the discarded location is a ghost. If yes, add 
-                % its posterior to the score of the localised source
-                for n=1:length(predictedLocations)
-                    for m = 1:length(srcLocations)
-                        if srcLocations(m) == obj.confusionHypothesis.locations(n)
-                            continue;
-                        end
-                        sumLocation = srcLocations(m) + obj.confusionHypothesis.locations(n);
-                        if sumLocation == 180 || sumLocation == 540
-                            srcScores(m) = srcScores(m) + obj.confusionHypothesis.posteriors(n);
-                        end
-                    end
-                end
-                % Record localised sources
-                if ~isempty(srcLocations)
-                    idx = zeros(length(srcLocations), 1);
-                    for n = 1:length(srcLocations)
-                        ploc = PerceivedLocation(obj.confusionHypothesis.blockNo, obj.confusionHypothesis.headOrientation, srcLocations(n), srcScores(n));
-                        idx(n) = obj.blackboard.addPerceivedLocation(ploc);
-                    end
-                    notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(idx));
-                end
+            % predictedLocations = mod(obj.confusionHypothesis.locations - headRotation, 360);
+
+            newLocHyp = obj.blackboard.locationHypotheses(obj.activeIndex);
+            idxDelta = headRotation / (newLocHyp.locations(2) - newLocHyp.locations(1));
+            predictedPosteriors = circshift(newLocHyp.posteriors,[0 idxDelta]);
+            % Take the average of the posterior distribution before head
+            % rotation and predictd distribution from after head rotation
+            post = (obj.confusionHypothesis.posteriors + predictedPosteriors) / 2;
+            post = post ./ sum(post);
+            
+%             hold off;
+%             plot(obj.confusionHypothesis.locations, obj.confusionHypothesis.posteriors, 'o--');
+%             hold on;
+%             plot(obj.confusionHypothesis.locations, predictedPosteriors, 'go--');
+%             plot(obj.confusionHypothesis.locations, post, 'ro--');
+%             legend('Dist before rotation', 'Dist after rotation', 'Average dist');
+            
+            [m,idx] = max(post);
+            if m > obj.postThreshold;
+                % Generate Perceived Location
+                ploc = PerceivedLocation(obj.confusionHypothesis.blockNo, ...
+                    obj.confusionHypothesis.headOrientation, ...
+                    obj.confusionHypothesis.locations(idx), m);
+                idx = obj.blackboard.addPerceivedLocation(ploc);
+                notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(idx));
             end
             obj.confusionHypothesis.setSeenByConfusionSolvingKS;
             obj.activeIndex = 0;

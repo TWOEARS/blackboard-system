@@ -60,8 +60,10 @@ classdef SignalBlockKS < AbstractKS
             idx = obj.blackboard.addSignalBlock(signalBlock);
                         
             % Display that KS has fired
-            fprintf('-------- SignalBlockKS has fired. Current block number is %d\n', obj.blockNo);
-           
+            if obj.blackboard.verbosity > 0
+                fprintf('-------- SignalBlockKS has fired. Current block number is %d\n', obj.blockNo);
+            end
+            
             % Trigger event
             notify(obj.blackboard, 'NewSignalBlock', BlackboardEventData(idx));
             

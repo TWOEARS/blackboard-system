@@ -11,10 +11,10 @@ end
 
 % Source signals and positions
 s1Pos = azimuth;
-s1 = SoundSource('Speech', 'speech.wav', 'Polar', [1, s1Pos]);
+s1 = SoundSource('TrainingData', 'training.wav', 'Polar', [1, s1Pos]);
 
 % Define dummy head
-dummyHead = Head('HRIR_CIRC360.mat', sp.fsHz);
+dummyHead = Head('QU_KEMAR_anechoic_3m.mat', sp.fsHz);
 
 % Create scene
 scene = Scene(sceneDuration, sp.fsHz, sp.blockSize * sp.fsHz, ...

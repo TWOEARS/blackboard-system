@@ -2,18 +2,22 @@ function sim_stage1
 
 clc;
 %clearAllButBreakpoints;
+%% Add relevant paths
+addpath('blackboard');
+addpath('gmtk');
+addpath(genpath('simulator'));
+addpath(genpath('wp2'));
 
-addpath(genpath(pwd));
-
+plotting = 1;
 
 %% Initialize simulation
 
 % Name of the graphical model
-gmName = 'stage1';
+gmName = 'fa2014';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
-simParams = initSimulationParameters('ident');
+simParams = initSimulationParameters(gmName);
 
 % Some global settings
 dimFeatures = (simParams.nChannels-1) * 2;
@@ -21,13 +25,6 @@ dimFeatures = (simParams.nChannels-1) * 2;
 % Define angular resolution
 numAngles = 360 / simParams.angularResolution;
 angles = linspace(0, 360 - simParams.angularResolution, numAngles);
-
-% Initialize scene to be simulated.
-% Select between 'stage1_freefield' or 'stage1_reverb'
-%
-% WARNING: HRIRs for freefield conditions have changed but GM has not
-% been retrained yet.
-[scene, sourcePos, out] = initSceneParameters('stage1_freefield_ident', simParams);
 
 %% Initialize all WP2 related parameters
 
@@ -40,6 +37,18 @@ strFeatures = {'ratemap_feature1'};
 % Initialize WP2 parameter struct
 wp2States = init_WP2(strFeatures, strCues, simParams);
 
+srcPos = 30;
+
+wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
+
+% Initialize scene to be simulated.
+src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
+% Define dummy head
+dummyHead = Head('QU_KEMAR_anechoic_3m.mat', simParams.fsHz);
+% Create scene
+scene = Scene(src.numSamples/src.fs, simParams.fsHz, simParams.blockSize * simParams.fsHz, ...
+    simParams.blockSize * simParams.fsHz, dummyHead, src);
+     
 %% Initialize blackboard, KSs and the blackboard monitor
 
 % Create blackboard instance
@@ -75,6 +84,7 @@ bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
 bm.registerEvent( 'NewIdentityHypothesis' );
 bm.registerEvent('NewConfusionHypothesis', ksRotate);
 
+if plotting
 %% Add event listeners for plotting
 addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
 addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
@@ -84,6 +94,7 @@ addlistener(bb, 'NewIdentityHypothesis', @plotIdentityHypothesis);
 addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
 figure(1)
 movegui('northwest');
+end
     
 %% Start the scheduler
 bb.setReadyForNextBlock(true);
@@ -94,12 +105,15 @@ while ok
 end
 
 fprintf('\n---------------------------------------------------------------------------\n');
-fprintf('Source location: %d degrees\n', sourcePos);
+fprintf('Source location: %d degrees\n', srcPos);
 fprintf('---------------------------------------------------------------------------\n');
 fprintf('Perceived source locations (* indicates confusion)\n');
 fprintf('---------------------------------------------------------------------------\n');
 fprintf('Block\tLocation   (head orientation    relative location)\tProbability\n');
 fprintf('---------------------------------------------------------------------------\n');
+
+estLocations = zeros(bb.getNumPerceivedLocations, 1);
+
 for n=1:bb.getNumPerceivedLocations
     fprintf('%d\t%d degrees\t(%d degrees\t%d degrees)\t\t%.2f\n', ...
         bb.perceivedLocations(n).blockNo, ...
@@ -107,6 +121,9 @@ for n=1:bb.getNumPerceivedLocations
         bb.perceivedLocations(n).headOrientation, ...
         bb.perceivedLocations(n).location, ...
         bb.perceivedLocations(n).score);
+    
+    estLocations(n) = bb.perceivedLocations(n).location + ...
+        bb.perceivedLocations(n).headOrientation;
 end
 fprintf('---------------------------------------------------------------------------\n');
 for n=1:bb.getNumConfusionHypotheses
@@ -119,6 +136,13 @@ for n=1:bb.getNumConfusionHypotheses
     end
 end
 fprintf('---------------------------------------------------------------------------\n');
+
+estError = 1 / (length(estLocations) - 1) * sum(abs(estLocations(1:end-1) - ...
+    srcPos * ones(bb.getNumPerceivedLocations - 1, 1)));
+
+fprintf('Mean localisation error: %.4f degrees\n', estError);
+fprintf('---------------------------------------------------------------------------\n');
+
 fprintf('-------------------- Identity Hypotheses ----------------------------------\n');
 fprintf('Block (time)\t\tclass\t\t\t\tdecision value\n');
 for n=1:length( bb.identityHypotheses )
@@ -136,15 +160,16 @@ function plotSignalBlocks(bb, evnt)
 sigBlock = bb.signalBlocks{evnt.data};
 subplot(4, 4, [15, 16])
 plot(sigBlock.signals(:,1));
-axis tight; ylim([-5 5]);
+axis tight; ylim([-1 1]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, left ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, [13, 14])
 plot(sigBlock.signals(:,2));
-axis tight; ylim([-5 5]);
+axis tight; ylim([-1 1]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
+
 
 function plotPeripherySignal(bb, evnt)
 sigBlock = bb.peripherySignals{evnt.data};
@@ -224,4 +249,3 @@ identHyp = bb.identityHypotheses( evnt.data );
 disp( identHyp.getIdentityText() );
 
 
-%%
