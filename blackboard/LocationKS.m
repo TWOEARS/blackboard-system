@@ -47,15 +47,16 @@ classdef LocationKS < AbstractKS
                 return
             end
             
-            fprintf('-------- LocationKS has fired\n');
+            if obj.blackboard.verbosity > 0
+                fprintf('-------- LocationKS has fired\n');
+            end
             
             % Generate a temporary feature flist for GMTK
             featureBlock = [acousticCues.itds; acousticCues.ilds];
-            tempID = datestr(now,'yyyymmdd.HHMMSSFFF');
-            fn = sprintf('%s/spatial_cues_%s', obj.tempPath, tempID);
-            htkfn = strcat(fn, '.htk');
+            tmpfn = tempname;
+            htkfn = strcat(tmpfn, '.htk');
             writehtk(htkfn, featureBlock);
-            flist = strcat(fn, '.flist');
+            flist = strcat(tmpfn, '.flist');
             fidFlist = fopen(flist, 'w');
             fprintf(fidFlist, '%s\n', htkfn);
             fclose(fidFlist);
@@ -71,18 +72,9 @@ classdef LocationKS < AbstractKS
             % with an appendix of _0 for the first utterance
             post = load(strcat(obj.gmtkLoc.outputCliqueFile, '_0'));
             
-%             % Plot posteriors
-%             hold off;
-%             bar(obj.postDist);
-%             set(gca,'XTickLabel', obj.angles, 'FontSize', 14);
-%             xlabel('Azimuth (degrees)', 'FontSize', 16);
-%             ylabel('Mean posteriors', 'FontSize', 16);
-%             axis([0 length(obj.angles)+1 0 1]);
-%             title(sprintf('Frame: %d, Head Orientation: %d degrees', feature.frame, obj.blackboard.headOrientation), 'FontSize', 16);
-%             hold on;
-%             plot([0 length(obj.angles)+1], [obj.postThreshold obj.postThreshold], 'r')
-%             colormap(summer);
-
+            %bar(obj.angles, mean(post,1))
+            %bar(mod(obj.angles+headRotation,360), mean(post,1));
+            
             % We simply take the average of posteriors across all the
             % samples for this block
             locHyp = LocationHypothesis(acousticCues.blockNo, acousticCues.headOrientation, obj.angles, mean(post,1));

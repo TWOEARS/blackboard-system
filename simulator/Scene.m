@@ -11,6 +11,7 @@ classdef Scene < handle
         numSamples              % Total number of samples in time-domain
         frameLength             % Frame length in samples
         frameShift              % Frame shift in samples
+        convLength              % Length of convoluted signal in samples
         
     end
     
@@ -19,17 +20,19 @@ classdef Scene < handle
                                 % signals of sound sources
         angles = {};            % Cell array containing azimuths
                                 % corresponding to the sound sources
+        envSignal;              % (optional) diffuse noise
+        snrGain                 % (optional) SNR gain for diffuse noise
     end
     
     methods (Access = public)
         function obj = Scene(duration, fs, frameLength, frameShift, ...
-                head, varargin)
+                head, envSignal, varargin)
             % SCENE Class constructor
             
             %% Error handling
             
             % Check number of input arguments
-            if nargin < 6
+            if nargin < 7
                 error('Incorrect number of input arguments.');
             end
             
@@ -80,7 +83,7 @@ classdef Scene < handle
             obj.frameShift = frameShift;
             
             % Assign number of samples
-            obj.numSamples = duration * fs;
+            obj.numSamples = floor(duration * fs);
             
             % Compute and assign number of time steps
             overlap = frameLength - frameShift;
@@ -93,12 +96,17 @@ classdef Scene < handle
             % Assign number of sources
             obj.numberOfSources = length(varargin);
             
+            % Add envirnomantal signal
+            if ~isempty(envSignal)
+                obj.envSignal = envSignal;
+            end
+            
             % Compute and assign source signals
             for k = 1 : length(varargin)
                 tempSignal = varargin{k}.getSignal(obj.head.distance);
                 
                 % Match sampling frequency
-                if varargin{1}.fs ~= obj.fs
+                if varargin{k}.fs ~= obj.fs
                     tempSignal = resample(tempSignal, ...
                         obj.fs, varargin{k}.fs);
                 end
@@ -116,6 +124,19 @@ classdef Scene < handle
                 
                 % Store azimuth of k-th sound source
                 obj.angles{k} = varargin{k}.azimuth;
+            end
+            
+            % Compute SNR gain
+            if ~isempty(envSignal)
+                tempPower = 0;
+                for l = 1 : length(obj.signals)
+                    tempPower = tempPower + norm(obj.signals{l});
+                end
+                
+                tempPower = tempPower / length(obj.signals);
+                
+                obj.snrGain = tempPower / norm(envSignal.signals(:, 1)) * ...
+                    10.0^(0.05 * envSignal.snr);
             end
         end
         function frame = getFrame(obj, timeStep)
@@ -142,9 +163,9 @@ classdef Scene < handle
             endIndex = startIndex + obj.frameLength - 1;
             
             % Pre-allocate output frames
-            convLength = ceil(obj.head.numSamples);
-            rSignal = zeros(obj.frameLength + convLength - 1, 1);
-            lSignal = zeros(obj.frameLength + convLength - 1, 1);
+            convSize = ceil(obj.head.numSamples);
+            rSignal = zeros(obj.frameLength + convSize - 1, 1);
+            lSignal = zeros(obj.frameLength + convSize - 1, 1);
             
             % Process signal frames
             for k = 1 : obj.numberOfSources
@@ -171,8 +192,18 @@ classdef Scene < handle
                 hrirs = obj.head.getHrirs(relativeAzimuth);
                 
                 % Apply convolution
-                rSignal = rSignal + fastconv(signalFrame, hrirs(:, 2));
-                lSignal = lSignal + fastconv(signalFrame, hrirs(:, 1));
+                rSignal = rSignal + conv(signalFrame, hrirs(:, 2));
+                lSignal = lSignal + conv(signalFrame, hrirs(:, 1));
+            end
+            
+            % (Optional) Apply diffuse noise
+            if ~isempty(obj.envSignal)
+                rSignal = rSignal + obj.snrGain .* ...
+                    [obj.envSignal.signals(startIndex : endIndex, 1); ...
+                    zeros(convSize - 1, 1)];
+                lSignal = lSignal + obj.snrGain .* ...
+                    [obj.envSignal.signals(startIndex : endIndex, 1); ...
+                    zeros(convSize - 1, 1)];
             end
             
             % Return processed signals

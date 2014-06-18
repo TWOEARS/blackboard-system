@@ -5,7 +5,7 @@ classdef Head < handle
     properties (GetAccess = public, SetAccess = public)
         fs                      % Sampling frequency in Hz
         lookDirection = 0;      % Look direction in the horizontal plane in
-                                % degrees (0 ... 360)
+        % degrees (0 ... 360)
         distance                % Reference distance of hrir's in m
         numSamples              % Length of HRIR's in samples
         increment               % Measured angular increment
@@ -48,13 +48,13 @@ classdef Head < handle
             
             % Load MIRO file
             miroObject = load(hrirFile);
-            objectName = fieldnames(miroObject); 
+            objectName = fieldnames(miroObject);
             
             % Assign MIRO object to hrirs parameter
             obj.hrirs = miroObject.(objectName{1});
             
             % Get angular representation
-            obj.angles = obj.hrirs.angles;            
+            obj.angles = obj.hrirs.angles;
             
             % Assign sampling frequency
             obj.fs = obj.hrirs.fs;
@@ -74,7 +74,7 @@ classdef Head < handle
             % Assign angular increment
             obj.increment = obj.hrirs.nIr / 360;
             
-            % Assign initial look direction            
+            % Assign initial look direction
             if nargin == 3
                 obj.lookDirection = initLookDirection;
             end
@@ -94,62 +94,20 @@ classdef Head < handle
             
             %% HRIR interpolation
             
-            % Check if linear interpolation is necessary
-            if mod(azimuth, obj.increment) == 0
-                if strcmp(obj.angles, 'RAD')
-                    azimuth = azimuth / 180 * pi;
-                    elevation = pi / 2;
-                else
-                    elevation = 90;
-                end
-                
-                hrirID = obj.hrirs.closestIr(azimuth, elevation);
-                hrirPair = obj.hrirs.getIR(hrirID);    
-                
-                for k = 1 : 2
-                    % Normalize
-                    hrirPair(:, k) = hrirPair(:, k) / max(hrirPair(:, k));
-                end
+            if strcmp(obj.angles, 'RAD')
+                azimuth = azimuth / 180 * pi;
+                elevation = pi / 2;
             else
-                % If yes, ...
-                
-                % Compute parameters for linear interpolation
-                lowerAzimuth = floor(azimuth);
-                upperAzimuth = mod(lowerAzimuth + obj.increment, 360);
-                
-                if strcmp(obj.angles, 'RAD')
-                    lowerAzimuth = lowerAzimuth / 180 * pi;
-                    upperAzimuth = upperAzimuth / 180 * pi;
-                    elevation = pi / 2;
-                else
-                    elevation = 90;
-                end
-                
-                % Load corresponding HRIR's
-                lowerID = obj.hrirs.closestIr(lowerAzimuth, elevation);
-                upperID = obj.hrirs.closestIr(upperAzimuth, elevation);
-                
-                lowerHrirs = obj.hrirs.getIR(lowerID);
-                upperHrirs = obj.hrirs.getIR(upperID);
-                
-                % Initialize output HRIR's
-                hrirPair = zeros(obj.numSamples, 2);
-                
-                % Calculate interpolation coefficients:
-                a = mod(azimuth, obj.increment) / obj.increment;
-                b = 1 - a;
-                
-                % Perform linear interpolation                
-                for k = 1 : 2
-                    hrirPair(:, k) = a * lowerHrirs(:, k) + ...
-                        b * upperHrirs(:, k);
-                    
-                    % Normalize
-                    hrirPair(:, k) = hrirPair(:, k) / max(hrirPair(:, k));
-                end
+                elevation = 90;
+            end
+            
+            hrirID = obj.hrirs.closestIr(azimuth, elevation);
+            hrirPair = obj.hrirs.getIR(hrirID);
+            
+            if strcmp(obj.hrirs.chOne, 'Right Ear')
+                hrirPair = fliplr(hrirPair);
             end
         end
     end
-    
 end
 
