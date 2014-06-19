@@ -13,7 +13,8 @@ plotting = 1;
 %% Initialize simulation
 
 % Name of the graphical model
-gmName = 'fa2014';
+%gmName = 'fa2014';
+gmName = 'ident';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
@@ -32,17 +33,19 @@ angles = linspace(0, 360 - simParams.angularResolution, numAngles);
 strCues = {'itd_xcorr' 'ild' 'ic_xcorr' 'ratemap_magnitude'};
 
 % Specify features that should be extracted
-strFeatures = {'ratemap_feature1'};
+strFeatures = { };
 
 % Initialize WP2 parameter struct
 wp2States = init_WP2(strFeatures, strCues, simParams);
 
 srcPos = 30;
 
-wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
+%wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
+wavfn = 'niEvents_data/test/mix1.wav';
 
 % Initialize scene to be simulated.
-src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
+%src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
+src = SoundSource('EventMix', wavfn, 'Polar', [1, srcPos]);
 % Define dummy head
 dummyHead = Head('QU_KEMAR_anechoic_3m.mat', simParams.fsHz);
 % Create scene
@@ -63,10 +66,34 @@ ksAcousticCues = AcousticCuesKS(bb, wp2States);
 bb.addKS(ksAcousticCues);
 ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
 bb.addKS(ksLoc);
-ksIdent = IdentityKS( bb, 'identificationModels/keys_ratemap_feature1_msFeatures' );
+ksIdent = IdentityKS( bb, 'identificationModels/clearthroat_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent1 = IdentityKS( bb, 'identificationModels/cough_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent2 = IdentityKS( bb, 'identificationModels/doorslam_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent3 = IdentityKS( bb, 'identificationModels/drawer_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent4 = IdentityKS( bb, 'identificationModels/keyboard_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent5 = IdentityKS( bb, 'identificationModels/keys_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent6 = IdentityKS( bb, 'identificationModels/knock_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent7 = IdentityKS( bb, 'identificationModels/laughter_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent8 = IdentityKS( bb, 'identificationModels/mouse_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent9 = IdentityKS( bb, 'identificationModels/pageturn_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent10 = IdentityKS( bb, 'identificationModels/pendrop_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent11 = IdentityKS( bb, 'identificationModels/phone_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent12 = IdentityKS( bb, 'identificationModels/speech_c71f6a3107198299fbd99d42319f54f1' );
+ksIdent13 = IdentityKS( bb, 'identificationModels/switch_c71f6a3107198299fbd99d42319f54f1' );
 bb.addKS( ksIdent );
-ksIdent1 = IdentityKS( bb, 'identificationModels/knock_v1_ratemap_feature1_msFeatures' );
 bb.addKS( ksIdent1 );
+bb.addKS( ksIdent2 );
+bb.addKS( ksIdent3 );
+bb.addKS( ksIdent4 );
+bb.addKS( ksIdent5 );
+bb.addKS( ksIdent6 );
+bb.addKS( ksIdent7 );
+bb.addKS( ksIdent8 );
+bb.addKS( ksIdent9 );
+bb.addKS( ksIdent10 );
+bb.addKS( ksIdent11 );
+bb.addKS( ksIdent12 );
+bb.addKS( ksIdent13 );
 ksConf = ConfusionKS(bb);
 bb.addKS(ksConf);
 ksConfSolver = ConfusionSolvingKS(bb);
@@ -79,7 +106,7 @@ bm = BlackboardMonitor(bb);
 bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
 bm.registerEvent('NewSignalBlock', ksPeriphery);
 bm.registerEvent('NewPeripherySignal', ksAcousticCues);
-bm.registerEvent('NewAcousticCues', ksLoc, ksIdent, ksIdent1);
+bm.registerEvent('NewAcousticCues', ksLoc, ksIdent, ksIdent1, ksIdent2, ksIdent3, ksIdent4, ksIdent5, ksIdent6, ksIdent7, ksIdent8, ksIdent9, ksIdent10, ksIdent11, ksIdent12, ksIdent13);
 bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
 bm.registerEvent( 'NewIdentityHypothesis' );
 bm.registerEvent('NewConfusionHypothesis', ksRotate);

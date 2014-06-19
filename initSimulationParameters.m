@@ -88,7 +88,6 @@ switch(lower(preset))
         
         % Angles and head rotation
         sp.angularResolution = 5;
-        sp.headRotateAngle = 30;
         
     otherwise
         error('Preset is not supported');
