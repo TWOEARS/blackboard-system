@@ -8,12 +8,13 @@ wp2state = init_WP2( niState.wp2dataCreation.strFeatures, niState.wp2dataCreatio
 wp2DataHash = getWp2dataHash( niState );
 for i = 1:length( soundFileNames )
     
-    fprintf( '.' );
-    
     wp2SaveName = [soundFileNames{i} '.' wp2DataHash '.wp2.mat'];
-    if exist( wp2SaveName, 'file' ); continue; end;
+    if exist( wp2SaveName, 'file' )
+        fprintf( '.' );
+        continue;
+    end;
     
-    fprintf( wp2SaveName );
+    fprintf( '\n%s', wp2SaveName );
 
     [sound, fsHz] = audioread( soundFileNames{i} );
     if fsHz ~= niState.wp2dataCreation.fsHz
@@ -35,8 +36,8 @@ for i = 1:length( soundFileNames )
         
         fprintf( '.' );
         
-        [~,~,wp2features,~] = process_WP2( earSignals, niState.wp2dataCreation.fsHz, wp2state );
-        wp2data = [wp2data wp2features];
+        [~,wp2cues,wp2features,~] = process_WP2( earSignals, niState.wp2dataCreation.fsHz, wp2state );
+        wp2data = [wp2data [wp2cues;wp2features]];
         
     end
     

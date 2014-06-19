@@ -61,7 +61,7 @@ for ic = 1:size( classes,1 )
     end
 end
 
-tMaxVals = cell2table( num2cell( max( cell2mat( tExpsVals{:,:}) ) ) );
+tMaxVals = cell2table( num2cell( max( cell2mat( tExpsVals{:,:}),[], 1 ) ) );
 tMaxVals.Properties.VariableNames = tExpsVals.Properties.VariableNames;
 tExpsVals = [tExpsVals; tMaxVals];
 tExpsVals.Properties.RowNames{end} = 'best values';

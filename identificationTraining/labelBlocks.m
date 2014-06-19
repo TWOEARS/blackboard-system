@@ -13,10 +13,10 @@ eventOffset = onsetOffset(2);
 eventLength = eventOffset - eventOnset;
 maxBlockEventLength = min( niState.blockCreation.blockSize, eventLength );
 
-for blockIdx = 1:size( wp2BlockFeatures, 2 )
+for blockIdx = 1:size( wp2BlockFeatures, 1 )
 
-    blockOnset = wp2BlockFeatures(blockIdx).startTime;
-    blockOffset = wp2BlockFeatures(blockIdx).endTime;
+    blockOnset = wp2BlockFeatures(blockIdx, 1).startTime;
+    blockOffset = wp2BlockFeatures(blockIdx, 1).endTime;
     soundInBlockLength = min( blockOffset, eventOffset ) - max( blockOnset, eventOnset );
     ratioBlockToSoundEvent = soundInBlockLength / maxBlockEventLength;
     blockIsSoundEvent = ratioBlockToSoundEvent > niState.Labeling.minBlockToEventRatio;
