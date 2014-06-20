@@ -40,8 +40,7 @@ classdef AcousticCuesKS < AbstractKS
                 ratemap = wp2Cues(4).data;
                 
                 acousticCues = AcousticCues(wp2Periphery.blockNo, ...
-                    wp2Periphery.headOrientation, itds, ilds, ic, ratemap, ...
-                    wp2Features(1).data);
+                    wp2Periphery.headOrientation, itds, ilds, ic, ratemap );
                 
                 % Remove old acoustic cues from the bb
                 if obj.blackboard.getNumAcousticCues > 0
