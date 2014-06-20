@@ -1,0 +1,17 @@
+#!/bin/sh
+
+<<<<<<< HEAD
+/usr/local/bin/gmtkJT -iswp1 -of1 GM_stage1/flists/spatial_cues_20140519.133448983.flist -nf1 62 -fmt1 htk \
+=======
+/usr/local/bin/gmtkJT -iswp1 -of1 GM_stage1/flists/spatial_cues_20140514.154018339.flist -nf1 62 -fmt1 htk \
+>>>>>>> 3206cadf20d95c3cacf4832dd3490530ae2e3c7b
+        -strFile GM_stage1/stage1.str \
+        -inputMasterFile GM_stage1/stage1.master \
+        -inputTrainableParameters GM_stage1/stage1_learned_params.gmp \
+        -pCliquePrintRange 0 \
+        -cCliquePrintRange 0 \
+        -eCliquePrintRange 0 \
+        -cliqueOutputFileName GM_stage1/stage1.post \
+        -cliqueListFileName GM_stage1/stage1.post \
+        -cliquePrintFormat ascii
+
