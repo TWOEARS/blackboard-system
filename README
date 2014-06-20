@@ -1,0 +1,46 @@
+%
+% A blackboard system for the stage 1 scenario (one static source).
+%
+
+FOLDERS:
+* blackboard/      Contains relevant files for the blackboard
+
+* GM_stage1/       Contains relevant files (structure, learned parameters) 
+                   for the graphical model
+
+* GM_training/     Contains a training blackboard for training the GM
+
+* gmtk/            Matlab wrapper for using GMTK
+
+* simulator/       Sound scene rendering simulator
+
+* wp2/             Contains cue extraction code from WP2
+
+
+CHANGES:
+* 2014-03-07 Ning Ma <n.ma@sheffield.ac.uk>
+  Created a blackboard that solves front-back confusions with head 
+  movements for localisation of a single static source
+  
+* 2014-03-09 Ning Ma <n.ma@sheffield.ac.uk>
+  Added the scene rendering simulator developed by Christopher Schymura
+
+* 2014-03-19 Ning Ma <n.ma@sheffield.ac.uk>
+  Added a blackboard monitor and adopted an event-driven architecture 
+  based on the HearSay II blackboard system
+
+* 2014-03-31 Tobias May <tobmay@elektro.dtu.dk>
+  Added code for extracting binaural cues
+
+* 2014-04-03 Christopher Schymura <christopher.schymura@ruhr-uni-bochum.de>
+  Added signal/cue layers to the blackboard and integrated Tobias' code in 
+  relevant KSs.
+
+* 2014-04-04 Ning Ma <n.ma@sheffield.ac.uk>
+  Made changes to top layers and relevant KSs for block-processing
+
+* 2014-04-07 Ning and Christopher
+  Added a blackboard for generating training data and estimating GM 
+  parameters
+
+
