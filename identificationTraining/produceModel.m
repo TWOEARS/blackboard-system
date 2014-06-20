@@ -59,6 +59,7 @@ modelhashes = {['wp2hash: ' getWp2dataHash( niState )]; ['blockdatahash: ' getBl
 save( [modelSavePreStr '_model.mat'], 'model', 'genVal', 'genValStd', 'genVals', 'cvtrVal', 'cvtrValStd', 'cvtrVals', 'predGenVal', 'predGenValStd', 'predGenVals', 'trPredGenVal', 'trVal', 'hps', 'trHps', 'modelhashes', 'niState' );
 save( [modelSavePreStr '_scale.mat'], 'translators', 'factors', 'niState' );
 dynSaveMFun( @scaleData, [], [modelSavePreStr '_scaleFunction'] );
+dynSaveMFun( niState.featureCreation.function, niState.featureCreation.functionParam, [modelSavePreStr '_featureFunction.mat'] );
 
 diary off;
 

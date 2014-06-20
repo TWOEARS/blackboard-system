@@ -7,7 +7,6 @@ classdef AcousticCues < handle
         ilds;            % ILD cues
         ic;              % IC
         ratemap;         % Magnitude ratemap
-        ratemapF1;       % ratemap feature v1
         headOrientation; % head orientation used to generate the cues
         seenByLocationKS = false;
     end

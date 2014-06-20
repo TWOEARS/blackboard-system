@@ -23,7 +23,6 @@ if ~exist( featuresSaveName, 'file' )
     end
     
     save( featuresSaveName, 'features', 'niState' );
-    dynSaveMFun( niState.featureCreation.function, niState.featureCreation.functionParam, [featuresSavePreStr '_featureFunction'] );
 else
     load( featuresSaveName, 'features' );
 end

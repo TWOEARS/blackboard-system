@@ -12,9 +12,10 @@ classdef IdentityKS < AbstractKS
     end
     
     methods
-        function obj = IdentityKS( blackboard, modelFileName )
+        function obj = IdentityKS( blackboard, modelName, modelVersion )
             obj = obj@AbstractKS( blackboard );
-            obj.modelname = modelFileName;
+            obj.modelname = modelName;
+            modelFileName = ['identificationModels/' modelName '_' modelVersion];
             v = load( [modelFileName '_model.mat'] );
             obj.model = v.model;
             v = load( [modelFileName '_scale.mat'] );
@@ -44,7 +45,9 @@ classdef IdentityKS < AbstractKS
             
             fprintf( '-------- IdentityKS (%s) has fired\n', obj.modelname );
             
-            features = obj.featureFunc( obj.featureParam, acousticCues.ratemapF1 );
+            rmWp2.data = acousticCues.ratemap;
+            rmWp2.name = 'ratemap_magnitude';
+            features = obj.featureFunc( obj.featureParam, rmWp2 );
             features = obj.scaleFunc( features', obj.scale.translators, obj.scale.factors );
             [label, ~, decVal] = libsvmpredict( [0], features, obj.model, '-q' );
             %libsvmpredict is the renamed svmpredict of the LIBSVM package
