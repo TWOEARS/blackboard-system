@@ -78,7 +78,8 @@ switch lower(method)
         
         % Check normalization constant
         if any(scale==0) || any(~isfinite(scale))
-            error('Normalization constant is zero/not finite')
+            out = in;
+            return;
         end
         
         % Perform normalization

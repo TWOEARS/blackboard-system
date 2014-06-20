@@ -1,5 +1,7 @@
 function sim_stage1
 
+clc;
+%clearAllButBreakpoints;
 %% Add relevant paths
 addpath('blackboard');
 addpath('gmtk');
@@ -11,7 +13,8 @@ plotting = 1;
 %% Initialize simulation
 
 % Name of the graphical model
-gmName = 'fa2014';
+%gmName = 'fa2014';
+gmName = 'ident';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
@@ -23,24 +26,26 @@ dimFeatures = (simParams.nChannels-1) * 2;
 % Define angular resolution
 numAngles = 360 / simParams.angularResolution;
 angles = linspace(0, 360 - simParams.angularResolution, numAngles);
-   
+
 %% Initialize all WP2 related parameters
 
 % Specify cues that should be computed
 strCues = {'itd_xcorr' 'ild' 'ic_xcorr' 'ratemap_magnitude'};
 
 % Specify features that should be extracted
-strFeatures = {};
+strFeatures = { };
 
 % Initialize WP2 parameter struct
 wp2States = init_WP2(strFeatures, strCues, simParams);
 
 srcPos = 30;
 
-wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
+%wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
+wavfn = 'niEvents_data/test/mix1.wav';
 
 % Initialize scene to be simulated.
-src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
+%src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
+src = SoundSource('EventMix', wavfn, 'Polar', [1, srcPos]);
 % Define dummy head
 dummyHead = Head('QU_KEMAR_anechoic_3m.mat', simParams.fsHz);
 % Create scene
@@ -61,6 +66,34 @@ ksAcousticCues = AcousticCuesKS(bb, wp2States);
 bb.addKS(ksAcousticCues);
 ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
 bb.addKS(ksLoc);
+ksIdent = IdentityKS( bb, 'clearthroat', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent1 = IdentityKS( bb, 'cough', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent2 = IdentityKS( bb, 'doorslam', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent3 = IdentityKS( bb, 'drawer', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent4 = IdentityKS( bb, 'keyboard', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent5 = IdentityKS( bb, 'keys', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent6 = IdentityKS( bb, 'knock', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent7 = IdentityKS( bb, 'laughter', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent8 = IdentityKS( bb, 'mouse', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent9 = IdentityKS( bb, 'pageturn', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent10 = IdentityKS( bb, 'pendrop', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent11 = IdentityKS( bb, 'phone', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent12 = IdentityKS( bb, 'speech', 'c71f6a3107198299fbd99d42319f54f1' );
+ksIdent13 = IdentityKS( bb, 'switch', 'c71f6a3107198299fbd99d42319f54f1' );
+bb.addKS( ksIdent );
+bb.addKS( ksIdent1 );
+bb.addKS( ksIdent2 );
+bb.addKS( ksIdent3 );
+bb.addKS( ksIdent4 );
+bb.addKS( ksIdent5 );
+bb.addKS( ksIdent6 );
+bb.addKS( ksIdent7 );
+bb.addKS( ksIdent8 );
+bb.addKS( ksIdent9 );
+bb.addKS( ksIdent10 );
+bb.addKS( ksIdent11 );
+bb.addKS( ksIdent12 );
+bb.addKS( ksIdent13 );
 ksConf = ConfusionKS(bb);
 bb.addKS(ksConf);
 ksConfSolver = ConfusionSolvingKS(bb);
@@ -73,21 +106,23 @@ bm = BlackboardMonitor(bb);
 bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
 bm.registerEvent('NewSignalBlock', ksPeriphery);
 bm.registerEvent('NewPeripherySignal', ksAcousticCues);
-bm.registerEvent('NewAcousticCues', ksLoc);
+bm.registerEvent('NewAcousticCues', ksLoc, ksIdent, ksIdent1, ksIdent2, ksIdent3, ksIdent4, ksIdent5, ksIdent6, ksIdent7, ksIdent8, ksIdent9, ksIdent10, ksIdent11, ksIdent12, ksIdent13);
 bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
+bm.registerEvent( 'NewIdentityHypothesis' );
 bm.registerEvent('NewConfusionHypothesis', ksRotate);
 
 if plotting
-    %% Add event listeners for plotting
-    addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
-    addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
-    addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
-    addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
-    addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
-    figure(1)
-    movegui('northwest');
+%% Add event listeners for plotting
+addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
+addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
+addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
+addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
+addlistener(bb, 'NewIdentityHypothesis', @plotIdentityHypothesis);
+addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
+figure(1)
+movegui('northwest');
 end
-
+    
 %% Start the scheduler
 bb.setReadyForNextBlock(true);
 scheduler = Scheduler(bm);
@@ -133,6 +168,17 @@ estError = 1 / (length(estLocations) - 1) * sum(abs(estLocations(1:end-1) - ...
     srcPos * ones(bb.getNumPerceivedLocations - 1, 1)));
 
 fprintf('Mean localisation error: %.4f degrees\n', estError);
+fprintf('---------------------------------------------------------------------------\n');
+
+fprintf('-------------------- Identity Hypotheses ----------------------------------\n');
+fprintf('Block (time)\t\tclass\t\t\t\tdecision value\n');
+for n=1:length( bb.identityHypotheses )
+    id = bb.identityHypotheses(n);
+    shiftDuration = scene.frameShift/simParams.fsHz;
+    fprintf( '%d\t(%g-%gs)\t\t%s\t%d\n', id.blockNo, (id.blockNo-1)*shiftDuration, id.blockNo*shiftDuration, id.getIdentityText(), id.decVal );
+end
+v = load( 'niMixDesc.mat', 'description' );
+fis = plotIdentificationScene( 'niMix.wav', v.description, bb.identityHypotheses, scene );
 fprintf('---------------------------------------------------------------------------\n');
 
 
@@ -224,3 +270,9 @@ xlabel('Azimuth (degrees)', 'FontSize', 12);
 ylabel('Probability', 'FontSize', 12);
 axis([0 361 0 1]);
 title(sprintf('Block %d, head orientation: %d deg, perceived location', pLoc.blockNo, pLoc.headOrientation), 'FontSize', 12);
+
+function plotIdentityHypothesis( bb, evnt )
+identHyp = bb.identityHypotheses( evnt.data );
+disp( identHyp.getIdentityText() );
+
+

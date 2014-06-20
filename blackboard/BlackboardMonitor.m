@@ -20,6 +20,8 @@ classdef BlackboardMonitor < handle
                     n = 10;
                 case 'LocationKS'
                 	n = 20;
+                case 'IdentityKS'
+                	n = 15;
                 case 'ConfusionKS'
                 	n = 30;
                 case 'RotationKS'
