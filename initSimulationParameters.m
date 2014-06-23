@@ -10,7 +10,7 @@ end
 
 switch(lower(preset))
     
-    case 'default'        
+    case 'stage1'        
         % Input signal
         sp.fsHz       = 44.1E3;
         sp.bNormRMS   = false;
@@ -28,7 +28,7 @@ switch(lower(preset))
         sp.maxDelaySec = 1.0E-3;
         
         % Framing parameters
-        sp.blockSize  = 100E-3;     % Block size on layer 1a
+        sp.blockSize  = 500E-3;     % Block size on layer 1a
         sp.winSizeSec = 20E-3;      % Window size in seconds
         sp.hopSizeSec = 10E-3;      % Window step size in seconds
         sp.winType    = 'hann';     % Window type
