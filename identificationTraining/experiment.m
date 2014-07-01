@@ -9,21 +9,22 @@ addpath( genpath( [getMFilePath() '../tools/'] ) );
 e1setup = setupExperiment();
 %% produce models for experiment
 
-produceModel( '../../testSoundsIEEE_AASP', 'alert', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'clearthroat', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'cough', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'doorslam', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'drawer', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'keyboard', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'keys', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'knock', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'laughter', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'mouse', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'pageturn', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'pendrop', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'phone', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'speech', e1setup );
-produceModel( '../../testSoundsIEEE_AASP', 'switch', e1setup );
+trainPath = '../../dataGit/sound_databases/IEEE_AASP/train';
+produceModel( trainPath, 'alert', e1setup );
+produceModel( trainPath, 'clearthroat', e1setup );
+produceModel( trainPath, 'cough', e1setup );
+produceModel( trainPath, 'doorslam', e1setup );
+produceModel( trainPath, 'drawer', e1setup );
+produceModel( trainPath, 'keyboard', e1setup );
+produceModel( trainPath, 'keys', e1setup );
+produceModel( trainPath, 'knock', e1setup );
+produceModel( trainPath, 'laughter', e1setup );
+produceModel( trainPath, 'mouse', e1setup );
+produceModel( trainPath, 'pageturn', e1setup );
+produceModel( trainPath, 'pendrop', e1setup );
+produceModel( trainPath, 'phone', e1setup );
+produceModel( trainPath, 'speech', e1setup );
+produceModel( trainPath, 'switch', e1setup );
 
 %% create experiment: standard
 
@@ -33,23 +34,23 @@ e2setup.hyperParamSearch.searchBudget = 81;
 
 %% produce models for experiment
 
-produceModel( '../../testSoundsIEEE_AASP', 'alert', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'clearthroat', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'cough', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'doorslam', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'drawer', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'keyboard', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'keys', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'knock', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'laughter', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'mouse', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'pageturn', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'pendrop', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'phone', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'speech', e2setup );
-produceModel( '../../testSoundsIEEE_AASP', 'switch', e2setup );
+produceModel( trainPath, 'alert', e2setup );
+produceModel( trainPath, 'clearthroat', e2setup );
+produceModel( trainPath, 'cough', e2setup );
+produceModel( trainPath, 'doorslam', e2setup );
+produceModel( trainPath, 'drawer', e2setup );
+produceModel( trainPath, 'keyboard', e2setup );
+produceModel( trainPath, 'keys', e2setup );
+produceModel( trainPath, 'knock', e2setup );
+produceModel( trainPath, 'laughter', e2setup );
+produceModel( trainPath, 'mouse', e2setup );
+produceModel( trainPath, 'pageturn', e2setup );
+produceModel( trainPath, 'pendrop', e2setup );
+produceModel( trainPath, 'phone', e2setup );
+produceModel( trainPath, 'speech', e2setup );
+produceModel( trainPath, 'switch', e2setup );
 
 %% put together perfomance numbers of experiments for comparison
 
-[ted, tv, tev] = makeResultsTable( '../../testSoundsIEEE_AASP', e1setup, e2setup );
+[ted, tv, tev] = makeResultsTable( trainPath, e1setup, e2setup );
 disp( tev );

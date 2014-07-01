@@ -40,8 +40,8 @@ wp2States = init_WP2(strFeatures, strCues, simParams);
 
 srcPos = 30;
 
-%wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
-wavfn = 'niMix.wav';
+wavfn = '../dataGit/sound_databases/grid_subset/test/s1/lbayzp.wav';
+%wavfn = '../dataGit/sound_databases/IEEE_AASP/test/compilations/test1.wav';
 
 % Initialize scene to be simulated.
 %src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
@@ -121,7 +121,6 @@ addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
 addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
 addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
 addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
-addlistener(bb, 'NewIdentityHypothesis', @plotIdentityHypothesis);
 addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
 figure(1)
 movegui('northwest');
@@ -174,15 +173,39 @@ estError = 1 / (length(estLocations) - 1) * sum(abs(estLocations(1:end-1) - ...
 fprintf('Mean localisation error: %.4f degrees\n', estError);
 fprintf('---------------------------------------------------------------------------\n');
 
+v = load( '../dataGit/sound_databases/IEEE_AASP/test/compilations/test1.mat', 'description' );
 fprintf('-------------------- Identity Hypotheses ----------------------------------\n');
 fprintf('Block (time)\t\tclass\t\t\t\tdecision value\n');
 for n=1:length( bb.identityHypotheses )
     id = bb.identityHypotheses(n);
     shiftDuration = scene.frameShift/simParams.fsHz;
-    fprintf( '%d\t(%g-%gs)\t\t%s\t%d\n', id.blockNo, (id.blockNo-1)*shiftDuration, id.blockNo*shiftDuration, id.getIdentityText(), id.decVal );
+    className = id.getIdentityText();
+    blockStart = (id.blockNo-1)*shiftDuration;
+    blockEnd = id.blockNo*shiftDuration;
+    c = 'Errors';
+    for i=1:size(v.description, 1)
+        if strcmpi( className, v.description{i,2} )  && v.description{i,3} < blockStart  &&  blockStart < v.description{i,4}
+            c = '*Green';
+        end
+        if strcmpi( className, v.description{i,2} )  && v.description{i,3} < blockStart  &&  blockEnd < v.description{i,4}
+            c = '*Green';
+        end
+        if strcmpi( className, v.description{i,2} )  && v.description{i,3} < blockEnd  &&  blockEnd < v.description{i,4}
+            c = '*Green';
+        end
+        if strcmpi( className, v.description{i,2} )  && v.description{i,3} > blockStart  &&  blockEnd > v.description{i,3}
+            c = '*Green';
+        end
+        if strcmpi( className, v.description{i,2} )  && v.description{i,3} > blockStart  &&  blockEnd > v.description{i,4}
+            c = '*Green';
+        end
+        if strcmpi( className, v.description{i,2} )  && v.description{i,4} > blockStart  &&  blockEnd > v.description{i,4}
+            c = '*Green';
+        end
+    end
+    cprintf( c, '%d\t(%g-%gs)\t\t%s\t%d\n', id.blockNo, blockStart, blockEnd, className, id.decVal );
 end
-v = load( 'niMixDesc.mat', 'description' );
-fis = plotIdentificationScene( 'niMix.wav', v.description, bb.identityHypotheses, scene );
+%fis = plotIdentificationScene( '../dataGit/sound_databases/IEEE_AASP/test/compilations/test1.wav', v.description, bb.identityHypotheses, scene );
 fprintf('---------------------------------------------------------------------------\n');
 
 
@@ -274,9 +297,5 @@ xlabel('Azimuth (degrees)', 'FontSize', 12);
 ylabel('Probability', 'FontSize', 12);
 axis([0 361 0 1]);
 title(sprintf('Block %d, head orientation: %d deg, perceived location', pLoc.blockNo, pLoc.headOrientation), 'FontSize', 12);
-
-function plotIdentityHypothesis( bb, evnt )
-identHyp = bb.identityHypotheses( evnt.data );
-disp( identHyp.getIdentityText() );
 
 
