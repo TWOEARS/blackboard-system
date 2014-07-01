@@ -9,13 +9,11 @@ xlabel( 'time (s)' );
 x = (1:length(scene))./fs;
 l = zeros( size(x) );
 for i = 1:size(scenedesc,1)
-    name = scenedesc{i,1};
-    slashPos = strfind( name, '/' );
-    name = name(slashPos(end)+1:end-4);
-    on = floor( scenedesc{i,2} * fs );
-    off = floor( scenedesc{i,3} * fs );
+    name = scenedesc{i,3};
+    on = floor( scenedesc{i,3} * fs );
+    off = min( length(x), floor( scenedesc{i,4} * fs ) );
     l(on:off) = max(scene)+0.02;
-    text( scenedesc{i,2}, max(scene)+0.03, name, 'Parent',axes1, 'BackgroundColor',[.6 .8 .6] );
+    text( scenedesc{i,3}, max(scene)+0.03, name, 'Parent',axes1, 'BackgroundColor',[.6 .8 .6] );
 end
 
 plot( x, scene, 'Parent', axes1, 'DisplayName', 'signal' );

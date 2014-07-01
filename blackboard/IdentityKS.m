@@ -15,7 +15,7 @@ classdef IdentityKS < AbstractKS
         function obj = IdentityKS( blackboard, modelName, modelVersion )
             obj = obj@AbstractKS( blackboard );
             obj.modelname = modelName;
-            modelFileName = ['identificationModels/' modelName '_' modelVersion];
+            modelFileName = ['../dataGit/identificationModels/' modelName '_' modelVersion];
             v = load( [modelFileName '_model.mat'] );
             obj.model = v.model;
             v = load( [modelFileName '_scale.mat'] );
