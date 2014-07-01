@@ -18,7 +18,7 @@ esetup.wp2dataCreation.strFeatures = { };
 esetup.wp2dataCreation.angle = [0];
 esetup.wp2dataCreation.head = 'QU_KEMAR_anechoic_3m.mat';
 
-esetup.blockCreation.blockSize = 200e-3;
+esetup.blockCreation.blockSize = 500e-3;
 esetup.blockCreation.shiftSize = esetup.blockCreation.blockSize / 2;
 
 esetup.Labeling.minBlockToEventRatio = 0.8;
@@ -31,8 +31,8 @@ esetup.hyperParamSearch.cRange = [-5 5];
 esetup.hyperParamSearch.gammaRange = [-12 3]; 
 esetup.hyperParamSearch.kernels = [0];
 esetup.hyperParamSearch.method = 'grid'; % {random, grid, intelliGrid}
-esetup.hyperParamSearch.searchBudget = 11;
-esetup.hyperParamSearch.dataShare = 0.25; % [0..1]
+esetup.hyperParamSearch.searchBudget = 9;
+esetup.hyperParamSearch.dataShare = 1; % [0..1]
 esetup.hyperParamSearch.refineStages = 0;
 esetup.hyperParamSearch.folds = 4;
 

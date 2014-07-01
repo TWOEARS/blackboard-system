@@ -13,14 +13,13 @@ classdef AcousticCues < handle
     
     methods
         function obj = AcousticCues(blockNo, headOrientation, itds, ...
-                ilds, ic, ratemap, ratemapF1)
+                ilds, ic, ratemap)
             obj.blockNo = blockNo;
             obj.headOrientation = headOrientation;
             obj.itds = itds;
             obj.ilds = ilds;
             obj.ic = ic;
             obj.ratemap = ratemap;
-            obj.ratemapF1 = ratemapF1;
         end
         function setSeenByLocationKS(obj)
             obj.seenByLocationKS = true;

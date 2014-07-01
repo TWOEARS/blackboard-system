@@ -27,16 +27,11 @@ if nargin > 2
     for n = 1:length( identityHypotheses )
         ident = identityHypotheses(n);
         shiftSamples = bbscene.frameShift;
-        fprintf( '%d\t(%g-%gs)\t\t%s\t%d\n', ident.blockNo, (ident.blockNo-1)*shiftSamples, ident.blockNo*shiftSamples, ident.getIdentityText(), ident.decVal );
         name = ident.getIdentityText();
-        slashPos = strfind( name, '/' );
-        name = name(slashPos(end)+1:end);
-        underscorePos = strfind( name, '_' );
-        name = name(1:underscorePos(1)-1);
-        on = (ident.blockNo-1)*shiftSamples;
-        off = ident.blockNo*shiftSamples;
+        on = (ident.blockNo-1)*shiftSamples +1;
+        off = min( length(x), ident.blockNo*shiftSamples );
         e(on:off) = min(scene)-0.02;
-        if (e(on-1) == e(on)) && strcmp( oldname, name ) %adjacent blocks labeled the same
+        if ident.blockNo~=1  &&  (e(on-1) == e(on))  &&  strcmp( oldname, name ) %adjacent blocks labeled the same
             continue;
         end
         text( on / fs, min(scene)-0.03, name, 'Parent',axes1, 'BackgroundColor',[.8 .6 .6] );

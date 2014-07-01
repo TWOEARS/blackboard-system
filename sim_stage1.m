@@ -5,16 +5,16 @@ clc;
 %% Add relevant paths
 addpath('blackboard');
 addpath('gmtk');
+addpath('tools');
 addpath(genpath('simulator'));
-addpath(genpath('wp2'));
+addpath(genpath('wp2sub'));
 
 plotting = 1;
 
 %% Initialize simulation
 
 % Name of the graphical model
-%gmName = 'stage1';
-gmName = 'ident';
+gmName = 'stage1';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
@@ -41,7 +41,7 @@ wp2States = init_WP2(strFeatures, strCues, simParams);
 srcPos = 30;
 
 %wavfn = 'fa2014_GRID_data/test/s1/lbayzp.wav';
-wavfn = 'niEvents_data/test/mix1.wav';
+wavfn = 'niMix.wav';
 
 % Initialize scene to be simulated.
 %src = SoundSource('Speech', wavfn, 'Polar', [1, srcPos]);
@@ -66,20 +66,23 @@ ksAcousticCues = AcousticCuesKS(bb, wp2States);
 bb.addKS(ksAcousticCues);
 ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
 bb.addKS(ksLoc);
-ksIdent = IdentityKS( bb, 'clearthroat', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent1 = IdentityKS( bb, 'cough', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent2 = IdentityKS( bb, 'doorslam', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent3 = IdentityKS( bb, 'drawer', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent4 = IdentityKS( bb, 'keyboard', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent5 = IdentityKS( bb, 'keys', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent6 = IdentityKS( bb, 'knock', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent7 = IdentityKS( bb, 'laughter', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent8 = IdentityKS( bb, 'mouse', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent9 = IdentityKS( bb, 'pageturn', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent10 = IdentityKS( bb, 'pendrop', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent11 = IdentityKS( bb, 'phone', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent12 = IdentityKS( bb, 'speech', 'c71f6a3107198299fbd99d42319f54f1' );
-ksIdent13 = IdentityKS( bb, 'switch', 'c71f6a3107198299fbd99d42319f54f1' );
+hash1 = '00c0c356871969599a0c45266e82e1ec';
+hash2 = 'c1703fe8c21b3dfef9c29630a4262c79';
+ksIdent   = IdentityKS( bb, 'clearthroat', hash1 );
+ksIdent1  = IdentityKS( bb, 'cough',       hash2 );
+ksIdent2  = IdentityKS( bb, 'doorslam',    hash1 );
+ksIdent3  = IdentityKS( bb, 'drawer',      hash2 );
+ksIdent4  = IdentityKS( bb, 'keyboard',    hash2 );
+ksIdent5  = IdentityKS( bb, 'keys',        hash2 );
+ksIdent6  = IdentityKS( bb, 'knock',       hash1 );
+ksIdent7  = IdentityKS( bb, 'laughter',    hash1 );
+ksIdent8  = IdentityKS( bb, 'mouse',       hash1 );
+ksIdent9  = IdentityKS( bb, 'pageturn',    hash2 );
+ksIdent10 = IdentityKS( bb, 'pendrop',     hash2 );
+ksIdent11 = IdentityKS( bb, 'phone',       hash2 );
+ksIdent12 = IdentityKS( bb, 'speech',      hash2 );
+ksIdent13 = IdentityKS( bb, 'switch',      hash2 );
+ksIdent14 = IdentityKS( bb, 'alert',       hash2 );
 bb.addKS( ksIdent );
 bb.addKS( ksIdent1 );
 bb.addKS( ksIdent2 );
@@ -94,6 +97,7 @@ bb.addKS( ksIdent10 );
 bb.addKS( ksIdent11 );
 bb.addKS( ksIdent12 );
 bb.addKS( ksIdent13 );
+bb.addKS( ksIdent14 );
 ksConf = ConfusionKS(bb);
 bb.addKS(ksConf);
 ksConfSolver = ConfusionSolvingKS(bb);
@@ -106,7 +110,7 @@ bm = BlackboardMonitor(bb);
 bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
 bm.registerEvent('NewSignalBlock', ksPeriphery);
 bm.registerEvent('NewPeripherySignal', ksAcousticCues);
-bm.registerEvent('NewAcousticCues', ksLoc, ksIdent, ksIdent1, ksIdent2, ksIdent3, ksIdent4, ksIdent5, ksIdent6, ksIdent7, ksIdent8, ksIdent9, ksIdent10, ksIdent11, ksIdent12, ksIdent13);
+bm.registerEvent('NewAcousticCues', ksLoc, ksIdent, ksIdent1, ksIdent2, ksIdent3, ksIdent4, ksIdent5, ksIdent6, ksIdent7, ksIdent8, ksIdent9, ksIdent10, ksIdent11, ksIdent12, ksIdent13, ksIdent14);
 bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
 bm.registerEvent( 'NewIdentityHypothesis' );
 bm.registerEvent('NewConfusionHypothesis', ksRotate);
