@@ -1,0 +1,1248 @@
+--------------------------------------------------------
+--------------------------------------------------------
+                                                 <strong>         niState          </strong>
+                                                 <strong>__________________________</strong>
+
+    <strong>wp2dataCreation.fsHz</strong>                         '44100'                   
+    <strong>wp2dataCreation.nErbs</strong>                        '1'                       
+    <strong>wp2dataCreation.nChannels</strong>                    '32'                      
+    <strong>wp2dataCreation.mEarF</strong>                        'true'                    
+    <strong>wp2dataCreation.fLowHz</strong>                       '80'                      
+    <strong>wp2dataCreation.fHighHz</strong>                      '8000'                    
+    <strong>wp2dataCreation.ihcMethod</strong>                    'halfwave'                
+    <strong>wp2dataCreation.winSizeSec</strong>                   '0.02'                    
+    <strong>wp2dataCreation.hopSizeSec</strong>                   '0.01'                    
+    <strong>wp2dataCreation.winType</strong>                      'hann'                    
+    <strong>wp2dataCreation.bNormRMS</strong>                     'false'                   
+    <strong>wp2dataCreation.bAlign</strong>                       'false'                   
+    <strong>wp2dataCreation.maxDelaySec</strong>                  '0.001'                   
+    <strong>wp2dataCreation.strCues</strong>                      'ratemap_magnitude'       
+    <strong>wp2dataCreation.strFeatures</strong>                  {}                        
+    <strong>wp2dataCreation.angle</strong>                        '0'                       
+    <strong>wp2dataCreation.head</strong>                         'QU_KEMAR_anechoic_3m.mat'
+    <strong>blockCreation.blockSize</strong>                      '0.5'                     
+    <strong>blockCreation.shiftSize</strong>                      '0.25'                    
+    <strong>Labeling.minBlockToEventRatio</strong>                '0.8'                     
+    <strong>featureCreation.function</strong>                     'msFeatures'              
+    <strong>featureCreation.functionParam.derivations</strong>    '1'                       
+    <strong>hyperParamSearch.epsilons</strong>                    '0.001'                   
+    <strong>hyperParamSearch.cRange</strong>                      '[-5 5]'                  
+    <strong>hyperParamSearch.gammaRange</strong>                  '[-12 3]'                 
+    <strong>hyperParamSearch.kernels</strong>                     '0'                       
+    <strong>hyperParamSearch.method</strong>                      'grid'                    
+    <strong>hyperParamSearch.searchBudget</strong>                '9'                       
+    <strong>hyperParamSearch.dataShare</strong>                   '1'                       
+    <strong>hyperParamSearch.refineStages</strong>                '0'                       
+    <strong>hyperParamSearch.folds</strong>                       '4'                       
+    <strong>generalizationEstimation.folds</strong>               '4'                       
+
+--------------------------------------------------------
+wp2 processing of sounds
+.................................................................................................................................................................................................................................................................................;
+blockifying data
+.................................................................................................................................................................................................................................................................................;
+make labels .................................................................................................................................................................................................................................................................................;
+make features;
+splitting data into training/test folds.
+........
+
+1. run of generalization assessment CV -- training
+
+grid search for best hyperparameters
+
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 6.042105e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 98.3719% (1148/1167) (classification)
+BAC = 0.5 (Sens = 0, Spec = 1)
+testing performance:
+Accuracy = 98.2318% (500/509) (classification)
+BAC = 0.5 (Sens = 0, Spec = 1)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 6.276190e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 93.1292% (1247/1339) (classification)
+BAC = 0.824518 (Sens = 0.714286, Spec = 0.93475)
+testing performance:
+Accuracy = 91.6914% (309/337) (classification)
+BAC = 0.677922 (Sens = 0.428571, Spec = 0.927273)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 5.923810e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 4.03162% (51/1265) (classification)
+BAC = 0.512058 (Sens = 1, Spec = 0.0241158)
+testing performance:
+Accuracy = 4.37956% (18/411) (classification)
+BAC = 0.513614 (Sens = 1, Spec = 0.0272277)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 5.365217e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.6929% (1228/1257) (classification)
+BAC = 0.582905 (Sens = 0.173913, Spec = 0.991896)
+testing performance:
+Accuracy = 98.8067% (414/419) (classification)
+BAC = 0.598792 (Sens = 0.2, Spec = 0.997585)
+Average training performance after CV: 0.60487
+Average generalization performance after CV: 0.572582
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.704762e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 83.9212% (1023/1219) (classification)
+BAC = 0.918197 (Sens = 1, Spec = 0.836394)
+testing performance:
+Accuracy = 75.2735% (344/457) (classification)
+BAC = 0.73381 (Sens = 0.714286, Spec = 0.753333)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 6.755556e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 83.8736% (1035/1234) (classification)
+BAC = 0.918174 (Sens = 1, Spec = 0.836349)
+testing performance:
+Accuracy = 84.3891% (373/442) (classification)
+BAC = 0.920139 (Sens = 1, Spec = 0.840278)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.823810e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 73.0707% (909/1244) (classification)
+BAC = 0.863042 (Sens = 1, Spec = 0.726083)
+testing performance:
+Accuracy = 84.0278% (363/432) (classification)
+BAC = 0.918824 (Sens = 1, Spec = 0.837647)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.445833e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 74.6056% (993/1331) (classification)
+BAC = 0.870696 (Sens = 1, Spec = 0.741393)
+testing performance:
+Accuracy = 81.1594% (280/345) (classification)
+BAC = 0.904692 (Sens = 1, Spec = 0.809384)
+Average training performance after CV: 0.892527
+Average generalization performance after CV: 0.869366
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.790909e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.6049% (1252/1296) (classification)
+BAC = 0.982732 (Sens = 1, Spec = 0.965463)
+testing performance:
+Accuracy = 94.4737% (359/380) (classification)
+BAC = 0.807932 (Sens = 0.666667, Spec = 0.949198)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.552381e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.3041% (1155/1187) (classification)
+BAC = 0.986278 (Sens = 1, Spec = 0.972556)
+testing performance:
+Accuracy = 97.137% (475/489) (classification)
+BAC = 0.844695 (Sens = 0.714286, Spec = 0.975104)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 6.673684e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.892% (1247/1287) (classification)
+BAC = 0.984227 (Sens = 1, Spec = 0.968454)
+testing performance:
+Accuracy = 92.2879% (359/389) (classification)
+BAC = 0.906287 (Sens = 0.888889, Spec = 0.923684)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.618182e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.6948% (1229/1258) (classification)
+BAC = 0.988269 (Sens = 1, Spec = 0.976537)
+testing performance:
+Accuracy = 97.3684% (407/418) (classification)
+BAC = 0.822411 (Sens = 0.666667, Spec = 0.978155)
+Average training performance after CV: 0.985376
+Average generalization performance after CV: 0.845331
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 5.408333e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.0923% (1310/1322) (classification)
+BAC = 0.995378 (Sens = 1, Spec = 0.990755)
+testing performance:
+Accuracy = 98.5876% (349/354) (classification)
+BAC = 0.745714 (Sens = 0.5, Spec = 0.991429)
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 6.527778e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.3294% (1185/1193) (classification)
+BAC = 0.996596 (Sens = 1, Spec = 0.993191)
+testing performance:
+Accuracy = 96.6874% (467/483) (classification)
+BAC = 0.885201 (Sens = 0.8, Spec = 0.970402)
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 7.133333e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.616% (1297/1302) (classification)
+BAC = 0.998053 (Sens = 1, Spec = 0.996106)
+testing performance:
+Accuracy = 97.3262% (364/374) (classification)
+BAC = 0.597253 (Sens = 0.2, Spec = 0.994505)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.997507
+Average generalization performance after CV: 0.807042
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 6.240000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.9211% (1267/1268) (classification)
+BAC = 0.999599 (Sens = 1, Spec = 0.999199)
+testing performance:
+Accuracy = 98.0392% (400/408) (classification)
+BAC = 0.5 (Sens = 0, Spec = 1)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 7.172222e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.9236% (1308/1309) (classification)
+BAC = 0.999613 (Sens = 1, Spec = 0.999225)
+testing performance:
+Accuracy = 98.3651% (361/367) (classification)
+BAC = 0.748599 (Sens = 0.5, Spec = 0.997199)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.999803
+Average generalization performance after CV: 0.81215
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 5.923810e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1265/1265) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 90.0243% (370/411) (classification)
+BAC = 0.668494 (Sens = 0.428571, Spec = 0.908416)
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 5.855000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1191/1191) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 98.5567% (478/485) (classification)
+BAC = 0.685404 (Sens = 0.375, Spec = 0.995807)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.838474
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 6.180000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1256/1256) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 93.3333% (392/420) (classification)
+BAC = 0.659587 (Sens = 0.375, Spec = 0.944175)
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 5.417391e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1269/1269) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 98.2801% (400/407) (classification)
+BAC = 0.596269 (Sens = 0.2, Spec = 0.992537)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.813964
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 5.300000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1242/1242) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 91.4747% (397/434) (classification)
+BAC = 0.858042 (Sens = 0.8, Spec = 0.916084)
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 4.948000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1262/1262) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 98.5507% (408/414) (classification)
+BAC = 0.6618 (Sens = 0.333333, Spec = 0.990268)
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 7.227778e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1319/1319) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.1989% (347/357) (classification)
+BAC = 0.791354 (Sens = 0.6, Spec = 0.982709)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.827799
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 6.071429e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1296/1296) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.8947% (372/380) (classification)
+BAC = 0.708924 (Sens = 0.428571, Spec = 0.989276)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 5.985714e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1278/1278) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 94.7236% (377/398) (classification)
+BAC = 0.902996 (Sens = 0.857143, Spec = 0.948849)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 5.880952e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1256/1256) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 96.1905% (404/420) (classification)
+BAC = 0.489104 (Sens = 0, Spec = 0.978208)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.775256
+
+training with best hyperparameters (CV gen prediction: 0.869366)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.900000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 81.7857% (1374/1680) (classification)
+BAC = 0.907385 (Sens = 1, Spec = 0.81477)
+
+1. run of generalization assessment CV -- testing
+Accuracy = 77.0642% (420/545) (classification)
+BAC = 0.817296 (Sens = 0.866667, Spec = 0.767925)
+
+2. run of generalization assessment CV -- training
+
+grid search for best hyperparameters
+
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.781481e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.9514% (1291/1318) (classification)
+BAC = 0.608787 (Sens = 0.222222, Spec = 0.995352)
+testing performance:
+Accuracy = 98.2323% (389/396) (classification)
+BAC = 0.570143 (Sens = 0.142857, Spec = 0.997429)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 5.143478e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.4295% (1175/1206) (classification)
+BAC = 0.603201 (Sens = 0.217391, Spec = 0.989011)
+testing performance:
+Accuracy = 96.6535% (491/508) (classification)
+BAC = 0.493964 (Sens = 0, Spec = 0.987928)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 5.329167e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 1.8419% (24/1303) (classification)
+BAC = 0.5 (Sens = 1, Spec = 0)
+testing performance:
+Accuracy = 2.43309% (10/411) (classification)
+BAC = 0.5 (Sens = 1, Spec = 0)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.596429e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 3.95437% (52/1315) (classification)
+BAC = 0.509324 (Sens = 1, Spec = 0.018648)
+testing performance:
+Accuracy = 2.75689% (11/399) (classification)
+BAC = 0.506361 (Sens = 1, Spec = 0.0127226)
+Average training performance after CV: 0.555328
+Average generalization performance after CV: 0.517617
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 6.238095e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 86.1758% (1147/1331) (classification)
+BAC = 0.882915 (Sens = 0.904762, Spec = 0.861069)
+testing performance:
+Accuracy = 86.1619% (330/383) (classification)
+BAC = 0.854158 (Sens = 0.846154, Spec = 0.862162)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.136667e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 78.5995% (999/1271) (classification)
+BAC = 0.857883 (Sens = 0.933333, Spec = 0.782434)
+testing performance:
+Accuracy = 72.912% (323/443) (classification)
+BAC = 0.863326 (Sens = 1, Spec = 0.726651)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.991667e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 74.2226% (907/1222) (classification)
+BAC = 0.848115 (Sens = 0.958333, Spec = 0.737896)
+testing performance:
+Accuracy = 78.6585% (387/492) (classification)
+BAC = 0.891079 (Sens = 1, Spec = 0.782158)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.781481e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 82.8528% (1092/1318) (classification)
+BAC = 0.912471 (Sens = 1, Spec = 0.824942)
+testing performance:
+Accuracy = 79.798% (316/396) (classification)
+BAC = 0.756886 (Sens = 0.714286, Spec = 0.799486)
+Average training performance after CV: 0.875346
+Average generalization performance after CV: 0.841362
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.339130e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.6427% (1209/1251) (classification)
+BAC = 0.982899 (Sens = 1, Spec = 0.965798)
+testing performance:
+Accuracy = 94.3844% (437/463) (classification)
+BAC = 0.971239 (Sens = 1, Spec = 0.942478)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.768182e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.6762% (1261/1291) (classification)
+BAC = 0.98818 (Sens = 1, Spec = 0.976359)
+testing performance:
+Accuracy = 93.3806% (395/423) (classification)
+BAC = 0.804136 (Sens = 0.666667, Spec = 0.941606)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.581481e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.9937% (1226/1264) (classification)
+BAC = 0.98464 (Sens = 1, Spec = 0.969281)
+testing performance:
+Accuracy = 96.4444% (434/450) (classification)
+BAC = 0.911641 (Sens = 0.857143, Spec = 0.96614)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.353333e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.6317% (1291/1336) (classification)
+BAC = 0.982772 (Sens = 1, Spec = 0.965544)
+testing performance:
+Accuracy = 93.1217% (352/378) (classification)
+BAC = 0.965241 (Sens = 1, Spec = 0.930481)
+Average training performance after CV: 0.984623
+Average generalization performance after CV: 0.913064
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 4.818519e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.0211% (1315/1328) (classification)
+BAC = 0.995004 (Sens = 1, Spec = 0.990008)
+testing performance:
+Accuracy = 97.1503% (375/386) (classification)
+BAC = 0.705051 (Sens = 0.428571, Spec = 0.98153)
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 4.750000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 98.7312% (1245/1261) (classification)
+BAC = 0.993522 (Sens = 1, Spec = 0.987045)
+testing performance:
+Accuracy = 97.5717% (442/453) (classification)
+BAC = 0.98764 (Sens = 1, Spec = 0.975281)
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 5.731818e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.2985% (1274/1283) (classification)
+BAC = 0.996431 (Sens = 1, Spec = 0.992863)
+testing performance:
+Accuracy = 96.0557% (414/431) (classification)
+BAC = 0.534507 (Sens = 0.0833333, Spec = 0.98568)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.996239
+Average generalization performance after CV: 0.8068
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 4.372414e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.8458% (1295/1297) (classification)
+BAC = 0.999211 (Sens = 1, Spec = 0.998423)
+testing performance:
+Accuracy = 94.7242% (395/417) (classification)
+BAC = 0.676942 (Sens = 0.4, Spec = 0.953883)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 5.466667e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.8503% (1334/1336) (classification)
+BAC = 0.999238 (Sens = 1, Spec = 0.998476)
+testing performance:
+Accuracy = 95.7672% (362/378) (classification)
+BAC = 0.58913 (Sens = 0.2, Spec = 0.978261)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.999612
+Average generalization performance after CV: 0.816518
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 4.200000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1290/1290) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 93.6321% (397/424) (classification)
+BAC = 0.596429 (Sens = 0.25, Spec = 0.942857)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.899107
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 4.372414e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1297/1297) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 91.8465% (383/417) (classification)
+BAC = 0.761165 (Sens = 0.6, Spec = 0.92233)
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 5.554167e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1357/1357) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 94.958% (339/357) (classification)
+BAC = 0.828386 (Sens = 0.7, Spec = 0.956772)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.897388
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 5.391667e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1318/1318) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.7273% (387/396) (classification)
+BAC = 0.696114 (Sens = 0.4, Spec = 0.992228)
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 4.688462e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1245/1245) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.2281% (456/469) (classification)
+BAC = 0.555992 (Sens = 0.125, Spec = 0.986985)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.813027
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 4.707143e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1346/1346) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 92.663% (341/368) (classification)
+BAC = 0.798803 (Sens = 0.666667, Spec = 0.930939)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 5.129167e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1255/1255) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 96.2963% (442/459) (classification)
+BAC = 0.589978 (Sens = 0.2, Spec = 0.979955)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.847195
+
+training with best hyperparameters (CV gen prediction: 0.913064)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.952941e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.624% (1660/1718) (classification)
+BAC = 0.982779 (Sens = 1, Spec = 0.965558)
+
+2. run of generalization assessment CV -- testing
+Accuracy = 96.4497% (489/507) (classification)
+BAC = 0.872825 (Sens = 0.777778, Spec = 0.967871)
+
+3. run of generalization assessment CV -- training
+
+grid search for best hyperparameters
+
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.688000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 67.7527% (811/1197) (classification)
+BAC = 0.796177 (Sens = 0.92, Spec = 0.672355)
+testing performance:
+Accuracy = 68.3698% (281/411) (classification)
+BAC = 0.839901 (Sens = 1, Spec = 0.679803)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 5.269565e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.4089% (1203/1235) (classification)
+BAC = 0.624247 (Sens = 0.26087, Spec = 0.987624)
+testing performance:
+Accuracy = 97.0509% (362/373) (classification)
+BAC = 0.494536 (Sens = 0, Spec = 0.989071)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 5.580952e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 98.3236% (1173/1193) (classification)
+BAC = 0.52381 (Sens = 0.047619, Spec = 1)
+testing performance:
+Accuracy = 97.8313% (406/415) (classification)
+BAC = 0.5 (Sens = 0, Spec = 1)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 5.609524e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 1.83486% (22/1199) (classification)
+BAC = 0.500424 (Sens = 1, Spec = 0.000848896)
+testing performance:
+Accuracy = 2.20049% (9/409) (classification)
+BAC = 0.5 (Sens = 1, Spec = 0)
+Average training performance after CV: 0.611165
+Average generalization performance after CV: 0.583609
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.619231e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 85.2486% (1046/1227) (classification)
+BAC = 0.887017 (Sens = 0.923077, Spec = 0.850958)
+testing performance:
+Accuracy = 87.4016% (333/381) (classification)
+BAC = 0.93634 (Sens = 1, Spec = 0.872679)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 6.105263e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 88.2952% (1041/1179) (classification)
+BAC = 0.940517 (Sens = 1, Spec = 0.881034)
+testing performance:
+Accuracy = 88.345% (379/429) (classification)
+BAC = 0.807416 (Sens = 0.727273, Spec = 0.88756)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.472727e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 83.3605% (1022/1226) (classification)
+BAC = 0.870658 (Sens = 0.909091, Spec = 0.832226)
+testing performance:
+Accuracy = 76.4398% (292/382) (classification)
+BAC = 0.879679 (Sens = 1, Spec = 0.759358)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.082609e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 85.906% (1024/1192) (classification)
+BAC = 0.906832 (Sens = 0.956522, Spec = 0.857143)
+testing performance:
+Accuracy = 89.1827% (371/416) (classification)
+BAC = 0.944988 (Sens = 1, Spec = 0.889976)
+Average training performance after CV: 0.901256
+Average generalization performance after CV: 0.892106
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.961905e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.9364% (1234/1273) (classification)
+BAC = 0.984425 (Sens = 1, Spec = 0.96885)
+testing performance:
+Accuracy = 95.5224% (320/335) (classification)
+BAC = 0.760907 (Sens = 0.555556, Spec = 0.966258)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.136364e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.1806% (1108/1152) (classification)
+BAC = 0.980531 (Sens = 1, Spec = 0.961062)
+testing performance:
+Accuracy = 86.6228% (395/456) (classification)
+BAC = 0.93192 (Sens = 1, Spec = 0.863839)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.236364e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 95.4855% (1121/1174) (classification)
+BAC = 0.976997 (Sens = 1, Spec = 0.953993)
+testing performance:
+Accuracy = 96.3134% (418/434) (classification)
+BAC = 0.981221 (Sens = 1, Spec = 0.962441)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.800000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 95.5918% (1171/1225) (classification)
+BAC = 0.9775 (Sens = 1, Spec = 0.955)
+testing performance:
+Accuracy = 95.3003% (365/383) (classification)
+BAC = 0.877513 (Sens = 0.8, Spec = 0.955026)
+Average training performance after CV: 0.979863
+Average generalization performance after CV: 0.88789
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 5.113636e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.3025% (1139/1147) (classification)
+BAC = 0.996444 (Sens = 1, Spec = 0.992889)
+testing performance:
+Accuracy = 97.6139% (450/461) (classification)
+BAC = 0.80367 (Sens = 0.625, Spec = 0.98234)
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 6.805556e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.4368% (1236/1243) (classification)
+BAC = 0.997143 (Sens = 1, Spec = 0.994286)
+testing performance:
+Accuracy = 96.4384% (352/365) (classification)
+BAC = 0.619334 (Sens = 0.25, Spec = 0.988669)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.998397
+Average generalization performance after CV: 0.855751
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 5.000000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.8295% (1171/1173) (classification)
+BAC = 0.99913 (Sens = 1, Spec = 0.998261)
+testing performance:
+Accuracy = 91.7241% (399/435) (classification)
+BAC = 0.606642 (Sens = 0.285714, Spec = 0.92757)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 4.780000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.918% (1219/1220) (classification)
+BAC = 0.999582 (Sens = 1, Spec = 0.999163)
+testing performance:
+Accuracy = 91.4948% (355/388) (classification)
+BAC = 0.660836 (Sens = 0.4, Spec = 0.921671)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.999678
+Average generalization performance after CV: 0.816869
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 5.004348e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1174/1174) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.235% (422/434) (classification)
+BAC = 0.704918 (Sens = 0.428571, Spec = 0.981265)
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 5.020000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1280/1280) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 95.4268% (313/328) (classification)
+BAC = 0.48452 (Sens = 0, Spec = 0.96904)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.79736
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 5.771429e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1233/1233) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 95.7333% (359/375) (classification)
+BAC = 0.598816 (Sens = 0.222222, Spec = 0.97541)
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 5.213043e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1222/1222) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.1503% (375/386) (classification)
+BAC = 0.564832 (Sens = 0.142857, Spec = 0.986807)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.790912
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 5.200000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1219/1219) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.1722% (378/389) (classification)
+BAC = 0.705123 (Sens = 0.428571, Spec = 0.981675)
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 4.523077e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1202/1202) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 95.0739% (386/406) (classification)
+BAC = 0.4801 (Sens = 0, Spec = 0.960199)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.796306
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 5.590476e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1195/1195) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 96.368% (398/413) (classification)
+BAC = 0.8728 (Sens = 0.777778, Spec = 0.967822)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 5.125000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1254/1254) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.7401% (346/354) (classification)
+BAC = 0.579023 (Sens = 0.166667, Spec = 0.991379)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.862956
+
+training with best hyperparameters (CV gen prediction: 0.892106)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.273333e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 87.0968% (1404/1612) (classification)
+BAC = 0.901559 (Sens = 0.933333, Spec = 0.869785)
+
+3. run of generalization assessment CV -- testing
+Accuracy = 90.5383% (555/613) (classification)
+BAC = 0.87641 (Sens = 0.846154, Spec = 0.906667)
+
+4. run of generalization assessment CV -- training
+
+grid search for best hyperparameters
+
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.428571e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.8707% (1241/1268) (classification)
+BAC = 0.535311 (Sens = 0.0714286, Spec = 0.999194)
+testing performance:
+Accuracy = 97.733% (388/397) (classification)
+BAC = 0.5 (Sens = 0, Spec = 1)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.600000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.8723% (1242/1269) (classification)
+BAC = 0.554348 (Sens = 0.111111, Spec = 0.997585)
+testing performance:
+Accuracy = 97.4747% (386/396) (classification)
+BAC = 0.548705 (Sens = 0.1, Spec = 0.997409)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.106897e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 2.37705% (29/1220) (classification)
+BAC = 0.5 (Sens = 1, Spec = 0)
+testing performance:
+Accuracy = 1.79775% (8/445) (classification)
+BAC = 0.5 (Sens = 1, Spec = 0)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.485185e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 97.7383% (1210/1238) (classification)
+BAC = 0.499587 (Sens = 0, Spec = 0.999174)
+testing performance:
+Accuracy = 98.1265% (419/427) (classification)
+BAC = 0.697602 (Sens = 0.4, Spec = 0.995204)
+Average training performance after CV: 0.522312
+Average generalization performance after CV: 0.561577
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.692593e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 76.0433% (984/1294) (classification)
+BAC = 0.841416 (Sens = 0.925926, Spec = 0.756906)
+testing performance:
+Accuracy = 84.097% (312/371) (classification)
+BAC = 0.869668 (Sens = 0.9, Spec = 0.839335)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.844000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 79.7735% (986/1236) (classification)
+BAC = 0.89678 (Sens = 1, Spec = 0.793559)
+testing performance:
+Accuracy = 72.7273% (312/429) (classification)
+BAC = 0.778777 (Sens = 0.833333, Spec = 0.724221)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 3.830000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 74.894% (883/1179) (classification)
+BAC = 0.822498 (Sens = 0.9, Spec = 0.744996)
+testing performance:
+Accuracy = 75.3086% (366/486) (classification)
+BAC = 0.874739 (Sens = 1, Spec = 0.749478)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.334483e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 83.5925% (1075/1286) (classification)
+BAC = 0.865539 (Sens = 0.896552, Spec = 0.834527)
+testing performance:
+Accuracy = 81.5303% (309/379) (classification)
+BAC = 0.90566 (Sens = 1, Spec = 0.811321)
+Average training performance after CV: 0.856558
+Average generalization performance after CV: 0.857211
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.437931e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 95.1368% (1252/1316) (classification)
+BAC = 0.975136 (Sens = 1, Spec = 0.950272)
+testing performance:
+Accuracy = 94.5559% (330/349) (classification)
+BAC = 0.972141 (Sens = 1, Spec = 0.944282)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.104167e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 93.5148% (1168/1249) (classification)
+BAC = 0.966939 (Sens = 1, Spec = 0.933878)
+testing performance:
+Accuracy = 91.1058% (379/416) (classification)
+BAC = 0.916873 (Sens = 0.923077, Spec = 0.91067)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 3.820000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 95.9184% (1128/1176) (classification)
+BAC = 0.979058 (Sens = 1, Spec = 0.958115)
+testing performance:
+Accuracy = 96.9325% (474/489) (classification)
+BAC = 0.843657 (Sens = 0.714286, Spec = 0.973029)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.378571e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.6507% (1212/1254) (classification)
+BAC = 0.982871 (Sens = 1, Spec = 0.965742)
+testing performance:
+Accuracy = 91.4842% (376/411) (classification)
+BAC = 0.739221 (Sens = 0.555556, Spec = 0.922886)
+Average training performance after CV: 0.976001
+Average generalization performance after CV: 0.867973
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 4.103333e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.207% (1251/1261) (classification)
+BAC = 0.995938 (Sens = 1, Spec = 0.991877)
+testing performance:
+Accuracy = 91.5842% (370/404) (classification)
+BAC = 0.676502 (Sens = 0.428571, Spec = 0.924433)
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 4.551852e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 98.4873% (1237/1256) (classification)
+BAC = 0.99227 (Sens = 1, Spec = 0.98454)
+testing performance:
+Accuracy = 97.066% (397/409) (classification)
+BAC = 0.741228 (Sens = 0.5, Spec = 0.982456)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.997052
+Average generalization performance after CV: 0.854433
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 3.956667e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.6713% (1213/1217) (classification)
+BAC = 0.998315 (Sens = 1, Spec = 0.99663)
+testing performance:
+Accuracy = 92.1875% (413/448) (classification)
+BAC = 0.468254 (Sens = 0, Spec = 0.936508)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.999579
+Average generalization performance after CV: 0.867063
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 4.614815e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1273/1273) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 95.9184% (376/392) (classification)
+BAC = 0.540838 (Sens = 0.1, Spec = 0.981675)
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 4.133333e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1270/1270) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 98.7342% (390/395) (classification)
+BAC = 0.853277 (Sens = 0.714286, Spec = 0.992268)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.848529
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 4.448276e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1319/1319) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 96.5318% (334/346) (classification)
+BAC = 0.860207 (Sens = 0.75, Spec = 0.970414)
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 4.403704e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1216/1216) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 95.3229% (428/449) (classification)
+BAC = 0.634055 (Sens = 0.3, Spec = 0.968109)
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 3.910000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1203/1203) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 91.5584% (423/462) (classification)
+BAC = 0.675824 (Sens = 0.428571, Spec = 0.923077)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.792521
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 5.254167e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1285/1285) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.1053% (369/380) (classification)
+BAC = 0.836617 (Sens = 0.692308, Spec = 0.980926)
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 4.000000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1189/1189) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 90.3361% (430/476) (classification)
+BAC = 0.582265 (Sens = 0.25, Spec = 0.91453)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.854721
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 4.766667e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1168/1168) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 96.9819% (482/497) (classification)
+BAC = 0.647648 (Sens = 0.307692, Spec = 0.987603)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 4.226667e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1298/1298) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 97.5477% (358/367) (classification)
+BAC = 0.567262 (Sens = 0.142857, Spec = 0.991667)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.803727
+
+training with best hyperparameters (CV gen prediction: 0.867973)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.400000e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 94.7748% (1578/1665) (classification)
+BAC = 0.97328 (Sens = 1, Spec = 0.94656)
+
+4. run of generalization assessment CV -- testing
+Accuracy = 96.9643% (543/560) (classification)
+BAC = 0.984657 (Sens = 1, Spec = 0.969314)
+
+Training perfomance as evaluated by 4-fold CV is 0.941251 +-0.0427114
+
+Generalization perfomance as evaluated by 4-fold CV is 0.887797 +-0.0700146
+Prediction of CV was 0.885627 +-0.0213765
+
+training model on whole dataset
+grid search for best hyperparameters
+
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 5.678571e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 89.9876% (1456/1618) (classification)
+BAC = 0.826258 (Sens = 0.75, Spec = 0.902516)
+testing performance:
+Accuracy = 87.9736% (534/607) (classification)
+BAC = 0.873367 (Sens = 0.866667, Spec = 0.880068)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.811429e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 13.7289% (236/1719) (classification)
+BAC = 0.559679 (Sens = 1, Spec = 0.119359)
+testing performance:
+Accuracy = 15.0198% (76/506) (classification)
+BAC = 0.568273 (Sens = 1, Spec = 0.136546)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.929412e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 22.1053% (378/1710) (classification)
+BAC = 0.602625 (Sens = 1, Spec = 0.205251)
+testing performance:
+Accuracy = 15.1456% (78/515) (classification)
+BAC = 0.568182 (Sens = 1, Spec = 0.136364)
+training with -t 0 -g 0.000000e+00 -c 1.000000e-05 -w-1 1 -w1 4.987500e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 93.9803% (1530/1628) (classification)
+BAC = 0.800869 (Sens = 0.65625, Spec = 0.945489)
+testing performance:
+Accuracy = 95.8124% (572/597) (classification)
+BAC = 0.889466 (Sens = 0.818182, Spec = 0.960751)
+Average training performance after CV: 0.697358
+Average generalization performance after CV: 0.724822
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.578571e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 85.9748% (1367/1590) (classification)
+BAC = 0.893543 (Sens = 0.928571, Spec = 0.858515)
+testing performance:
+Accuracy = 90.7087% (576/635) (classification)
+BAC = 0.919892 (Sens = 0.933333, Spec = 0.906452)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.952941e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 85.3318% (1466/1718) (classification)
+BAC = 0.925178 (Sens = 1, Spec = 0.850356)
+testing performance:
+Accuracy = 85.2071% (432/507) (classification)
+BAC = 0.761044 (Sens = 0.666667, Spec = 0.855422)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 5.140625e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 79.189% (1328/1677) (classification)
+BAC = 0.863279 (Sens = 0.9375, Spec = 0.789058)
+testing performance:
+Accuracy = 63.8686% (350/548) (classification)
+BAC = 0.771119 (Sens = 0.909091, Spec = 0.633147)
+training with -t 0 -g 0.000000e+00 -c 1.778279e-04 -w-1 1 -w1 4.728571e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 83.8462% (1417/1690) (classification)
+BAC = 0.889555 (Sens = 0.942857, Spec = 0.836254)
+testing performance:
+Accuracy = 80.9346% (433/535) (classification)
+BAC = 0.903226 (Sens = 1, Spec = 0.806452)
+Average training performance after CV: 0.892889
+Average generalization performance after CV: 0.83882
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.486486e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.4643% (1637/1697) (classification)
+BAC = 0.981928 (Sens = 1, Spec = 0.963855)
+testing performance:
+Accuracy = 88.0682% (465/528) (classification)
+BAC = 0.939655 (Sens = 1, Spec = 0.87931)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.278125e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 95.2934% (1640/1721) (classification)
+BAC = 0.976021 (Sens = 1, Spec = 0.952043)
+testing performance:
+Accuracy = 93.6508% (472/504) (classification)
+BAC = 0.923105 (Sens = 0.909091, Spec = 0.93712)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 4.581818e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.3754% (1489/1545) (classification)
+BAC = 0.981481 (Sens = 1, Spec = 0.962963)
+testing performance:
+Accuracy = 97.0588% (660/680) (classification)
+BAC = 0.886567 (Sens = 0.8, Spec = 0.973134)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 6.240741e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 96.4953% (1652/1712) (classification)
+BAC = 0.982196 (Sens = 1, Spec = 0.964392)
+testing performance:
+Accuracy = 95.5166% (490/513) (classification)
+BAC = 0.795397 (Sens = 0.625, Spec = 0.965795)
+Average training performance after CV: 0.980407
+Average generalization performance after CV: 0.886181
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 4.890625e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 98.9981% (1581/1597) (classification)
+BAC = 0.994888 (Sens = 1, Spec = 0.989776)
+testing performance:
+Accuracy = 88.3758% (555/628) (classification)
+BAC = 0.672978 (Sens = 0.454545, Spec = 0.89141)
+training with -t 0 -g 0.000000e+00 -c 5.623413e-02 -w-1 1 -w1 5.410345e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.1239% (1584/1598) (classification)
+BAC = 0.995539 (Sens = 1, Spec = 0.991077)
+testing performance:
+Accuracy = 97.1292% (609/627) (classification)
+BAC = 0.706129 (Sens = 0.428571, Spec = 0.983687)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.997607
+Average generalization performance after CV: 0.844777
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 5.422581e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.8248% (1709/1712) (classification)
+BAC = 0.999108 (Sens = 1, Spec = 0.998215)
+testing performance:
+Accuracy = 97.4659% (500/513) (classification)
+BAC = 0.621008 (Sens = 0.25, Spec = 0.992016)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+00 -w-1 1 -w1 4.841176e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 99.8214% (1677/1680) (classification)
+BAC = 0.999089 (Sens = 1, Spec = 0.998177)
+testing performance:
+Accuracy = 92.844% (506/545) (classification)
+BAC = 0.854374 (Sens = 0.777778, Spec = 0.93097)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 0.999549
+Average generalization performance after CV: 0.868845
+
+CV with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 4.993750e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1630/1630) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 93.9496% (559/595) (classification)
+BAC = 0.790785 (Sens = 0.636364, Spec = 0.945205)
+training with -t 0 -g 0.000000e+00 -c 1.778279e+01 -w-1 1 -w1 5.419355e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1711/1711) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 92.2179% (474/514) (classification)
+BAC = 0.594124 (Sens = 0.25, Spec = 0.938247)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.846227
+
+CV with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 5.848276e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1725/1725) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 96.6% (483/500) (classification)
+BAC = 0.705026 (Sens = 0.428571, Spec = 0.981481)
+training with -t 0 -g 0.000000e+00 -c 3.162278e+02 -w-1 1 -w1 4.823529e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1674/1674) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 93.2849% (514/551) (classification)
+BAC = 0.638069 (Sens = 0.333333, Spec = 0.942804)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.835774
+
+CV with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 5.066667e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1705/1705) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 94.8077% (493/520) (classification)
+BAC = 0.826471 (Sens = 0.7, Spec = 0.952941)
+training with -t 0 -g 0.000000e+00 -c 5.623413e+03 -w-1 1 -w1 5.060606e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1703/1703) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 96.5517% (504/522) (classification)
+BAC = 0.590234 (Sens = 0.2, Spec = 0.980469)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.854176
+
+CV with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 1 -q -e 1.000000e-03...splitting data into training/test folds.
+........
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 4.747059e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1648/1648) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 98.4402% (568/577) (classification)
+BAC = 0.773376 (Sens = 0.555556, Spec = 0.991197)
+training with -t 0 -g 0.000000e+00 -c 1.000000e+05 -w-1 1 -w1 5.479310e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 100% (1618/1618) (classification)
+BAC = 1 (Sens = 1, Spec = 1)
+testing performance:
+Accuracy = 95.3871% (579/607) (classification)
+BAC = 0.62768 (Sens = 0.285714, Spec = 0.969646)
+CV run cannot reach best value any more, aborting
+Average training performance after CV: 1
+Average generalization performance after CV: 0.850264
+
+training with best hyperparameters (CV gen prediction: 0.886181)
+training with -t 0 -g 0.000000e+00 -c 3.162278e-03 -w-1 1 -w1 5.074419e+01 -q -e 1.000000e-03
+training performance:
+Accuracy = 95.7303% (2130/2225) (classification)
+BAC = 0.978231 (Sens = 1, Spec = 0.956462)
+
+modelhashes = 
+
+    'wp2hash: eb547dd9ed7ae4f4163db16b79fca818'
+    'blockdatahash: 7a180c1876a00a3f70b5a184c2cd2e1c'
+    'labelhash: 22112f21cb8342ed72d7ed90c0408841'
+    'featureshash: 288c1b417cfe366c5c496810f015e7db'
+    'splitdatahash: 295eec4ff06feeeda05dd9a49f99e9c2'
+    'modelhash: 00c0c356871969599a0c45266e82e1ec'
+
