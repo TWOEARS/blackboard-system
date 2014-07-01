@@ -13,7 +13,7 @@ plotting = 1;
 %% Initialize simulation
 
 % Name of the graphical model
-%gmName = 'fa2014';
+%gmName = 'stage1';
 gmName = 'ident';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
@@ -50,7 +50,7 @@ src = SoundSource('EventMix', wavfn, 'Polar', [1, srcPos]);
 dummyHead = Head('QU_KEMAR_anechoic_3m.mat', simParams.fsHz);
 % Create scene
 scene = Scene(src.numSamples/src.fs, simParams.fsHz, simParams.blockSize * simParams.fsHz, ...
-    simParams.blockSize * simParams.fsHz, dummyHead, src);
+    simParams.blockSize * simParams.fsHz, dummyHead, [], src);
      
 %% Initialize blackboard, KSs and the blackboard monitor
 
@@ -98,7 +98,7 @@ ksConf = ConfusionKS(bb);
 bb.addKS(ksConf);
 ksConfSolver = ConfusionSolvingKS(bb);
 bb.addKS(ksConfSolver);
-ksRotate = RotationKS(bb, simParams.headRotateAngle);
+ksRotate = RotationKS(bb);%, simParams.headRotateAngle);
 bb.addKS(ksRotate);
 
 % Register events with a list of KSs that should be triggered
