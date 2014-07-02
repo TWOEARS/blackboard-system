@@ -11,6 +11,7 @@ classdef Blackboard < handle
         peripherySignals = {};          % Layer 1b: Periphery
         acousticCues = {};              % Layer 2: Acoustic cues
         locationHypotheses = [];        % Layer 3: Location hypotheses
+        identityHypotheses = [];        % Layer 3: Identity hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
         perceivedLocations = [];        % Layer 5: Perceived source locations
         verbosity = 0;                  % Verbosity of 0 switches off screen output
@@ -22,6 +23,7 @@ classdef Blackboard < handle
         NewPeripherySignal
         NewAcousticCues
         NewLocationHypothesis
+        NewIdentityHypothesis
         NewConfusionHypothesis
         NewPerceivedLocation
     end
@@ -85,6 +87,12 @@ classdef Blackboard < handle
         function n = addLocationHypothesis(obj, location)
             obj.locationHypotheses = [obj.locationHypotheses location];
             n = length(obj.locationHypotheses);
+        end
+        
+        %% Add new identity hypothesis to layer 3a            
+        function n = addIdentityHypothesis( obj, identity )
+            obj.identityHypotheses = [obj.identityHypotheses identity];
+            n = length( obj.identityHypotheses );
         end
         
         %% Add confused frame to layer 3b
