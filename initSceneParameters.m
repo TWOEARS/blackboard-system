@@ -41,6 +41,30 @@ switch(lower(preset))
         
         disp(['Source position: ', num2str(s1Pos)]);
         
+    case 'stage1_freefield_ident'
+        % Scene parameters
+        duration = 10;               % Scene duration in seconds
+        
+        % Source signals and positions
+        s1Pos = 0;
+        s1 = SoundSource('niMix', 'niMix.wav', 'Polar', [1, s1Pos]);
+        
+        % Define dummy head
+        dummyHead = Head('HRIR_CIRC360.mat', sp.fsHz);
+        
+        % Create scene
+        scene = Scene(duration, sp.fsHz, sp.blockSize * sp.fsHz, ...
+            sp.blockSize * sp.fsHz, dummyHead, s1);
+        
+        % Return source position
+        sourcePos = s1Pos;
+        
+        % Allocate output signal
+        out = zeros(scene.numSamples + sp.blockSize * sp.fsHz + ...
+            dummyHead.numSamples - 1, 2);
+        
+        disp(['Source position: ', num2str(s1Pos)]);
+        
     case 'stage1_reverb'
         % Possible source positions
         sPos = [0, 30, 45, 90, 110, 135, 180, 225, 250, 270, 315, 330];

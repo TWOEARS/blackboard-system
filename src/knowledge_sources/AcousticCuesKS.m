@@ -31,6 +31,8 @@ classdef AcousticCuesKS < AbstractKS
                 
                 wp2Cues = process_WP2_cues(wp2Periphery.signals, ...
                     obj.wp2States);
+                wp2Features = process_WP2_features(wp2Cues, ...
+                    obj.wp2States);
                 
                 ic = wp2Cues(1).data;
                 itds = wp2Cues(3).data .* 1000; % Convert ITD unit from s to ms
@@ -38,7 +40,7 @@ classdef AcousticCuesKS < AbstractKS
                 ratemap = wp2Cues(4).data;
                 
                 acousticCues = AcousticCues(wp2Periphery.blockNo, ...
-                    wp2Periphery.headOrientation, itds, ilds, ic, ratemap);
+                    wp2Periphery.headOrientation, itds, ilds, ic, ratemap );
                 
                 % Remove old acoustic cues from the bb
                 if obj.blackboard.getNumAcousticCues > 0
