@@ -25,15 +25,14 @@ classdef gmtkEngine < handle
     methods (Access = public)
         function obj = gmtkEngine(gmName, dimFeatures, gmtkPath, cygwinPath)
             % gmtkEngine Class constructor
+            if nargin < 3
+                gmtkPath = '/usr/local/bin';
+            end
+            obj.gmtkPath = gmtkPath;
             
             % Check operating system
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
-                    if nargin < 3
-                        gmtkPath = '/usr/local/bin';
-                    end
-                    obj.gmtkPath = gmtkPath;
-                    
                     % Check if gmtk binaries can be found
                     obj.gmtkTri = fullfile(gmtkPath, 'gmtkTriangulate');
                     if ~exist(obj.gmtkTri, 'file')
@@ -66,11 +65,6 @@ classdef gmtkEngine < handle
                         cygwinPath = 'c:\cygwin64\bin\';
                     end
                     obj.cygwinPath = cygwinPath;
-                    
-                    if nargin < 3
-                        gmtkPath = 'c:\cygwin64\usr\local\bin\';
-                    end
-                    obj.gmtkPath = gmtkPath;
                     % Check if gmtk binaries can be found
                     obj.gmtkTri = fullfile(gmtkPath, 'gmtkTriangulate.exe');
                     if ~exist(obj.gmtkTri, 'file')
@@ -162,7 +156,7 @@ classdef gmtkEngine < handle
                         error('GM structure file does not exist: %s', obj.gmStruct);
                     end
                     cmdfn = [obj.cygwinPath, 'bash -c -l "', ...
-                        makeUnixPath(obj.gmtkTri), '-str ', ...
+                        makeUnixPath(obj.gmtkTri), ' -str ', ...
                         makeUnixPath(obj.gmStruct), ' ', ...
                         triArgs, '"'];
                     
@@ -174,7 +168,7 @@ classdef gmtkEngine < handle
                     % Also triangulate training structure if exists
                     if exist(obj.gmStructTrainable, 'file')
                         cmdfn = [obj.cygwinPath, 'bash -c -l "', ...
-                            makeUnixPath(obj.gmtkTri), '-str ', ...
+                            makeUnixPath(obj.gmtkTri), ' -str ', ...
                             makeUnixPath(obj.gmStructTrainable), ' ', ...
                             triArgs, '"'];
                         
