@@ -188,27 +188,50 @@ classdef gmtkEngine < handle
             end
         end
         function train(obj, trainFeatureList, trainLabelList)
-            % Write traincommand
-            cmdfn = fullfile(obj.workPath, 'traincommand');
-            fid = fopen(cmdfn, 'w');
-            if fid < 0
-                error('Cannot open %s', cmdfn);
+            
+            % Write OS specific inference commands
+            switch(computer)
+                case {'GLNXA64', 'MACI64'}
+                    % Write traincommand
+                    cmdfn = fullfile(obj.workPath, 'traincommand');
+                    fid = fopen(cmdfn, 'w');
+                    if fid < 0
+                        error('Cannot open %s', cmdfn);
+                    end
+                    fprintf(fid, '#!/bin/sh\n\n');
+                    fprintf(fid, '%s -iswp1 -of1 %s -nf1 %d -fmt1 htk \\\n', obj.gmtkTrain, trainFeatureList, obj.dimFeatures);
+                    fprintf(fid, '        -of2 %s -ni2 1 -fmt2 ascii \\\n', trainLabelList);
+                    fprintf(fid, '        -strFile %s \\\n', obj.gmStructTrainable);
+                    fprintf(fid, '        -inputMasterFile %s \\\n', obj.inputMasterTrainable);
+                    fprintf(fid, '        -outputTrainableParameters %s@D.gmp \\\n', obj.learedParams);
+                    fprintf(fid, '        -maxE 1 \\\n');
+                    fprintf(fid, '        -random F\n');
+                    fprintf(fid, '\n');
+                    fclose(fid);
+                    unix(['chmod a+x ' cmdfn]);
+                    s = unix(cmdfn);
+                    if s ~= 0
+                        error('Failed to train GM %s', obj.gmStructTrainable);
+                    end
+                case 'PCWIN64'
+                    % Write command function
+                    cmdfn = [obj.cygwinPath, 'bash -c -l "', ...
+                        makeUnixPath(obj.gmtkTrain), ' -iswp1 -fmt1 htk', ...
+                        ' -of1 ', makeUnixPath(trainFeatureList), ...
+                        ' -nf1 ', num2str(obj.dimFeatures), ...
+                        ' -ni2 1 -fmt2 ascii -of2 ', makeUnixPath(trainLabelList), ...
+                        ' -strFile ', makeUnixPath(obj.gmStructTrainable), ...
+                        ' -inputMasterFile ', makeUnixPath(obj.inputMasterTrainable), ...
+                        ' -outputTrainableParameters ', makeUnixPath(obj.learedParams), '@D.gmp', ...
+                        ' -maxE 1 -random F"'];
+                    s = system(cmdfn);
+                    if s ~= 0
+                        error('Failed to train GM %s', obj.gmStructTrainable);
+                    end
+                otherwise
+                    error('Current OS is not supported.');
             end
-            fprintf(fid, '#!/bin/sh\n\n');
-            fprintf(fid, '%s -iswp1 -of1 %s -nf1 %d -fmt1 htk \\\n', obj.gmtkTrain, trainFeatureList, obj.dimFeatures);
-            fprintf(fid, '        -of2 %s -ni2 1 -fmt2 ascii \\\n', trainLabelList);
-            fprintf(fid, '        -strFile %s \\\n', obj.gmStructTrainable);
-            fprintf(fid, '        -inputMasterFile %s \\\n', obj.inputMasterTrainable);
-            fprintf(fid, '        -outputTrainableParameters %s@D.gmp \\\n', obj.learedParams);
-            fprintf(fid, '        -maxE 1 \\\n');
-            fprintf(fid, '        -random F\n');
-            fprintf(fid, '\n');
-            fclose(fid);
-            unix(['chmod a+x ' cmdfn]);
-            s = unix(cmdfn);
-            if s ~= 0
-                error('Failed to train GM %s', obj.gmStructTrainable);
-            end
+            
         end
         function infer(obj, featureList, cliqueNo)
             if nargin < 3
