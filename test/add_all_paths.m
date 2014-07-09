@@ -14,4 +14,3 @@ startWP2;
 
 addpath(fullfile(basepath, 'twoears-wp3/src'));
 startWP3;
-
