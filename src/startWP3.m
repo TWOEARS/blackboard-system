@@ -1,6 +1,6 @@
 function startWP3
 
-% This script initializes the path variables that are needed for running
+% This script initialises the path variables that are needed for running
 % the WP3 code.
 
 basepath = fileparts(mfilename('fullpath'));
