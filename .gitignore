@@ -1,4 +1,13 @@
-/GM_stage1/*.post
-/GM_stage1/*.post_0
-/GM_fa2014/*.post
-/GM_fa2014/*.post_0
+*.asv
+*.aux
+*.bbl
+*.blg
+*.out
+*.synctex
+*.asv
+*~
+.DS_Store
+.post
+.post_*
+*_bak?
+jt_info.txt
