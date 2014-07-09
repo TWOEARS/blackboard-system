@@ -1,5 +1,8 @@
 function [locErrors, srcPositions] = test_blackboard(snr)
 
+addpath('../../src');
+startWP3;
+
 %% Testing parameters
 if nargin < 1
     snr = inf;
