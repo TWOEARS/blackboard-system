@@ -1,3 +1,0 @@
-#!/bin/sh
-
-/usr/local/bin/gmtkTriangulate -str GM_localisation_static/localisation_static_train.str -reSect -M 1 -S 1 -tri R -seed T
