@@ -1,7 +1,11 @@
 function [locErrors, srcPositions] = test_blackboard(snr)
 
-addpath('../../src');
-startWP3;
+plotting = 1;
+
+%% Add relevant paths
+addpath('..');
+add_all_paths;
+
 
 %% Testing parameters
 if nargin < 1
@@ -9,20 +13,12 @@ if nargin < 1
 end
 envNoiseType = 'busystreet';
 srcPositions = [270 300 330 0 30 60 90];
-flist = 'fa2014_GRID_data/testset.flist';
 
-%% Add relevant paths
-addpath('blackboard');
-addpath('gmtk');
-addpath(genpath('simulator'));
-addpath(genpath('wp2'));
-
-plotting = 0;
 
 %% Initialize simulation
 
 % Name of the graphical model
-gmName = 'fa2014';
+gmName = 'scenario1';
 
 % Initialize  simulation parameters (at the moment, just the 'default'
 % setting is supported)
@@ -47,17 +43,19 @@ strFeatures = {};
 wp2States = init_WP2(strFeatures, strCues, simParams);
 
 
-
+   
+%% Read test lists
+flist = 'grid_subset/testset.flist';
 fid = fopen(flist);
 C = textscan(fid, '%s');
 fclose(fid);
 testFiles = C{1};
 clear C;
 
+%% Start the blackboard
 nFiles = length(testFiles);
 nPositions = length(srcPositions);
 locErrors = zeros(nPositions, nFiles);
-
 for p=1:nPositions
     srcPos = srcPositions(p);
     
