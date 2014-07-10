@@ -144,9 +144,8 @@ classdef Blackboard < handle
         end
         
         %% Change head orientation
-        function adjustHeadOrientation(obj, angle)
-            obj.headOrientation = mod(obj.headOrientation + angle, 360);
-            obj.scene.turnHead(angle);
+        function setHeadOrientation(obj, angle)
+            obj.headOrientation = angle;
         end
         
         %% Reset head orientation to default look direction (0 degrees)

@@ -3,12 +3,14 @@ classdef RotationKS < AbstractKS
     
     properties (SetAccess = private)
         rotationScheduled = false;    % To avoid repetitive head rotations
+        sim;                          % Scene simulator object
         activeIndex = 0;              % Index of the new confusion hypothesis
     end
     
     methods
-        function obj = RotationKS(blackboard)
+        function obj = RotationKS(blackboard, sim)
             obj = obj@AbstractKS(blackboard);
+            obj.sim = sim;
         end
         function setActiveArgument(obj, arg)
             obj.activeIndex = arg;
@@ -35,14 +37,16 @@ classdef RotationKS < AbstractKS
             % turn
             locHyp = obj.blackboard.confusionHypotheses(obj.activeIndex);
             [~,idx] = max(locHyp.posteriors);
-            maxLoc = locHyp.locations(idx);
-            if maxLoc <= 180
-                headRotateAngle = maxLoc;
-            else
-                headRotateAngle = maxLoc - 360;
-            end
+            maxAngle = locHyp.locations(idx);
+%             if maxAngle <= 180
+%                 headRotateAngle = maxAngle;
+%             else
+%                 headRotateAngle = maxAngle - 360;
+%             end
             
-            obj.blackboard.adjustHeadOrientation(headRotateAngle);
+            obj.blackboard.setHeadOrientation(maxAngle);
+            
+            obj.sim.Sinks.set('UnitFront', [cosd(maxAngle); sind(maxAngle); 0]);
             
             if obj.blackboard.verbosity > 0
                 fprintf('New head orientation is %d degrees\n', obj.blackboard.headOrientation);
