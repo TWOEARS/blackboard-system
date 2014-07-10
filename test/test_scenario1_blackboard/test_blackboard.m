@@ -50,7 +50,7 @@ sim = SimulatorConvexRoom();  % simulator object
 
 sim.set(...
     'SampleRate', fsHz, ...         % sampling frequency
-    'BlockSize', 2^12, ...          % blocksize
+    'BlockSize', 2^14, ...          % blocksize
     'NumberOfThreads', 1, ...       % number of threads
     'MaximumDelay', 0.0, ...        % maximum distance delay in seconds
     'Renderer', @ssr_binaural, ...  % SSR rendering function (do not change this!)
@@ -188,7 +188,7 @@ for n=1:nAngles
         
         if plotting
             fprintf('\n---------------------------------------------------------------------------\n');
-            fprintf('Reference location: %d degrees\n', srcPos);
+            fprintf('Reference location: %d degrees\n', srcAngle);
             fprintf('---------------------------------------------------------------------------\n');
             fprintf('Target source locations\n');
             fprintf('---------------------------------------------------------------------------\n');
@@ -196,7 +196,7 @@ for n=1:nAngles
             fprintf('---------------------------------------------------------------------------\n');
         end
         
-        estLocations = zeros(bb.getNumPerceivedLocations, 1);
+        estAngles = zeros(bb.getNumPerceivedLocations, 1);
 
         for m=1:bb.getNumPerceivedLocations
             if plotting
@@ -207,21 +207,23 @@ for n=1:nAngles
                     bb.perceivedLocations(m).location, ...
                     bb.perceivedLocations(m).score);
             end
-            estLocations(m) = bb.perceivedLocations(m).location + ...
+            estAngles(m) = bb.perceivedLocations(m).location + ...
                 bb.perceivedLocations(m).headOrientation;
         end
-        locErrors(p,f) = mean(calc_localisation_errors(srcPos, estLocations));
+        locErrors(p,f) = mean(calc_localisation_errors(srcAngle, estAngles));
     end
     if nargout < 1
         if isinf(snr)
-            save('localisation_errors_BB_clean', 'locErrors', 'srcPositions');
+            save('localisation_errors_BB_clean', 'locErrors', 'sourceAngles');
         else
-            save(sprintf('localisation_errors_BB_%s_%ddB', envNoiseType, snr), 'locErrors', 'srcPositions');
+            save(sprintf('localisation_errors_BB_%s_%ddB', envNoiseType, snr), 'locErrors', 'sourceAngles');
         end
     end
 end
 
 
+%% clean up
+sim.set('ShutDown',true);
 
 
 %% Plotting functions
