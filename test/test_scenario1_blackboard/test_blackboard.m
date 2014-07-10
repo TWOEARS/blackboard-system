@@ -92,8 +92,9 @@ dObj = dataObject([], sim.SampleRate, 1);  % Last input (1) indicates a stereo s
 mObj = manager(dObj, WP2_requests, WP2_param);   % Instantiate a manager
 
    
-%% Read test lists
-flist = 'grid_subset/testset.flist';
+%% Read test file lists
+rootGRID = fullfile(xml.dbPath, 'sound_databases/grid_subset'); 
+flist = fullfile(rootGRID, 'testset.flist');
 fid = fopen(flist);
 C = textscan(fid, '%s');
 fclose(fid);
@@ -118,7 +119,7 @@ for n=1:nAngles
         fprintf('---- Localising target source at %d degrees: file %d (%s)\n', srcAngle, f, testFiles{f});
         
         % Read ii-th TIMIT sentence
-        [x,fsHz_x] = audioread(testFiles{f});
+        [x,fsHz_x] = audioread(fullfile(rootGRID, testFiles{f}));
         
         % Upsampel speech to fsHz_HRTF if required
         if fsHz_x ~= fsHz
