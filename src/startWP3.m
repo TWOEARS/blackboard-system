@@ -1,4 +1,3 @@
-function startWP3
 
 % This script initialises the path variables that are needed for running
 % the WP3 code.
