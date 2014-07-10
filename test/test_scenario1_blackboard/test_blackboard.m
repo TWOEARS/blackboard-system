@@ -1,48 +1,84 @@
-function [locErrors, srcPositions] = test_blackboard(snr)
+function [locErrors, srcPositions] = test_blackboard
 
 plotting = 1;
 
 %% Add relevant paths
-addpath('..');
-add_WP_paths;
+%
+run('../add_WP_paths.m');
+
 import simulator.*
 import xml.*
 
 %% Testing parameters
-if nargin < 1
-    snr = inf;
-end
-envNoiseType = 'busystreet';
-srcPositions = [270 300 330 0 30 60 90];
-
-
-%% Initialize simulation
-
-% Name of the graphical model
-gmName = 'scenario1';
-
-% Initialize  simulation parameters (at the moment, just the 'default'
-% setting is supported)
-simParams = initSimulationParameters(gmName);
-
+%
 % Some global settings
 dimFeatures = (simParams.nChannels-1) * 2;
 
 % Define angular resolution
-numAngles = 360 / simParams.angularResolution;
-angles = linspace(0, 360 - simParams.angularResolution, numAngles);
-   
-%% Initialize all WP2 related parameters
+angularResolution = 5;
 
-% Specify cues that should be computed
-strCues = {'itd_xcorr' 'ild' 'ic_xcorr' 'ratemap_magnitude'};
+% All possible azimuth angles
+angles = 0:angularResolution:(360-angularResolution);
 
-% Specify features that should be extracted
-strFeatures = {};
+% Azimuth of speech source for testing
+sourceAngles = [270 300 330 0 30 60 90];
 
-% Initialize WP2 parameter struct
-wp2States = init_WP2(strFeatures, strCues, simParams);
 
+%% Initialise simulation
+%
+% Distance of speech source (related to the HRTF catalog)
+distSource = 3;
+
+% Sampling frequency
+fsHz = 44.1E3;
+
+% Block size
+blockSize = 0.5 * fsHz_HRTF; % half second
+
+% SourceBuffer with file
+sourceBuffer = buffer.FIFO();
+
+% Speech source
+speech = AudioSource(...          % define AudioSource with ...
+    AudioSourceType.POINT, ...    % Point Source Type
+    sourceBuffer);                % Buffer as signal source
+
+% Sinks/Head
+head = AudioSink(2);
+head.set('Position',  [0; 0; 1.75]);  
+head.set('UnitFront', [1.0; 0.0; 0.0]);  % head is looking to positive x
+
+% HRIRs
+hrir = DirectionalIR(xml.dbGetFile('impulse_responses/qu_kemar_anechoic/QU_KEMAR_anechoic_3m.wav'));  
+
+% Simulator
+sim = SimulatorConvexRoom();  % simulator object
+
+sim.set(...
+    'SampleRate', fsHz, ...         % sampling frequency
+    'BlockSize', blockSize, ...     % blocksize
+    'NumberOfThreads', 1, ...       % number of threads
+    'MaximumDelay', 0.0, ...        % maximum distance delay in seconds
+    'Renderer', @ssr_binaural, ...  % SSR rendering function (do not change this!)
+    'HRIRDataset', hrir, ...        % assign HRIR-Object to Simulator
+    'Sources', speech, ...          % assign sources to Simulator
+    'Sinks', head);                 % assign sinks to Simulator
+
+sim.set('Init',true);
+
+
+%% Initialise all WP2 related parameters
+%
+% Create an empty data object. It will be filled up as new ear signal
+% chunks are "acquired". 
+dObj = dataObject([], sim.SampleRate, 1);  % Last input (1) indicates a stereo signal
+mObj = manager(dObj);   % Instantiate a manager
+
+% Add ILD processor
+mObj.addProcessor('ild');
+
+% Add ITD processor
+mObj.addProcessor('itd_xcorr');
 
    
 %% Read test lists
@@ -54,31 +90,50 @@ testFiles = C{1};
 clear C;
 
 %% Start the blackboard
+%
+% Name of the graphical model
+gmName = 'scenario1';
+
 nFiles = length(testFiles);
-nPositions = length(srcPositions);
-locErrors = zeros(nPositions, nFiles);
-for p=1:nPositions
-    srcPos = srcPositions(p);
-    
+nAngles = length(sourceAngles);
+locErrors = zeros(nAngles, nFiles);
+for n=1:nAngles
+    srcAngle = sourceAngles(n);
+    % Set source azimuth
+    speech.set('Position', distSource * [cosd(srcAngle); sind(srcAngle); 0]);
+        
     for f=1:nFiles
         clc;
-        fprintf('---- Localising target source at %d degrees: file %d (%s)\n', srcPos, f, testFiles{f});
+        fprintf('---- Localising target source at %d degrees: file %d (%s)\n', srcAngle, f, testFiles{f});
         
-        % Initialize scene to be simulated.
-        scene = create_scene(simParams, srcPos, testFiles{f}, snr, envNoiseType);
-
+        % Read ii-th TIMIT sentence
+        [x,fsHz_x] = audioread(testFiles{f});
+        
+        % Upsampel speech to fsHz_HRTF if required
+        if fsHz_x ~= fsHz
+            x = resample(x, fsHz, fsHz_x);
+        end
+        
+        % Fill speech buffer
+        sourceBuffer.setData(x);
+        
+        sim.set('Refresh',true);
+        
         %% Initialize blackboard, KSs and the blackboard monitor
 
         % Create blackboard instance
-        bb = Blackboard(scene);
+        bb = Blackboard(sim);
 
         % Init SignalBlockKS
         ksSignalBlock = SignalBlockKS(bb);
         bb.addKS(ksSignalBlock);
-        ksPeriphery = PeripheryKS(bb, simParams, wp2States);
-        bb.addKS(ksPeriphery);
-        ksAcousticCues = AcousticCuesKS(bb, wp2States);
-        bb.addKS(ksAcousticCues);
+        
+        % NEED TO BE UPDATED WITH THE NEW WP2 CODE
+        % ksPeriphery = PeripheryKS(bb, simParams, wp2States);
+        % bb.addKS(ksPeriphery);
+        % ksAcousticCues = AcousticCuesKS(bb, wp2States);
+        % bb.addKS(ksAcousticCues);
+        
         ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
         bb.addKS(ksLoc);
         ksConf = ConfusionKS(bb);
@@ -91,8 +146,8 @@ for p=1:nPositions
         % Register events with a list of KSs that should be triggered
         bm = BlackboardMonitor(bb);
         bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
-        bm.registerEvent('NewSignalBlock', ksPeriphery);
-        bm.registerEvent('NewPeripherySignal', ksAcousticCues);
+        % bm.registerEvent('NewSignalBlock', ksPeriphery);
+        % bm.registerEvent('NewPeripherySignal', ksAcousticCues);
         bm.registerEvent('NewAcousticCues', ksLoc);
         bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
         bm.registerEvent('NewConfusionHypothesis', ksRotate);
@@ -128,17 +183,17 @@ for p=1:nPositions
         
         estLocations = zeros(bb.getNumPerceivedLocations, 1);
 
-        for n=1:bb.getNumPerceivedLocations
+        for m=1:bb.getNumPerceivedLocations
             if plotting
                 fprintf('%d\t%d degrees\t(%d degrees\t%d degrees)\t\t%.2f\n', ...
-                    bb.perceivedLocations(n).blockNo, ...
-                    bb.perceivedLocations(n).location + bb.perceivedLocations(n).headOrientation, ...
-                    bb.perceivedLocations(n).headOrientation, ...
-                    bb.perceivedLocations(n).location, ...
-                    bb.perceivedLocations(n).score);
+                    bb.perceivedLocations(m).blockNo, ...
+                    bb.perceivedLocations(m).location + bb.perceivedLocations(m).headOrientation, ...
+                    bb.perceivedLocations(m).headOrientation, ...
+                    bb.perceivedLocations(m).location, ...
+                    bb.perceivedLocations(m).score);
             end
-            estLocations(n) = bb.perceivedLocations(n).location + ...
-                bb.perceivedLocations(n).headOrientation;
+            estLocations(m) = bb.perceivedLocations(m).location + ...
+                bb.perceivedLocations(m).headOrientation;
         end
         locErrors(p,f) = mean(calc_localisation_errors(srcPos, estLocations));
     end
