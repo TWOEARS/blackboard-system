@@ -171,6 +171,9 @@ for n=1:nAngles
             ok = scheduler.iterate;
         end
 
+        sim.set('ClearMemory',true);
+        sim.Sinks.removeData();
+        
         if plotting
             fprintf('\n---------------------------------------------------------------------------\n');
             fprintf('Reference location: %d degrees\n', srcPos);
