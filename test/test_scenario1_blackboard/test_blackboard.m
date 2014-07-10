@@ -1,4 +1,4 @@
-function [locErrors, srcPositions] = test_blackboard
+function [locErrors, sourceAngles] = test_blackboard
 
 plotting = 1;
 
@@ -122,10 +122,10 @@ for n=1:nAngles
         %% Initialize blackboard, KSs and the blackboard monitor
 
         % Create blackboard instance
-        bb = Blackboard(sim);
+        bb = Blackboard();
 
         % Init SignalBlockKS
-        ksSignalBlock = SignalBlockKS(bb);
+        ksSignalBlock = SignalBlockKS(bb, sim);
         bb.addKS(ksSignalBlock);
         
         % NEED TO BE UPDATED WITH THE NEW WP2 CODE
@@ -140,7 +140,7 @@ for n=1:nAngles
         bb.addKS(ksConf);
         ksConfSolver = ConfusionSolvingKS(bb);
         bb.addKS(ksConfSolver);
-        ksRotate = RotationKS(bb);
+        ksRotate = RotationKS(bb, sim);
         bb.addKS(ksRotate);
 
         % Register events with a list of KSs that should be triggered

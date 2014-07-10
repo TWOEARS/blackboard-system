@@ -3,50 +3,32 @@ classdef SignalBlockKS < AbstractKS
     % blackboard
     
     properties (SetAccess = private)
-        scene;                   % Scene object to be rendered
+        sim;                     % Scene simulator object
         blockNo = 1;             % Current block number
-        renderedSignals;         % Rendered ear signals
     end
     
     methods
-        function obj = SignalBlockKS(blackboard)
+        function obj = SignalBlockKS(blackboard, sim)
             obj = obj@AbstractKS(blackboard);
-            obj.scene = obj.blackboard.scene;
-            obj.renderedSignals = zeros(obj.scene.numSamples + ...
-                obj.scene.frameLength + obj.scene.head.numSamples - 1, 2);
+            obj.sim = sim;
+            obj.renderedSignals = zeros(sim.BlockSize, 2);
         end
         
         function b = canExecute(obj)
-            if obj.blockNo <= obj.scene.timeSteps
-                b = obj.blackboard.readyForNextBlock;
-            else
+            if obj.sim.Sources.isEmpty()
                 b = false;
+            else
+                b = obj.blackboard.readyForNextBlock;
             end
         end
         
         function execute(obj)
             
-            % Get new processed signal
-            signalProc = obj.scene.getFrame(obj.blockNo);
-            
-            % Get frame indices
-            startIndex = (obj.blockNo - 1) * obj.scene.frameShift + 1;
-            endIndex = startIndex + size(signalProc, 1) - 1;
-            
-            % Render output signal via overlap/add
-            for l = 1 : 2
-                obj.renderedSignals(startIndex : endIndex, l) = ...
-                    obj.renderedSignals(startIndex : endIndex, l) ...
-                    + signalProc(:, l);
-            end
-            
-            % Get current preprocessed left/right ear signals
-            signalR = obj.renderedSignals(startIndex : startIndex + ...
-                obj.scene.frameLength - 1, 1);
-            signalL = obj.renderedSignals(startIndex : startIndex + ...
-                obj.scene.frameLength - 1, 2);
-            
-            signalFrame = [signalR signalL];
+            % WP1 processing
+            obj.sim.set('Refresh',true);  % Refresh Positions 
+            obj.sim.set('Process',true);  % Process Ear Signals
+            signalFrame = double(obj.sim.Sinks.getData(obj.sim.BlockSize));  % get data from Buffer
+            obj.sim.Sinks.removeData(obj.sim.BlockSize);  % remove data from Buffer
             
             % Create signal block object
             signalBlock = SignalBlock(obj.blockNo, obj.blackboard.headOrientation, signalFrame);
