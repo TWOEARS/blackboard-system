@@ -143,7 +143,7 @@ for n=1:nAngles
         % NEED TO BE UPDATED WITH THE NEW WP2 CODE
         % ksPeriphery = PeripheryKS(bb, simParams, wp2States);
         % bb.addKS(ksPeriphery);
-        % ksAcousticCues = AcousticCuesKS(bb, mObj);
+        % ksAcousticCues = AcousticCuesKS(bb, dObj, mObj);
         % bb.addKS(ksAcousticCues);
         
         ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
@@ -167,7 +167,7 @@ for n=1:nAngles
         if plotting
             %% Add event listeners for plotting
             addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
-            addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
+            % addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
             addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
             addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
             addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
