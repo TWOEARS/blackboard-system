@@ -7,7 +7,7 @@ classdef Blackboard < handle
         readyForNextBlock = true;       % 
         headOrientation = 0;            % Current head orientation
         signalBlocks = {};              % Layer 1a: Signals
-        peripherySignals = {};          % Layer 1b: Periphery
+        %peripherySignals = {};          % Layer 1b: Periphery
         acousticCues = {};              % Layer 2: Acoustic cues
         locationHypotheses = [];        % Layer 3: Location hypotheses
         identityHypotheses = [];        % Layer 3: Identity hypotheses
@@ -19,7 +19,7 @@ classdef Blackboard < handle
     events
         ReadyForNextBlock
         NewSignalBlock
-        NewPeripherySignal
+%         NewPeripherySignal
         NewAcousticCues
         NewLocationHypothesis
         NewIdentityHypothesis
@@ -64,17 +64,17 @@ classdef Blackboard < handle
             obj.signalBlocks = {};
         end
         
-        %% Add new periphery signals to layer 1b
-        function n = addPeripherySignal(obj, peripherySignal)
-            n_old = length(obj.peripherySignals);
-            n = n_old + 1;
-            obj.peripherySignals{n} = peripherySignal;
-        end
-        
-        %% Remove periphery signals from layer 1b
-        function removePeripherySignals(obj)
-            obj.peripherySignals = {};
-        end
+%         %% Add new periphery signals to layer 1b
+%         function n = addPeripherySignal(obj, peripherySignal)
+%             n_old = length(obj.peripherySignals);
+%             n = n_old + 1;
+%             obj.peripherySignals{n} = peripherySignal;
+%         end
+%         
+%         %% Remove periphery signals from layer 1b
+%         function removePeripherySignals(obj)
+%             obj.peripherySignals = {};
+%         end
         
         %% Remove old acoustic cues from layer 2
         function removeAcousticCues(obj)
@@ -110,10 +110,10 @@ classdef Blackboard < handle
             n = length(obj.signalBlocks);
         end
         
-        %% Get number of periphery signals on the BB
-        function n = getNumPeripherySignals(obj)
-            n = length(obj.peripherySignals);
-        end
+%         %% Get number of periphery signals on the BB
+%         function n = getNumPeripherySignals(obj)
+%             n = length(obj.peripherySignals);
+%         end
         
         %% Get number of acoustic cues on the BB
         function n = getNumAcousticCues(obj)
