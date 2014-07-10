@@ -11,7 +11,6 @@ classdef SignalBlockKS < AbstractKS
         function obj = SignalBlockKS(blackboard, sim)
             obj = obj@AbstractKS(blackboard);
             obj.sim = sim;
-            obj.renderedSignals = zeros(sim.BlockSize, 2);
         end
         
         function b = canExecute(obj)
