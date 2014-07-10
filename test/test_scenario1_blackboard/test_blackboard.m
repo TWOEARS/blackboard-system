@@ -11,9 +11,6 @@ import xml.*
 
 %% Testing parameters
 %
-% Some global settings
-dimFeatures = (simParams.nChannels-1) * 2;
-
 % Define angular resolution
 angularResolution = 5;
 
@@ -31,9 +28,6 @@ distSource = 3;
 
 % Sampling frequency
 fsHz = 44.1E3;
-
-% Block size
-blockSize = 0.5 * fsHz_HRTF; % half second
 
 % SourceBuffer with file
 sourceBuffer = buffer.FIFO();
@@ -56,7 +50,7 @@ sim = SimulatorConvexRoom();  % simulator object
 
 sim.set(...
     'SampleRate', fsHz, ...         % sampling frequency
-    'BlockSize', blockSize, ...     % blocksize
+    'BlockSize', 2^12, ...          % blocksize
     'NumberOfThreads', 1, ...       % number of threads
     'MaximumDelay', 0.0, ...        % maximum distance delay in seconds
     'Renderer', @ssr_binaural, ...  % SSR rendering function (do not change this!)
@@ -69,16 +63,33 @@ sim.set('Init',true);
 
 %% Initialise all WP2 related parameters
 %
+% Framing parameters
+blockSec = 20E-3;
+stepSec  = 10E-3;
+
+% Gammatone parameters
+f_low       = 80;
+f_high      = 8000;
+nChannels   = 32;
+dimFeatures = 62; % OLD FEATURE DIM, SHOULD BE 64 NOW
+rm_decaySec = 0;
+
+% Request cues being extracted
+WP2_requests = {'ild' 'itd_xcorr' 'ic_xcorr', 'ratemap_power'};
+
+% Frequency range and number of channels
+WP2_param = genParStruct('f_low',f_low,'f_high',f_high,...
+                         'nChannels',nChannels,...
+                         'rm_decaySec',rm_decaySec,...
+                         'ild_wSizeSec',blockSec,...
+                         'ild_hSizeSec',stepSec,'rm_wSizeSec',blockSec,...
+                         'rm_hSizeSec',stepSec,'cc_wSizeSec',blockSec,...
+                         'cc_hSizeSec',stepSec);                 
+
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
 dObj = dataObject([], sim.SampleRate, 1);  % Last input (1) indicates a stereo signal
-mObj = manager(dObj);   % Instantiate a manager
-
-% Add ILD processor
-mObj.addProcessor('ild');
-
-% Add ITD processor
-mObj.addProcessor('itd_xcorr');
+mObj = manager(dObj, WP2_requests, WP2_param);   % Instantiate a manager
 
    
 %% Read test lists
@@ -131,7 +142,7 @@ for n=1:nAngles
         % NEED TO BE UPDATED WITH THE NEW WP2 CODE
         % ksPeriphery = PeripheryKS(bb, simParams, wp2States);
         % bb.addKS(ksPeriphery);
-        % ksAcousticCues = AcousticCuesKS(bb, wp2States);
+        % ksAcousticCues = AcousticCuesKS(bb, mObj);
         % bb.addKS(ksAcousticCues);
         
         ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
