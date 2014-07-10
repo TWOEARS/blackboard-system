@@ -4,8 +4,9 @@ plotting = 1;
 
 %% Add relevant paths
 addpath('..');
-add_all_paths;
-
+add_WP_paths;
+import simulator.*
+import xml.*
 
 %% Testing parameters
 if nargin < 1
