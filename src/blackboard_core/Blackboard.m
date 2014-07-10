@@ -6,7 +6,6 @@ classdef Blackboard < handle
         KSs = {};                       % List of all KSs
         readyForNextBlock = true;       % 
         headOrientation = 0;            % Current head orientation
-        scene;                          % Scene object to be rendered
         signalBlocks = {};              % Layer 1a: Signals
         peripherySignals = {};          % Layer 1b: Periphery
         acousticCues = {};              % Layer 2: Acoustic cues
@@ -30,8 +29,7 @@ classdef Blackboard < handle
     
     methods
         %% Class constructor
-        function obj = Blackboard(scene, verbosity)
-            obj.scene = scene;
+        function obj = Blackboard(verbosity)
             if exist('verbosity', 'var')
                 obj.verbosity = verbosity;
             end
@@ -40,6 +38,13 @@ classdef Blackboard < handle
         %% Add KS to the blackboard system
         function obj = addKS(obj, ks)
             obj.KSs = [obj.KSs {ks}];
+        end
+        
+        %% Add new acoustic cues to blackboard
+        function n = addAcousticCues(obj, newCues)
+            n_old = length(obj.acousticCues);
+            n = n_old + 1;
+            obj.acousticCues{n} = newCues;
         end
            
         %% Get number of KSs
@@ -69,13 +74,6 @@ classdef Blackboard < handle
         %% Remove periphery signals from layer 1b
         function removePeripherySignals(obj)
             obj.peripherySignals = {};
-        end
-        
-        %% Add new acoustic features to layer 2
-        function n = addAcousticCues(obj, acousticCues)
-            n_old = length(obj.acousticCues);
-            n = n_old + 1;
-            obj.acousticCues{n} = acousticCues;
         end
         
         %% Remove old acoustic cues from layer 2
