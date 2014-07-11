@@ -71,7 +71,7 @@ stepSec  = 10E-3;
 f_low       = 80;
 f_high      = 8000;
 nChannels   = 32;
-dimFeatures = 62; % OLD FEATURE DIM, SHOULD BE 64 NOW
+dimFeatures = nChannels*2; % ITD + ILD
 rm_decaySec = 0;
 
 % Request cues being extracted
@@ -136,22 +136,25 @@ for n=1:nAngles
         % Create blackboard instance
         bb = Blackboard();
 
-        % Init SignalBlockKS
+        % Initialise Knowledge Sources
         ksSignalBlock = SignalBlockKS(bb, sim);
         bb.addKS(ksSignalBlock);
         
-        % NEED TO BE UPDATED WITH THE NEW WP2 CODE
         ksPeriphery = PeripheryKS(bb, mObj, dObj);
         bb.addKS(ksPeriphery);
+        
         ksAcousticCues = AcousticCuesKS(bb, dObj);
         bb.addKS(ksAcousticCues);
         
         ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
         bb.addKS(ksLoc);
+        
         ksConf = ConfusionKS(bb);
         bb.addKS(ksConf);
+        
         ksConfSolver = ConfusionSolvingKS(bb);
         bb.addKS(ksConfSolver);
+        
         ksRotate = RotationKS(bb, sim);
         bb.addKS(ksRotate);
 
@@ -183,8 +186,7 @@ for n=1:nAngles
             ok = scheduler.iterate;
         end
 
-        sim.set('ClearMemory',true);
-        sim.Sinks.removeData();
+        sim.set('ReInit',true);
         
         if plotting
             fprintf('\n---------------------------------------------------------------------------\n');
