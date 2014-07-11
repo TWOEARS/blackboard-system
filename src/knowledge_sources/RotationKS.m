@@ -38,15 +38,15 @@ classdef RotationKS < AbstractKS
             locHyp = obj.blackboard.confusionHypotheses(obj.activeIndex);
             [~,idx] = max(locHyp.posteriors);
             maxAngle = locHyp.locations(idx);
-%             if maxAngle <= 180
-%                 headRotateAngle = maxAngle;
-%             else
-%                 headRotateAngle = maxAngle - 360;
-%             end
+            if maxAngle <= 180
+                headRotateAngle = maxAngle;
+            else
+                headRotateAngle = maxAngle - 360;
+            end
             
             obj.blackboard.setHeadOrientation(maxAngle);
             
-            obj.sim.Sinks.set('UnitFront', [cosd(maxAngle); sind(maxAngle); 0]);
+            obj.sim.rotateHead(headRotateAngle);
             
             if obj.blackboard.verbosity > 0
                 fprintf('New head orientation is %d degrees\n', obj.blackboard.headOrientation);

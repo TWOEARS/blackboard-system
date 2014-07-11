@@ -34,11 +34,8 @@ classdef PeripheryKS < AbstractKS
                 % Grab current signal block
                 signalBlock = obj.blackboard.signalBlocks{1};
                 
-                % Get ear signals from current signal block
-                earSignals = signalBlock.signals;
-                
                 % WP2 Processing
-                obj.managerObject.processChunk(earSignals);  % process new data
+                obj.managerObject.processChunk(signalBlock.signals);  % process new data
                 
                 % Get inner hair cell processing output
                 ihcOut = cell(2, 1);
