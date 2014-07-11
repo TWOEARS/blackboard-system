@@ -159,7 +159,7 @@ for n=1:nAngles
         bm = BlackboardMonitor(bb);
         bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
         bm.registerEvent('NewSignalBlock', ksPeriphery);
-        % bm.registerEvent('NewPeripherySignal', ksAcousticCues);
+        %bm.registerEvent('NewPeripherySignal', ksAcousticCues);
         bm.registerEvent('NewAcousticCues', ksLoc);
         bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
         bm.registerEvent('NewConfusionHypothesis', ksRotate);
@@ -167,7 +167,7 @@ for n=1:nAngles
         if plotting
             %% Add event listeners for plotting
             addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
-            % addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
+            addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
             addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
             addlistener(bb, 'NewLocationHypothesis', @plotLocationHypothesis);
             addlistener(bb, 'NewPerceivedLocation', @plotPerceivedLocation);
@@ -240,19 +240,21 @@ plot(sigBlock.signals(:,2));
 axis tight; ylim([-1 1]);
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, right ear waveform', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
-%soundsc([sigBlock.signals(:,1), sigBlock.signals(:,2)], 44100)
+
 
 function plotPeripherySignal(bb, evnt)
-sigBlock = bb.peripherySignals{evnt.data};
+sigBlock = bb.signalBlocks{evnt.data};
+perSignal = bb.peripherySignals{evnt.data}.signals;
+
 subplot(4, 4, [11, 12])
-imagesc(sigBlock.signals(3).data(:, :, 1)');
+imagesc(perSignal{1}');
 set(gca,'YDir','normal');
 ylabel('GFB Channels');
 xlabel('k');
 title(sprintf('Block %d, head orientation: %d deg, left ear IHC', sigBlock.blockNo, sigBlock.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, [9, 10])
-imagesc(sigBlock.signals(3).data(:, :, 2)');
+imagesc(perSignal{2}');
 set(gca,'YDir','normal');
 ylabel('GFB Channels');
 xlabel('k');      
