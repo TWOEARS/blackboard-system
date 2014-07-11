@@ -40,7 +40,7 @@ speech = AudioSource(...          % define AudioSource with ...
 % Sinks/Head
 head = AudioSink(2);
 head.set('Position',  [0; 0; 1.75]);  
-head.set('UnitFront', [1.0; 0.0; 0.0]);  % head is looking to positive x
+head.set('UnitFront', [1; 0; 0]); % head is looking to positive x
 
 % HRIRs
 hrir = DirectionalIR(xml.dbGetFile('impulse_responses/qu_kemar_anechoic/QU_KEMAR_anechoic_3m.wav'));  
@@ -50,7 +50,7 @@ sim = SimulatorConvexRoom();  % simulator object
 
 sim.set(...
     'SampleRate', fsHz, ...         % sampling frequency
-    'BlockSize', 2^14, ...          % blocksize
+    'BlockSize', 2^12, ...          % blocksize
     'NumberOfThreads', 1, ...       % number of threads
     'MaximumDelay', 0.0, ...        % maximum distance delay in seconds
     'Renderer', @ssr_binaural, ...  % SSR rendering function (do not change this!)
@@ -59,7 +59,7 @@ sim.set(...
     'Sinks', head);                 % assign sinks to Simulator
 
 sim.set('Init',true);
-
+% sim.draw();
 
 %% Initialise all WP2 related parameters
 %
