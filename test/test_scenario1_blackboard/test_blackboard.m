@@ -132,8 +132,6 @@ for n=1:nAngles
         % Fill speech buffer
         sourceBuffer.setData(x);
         
-        sim.set('Refresh',true);
-        
         %% Initialize blackboard, KSs and the blackboard monitor
 
         % Create blackboard instance
