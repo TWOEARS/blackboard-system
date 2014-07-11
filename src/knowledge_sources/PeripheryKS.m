@@ -2,16 +2,16 @@ classdef PeripheryKS < AbstractKS
     % PeripheryKS Aquires the current signal block and puts it onto the
     % blackboard
     
-    properties (Access = private)
-        simParams;               % Simulation parameters for peripheral processing
-        wp2States;               % Parameters regarding the WP2 processing
+    properties (Access = public)
+        dataObject;              % WP2 data object
+        managerObject;           % WP2 manager object
     end
     
     methods
-        function obj = PeripheryKS(blackboard, simParams, wp2States)
+        function obj = PeripheryKS(blackboard, managerObject, dataObject)
             obj = obj@AbstractKS(blackboard);
-            obj.simParams = simParams;
-            obj.wp2States = wp2States;
+            obj.dataObject = dataObject;
+            obj.managerObject = managerObject;
         end
         
         function b = canExecute(obj)
@@ -36,10 +36,17 @@ classdef PeripheryKS < AbstractKS
                 
                 earSignals = signalBlock.signals;
                 
-                wp2Signal = process_WP2_signals(earSignals, ...
-                    obj.simParams.fsHz, obj.wp2States);
+                % WP2 Processing
+                obj.managerObject.processChunk(earSignals);  % process new data
                 
-                peripherySignal = PeripherySignal(signalBlock.blockNo, signalBlock.headOrientation, wp2Signal);
+                % Get inner hair cell processing output
+                ihcOut = cell(2, 1);
+                ihcOut{1, 1} = obj.dataObject.innerhaircell{1}.Data;
+                ihcOut{2, 1} = obj.dataObject.innerhaircell{2}.Data;
+                
+                % Add new periphery signal
+                peripherySignal = PeripherySignal(signalBlock.blockNo, ...
+                    signalBlock.headOrientation, ihcOut);
                 
                 % Remove old periphery signals from the bb
                 if obj.blackboard.getNumPeripherySignals > 0
