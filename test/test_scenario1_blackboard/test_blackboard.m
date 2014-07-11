@@ -111,12 +111,14 @@ nAngles = length(sourceAngles);
 locErrors = zeros(nAngles, nFiles);
 for n=1:nAngles
     srcAngle = sourceAngles(n);
-    % Set source azimuth
-    speech.set('Position', distSource * [cosd(srcAngle); sind(srcAngle); 0]);
+    srcPosition = distSource * [cosd(srcAngle); sind(srcAngle); 0];
         
     for f=1:nFiles
         clc;
         fprintf('---- Localising target source at %d degrees: file %d (%s)\n', srcAngle, f, testFiles{f});
+        
+        % Set source azimuth
+        speech.set('Position', srcPosition);
         
         % Use 'ReInit' before setting the new speech file
         sim.set('ReInit',true);
