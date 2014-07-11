@@ -118,6 +118,9 @@ for n=1:nAngles
         clc;
         fprintf('---- Localising target source at %d degrees: file %d (%s)\n', srcAngle, f, testFiles{f});
         
+        % Use 'ReInit' before setting the new speech file
+        sim.set('ReInit',true);
+        
         % Read ii-th TIMIT sentence
         [x,fsHz_x] = audioread(fullfile(rootGRID, testFiles{f}));
         
@@ -186,8 +189,6 @@ for n=1:nAngles
             ok = scheduler.iterate;
         end
 
-        sim.set('ReInit',true);
-        
         if plotting
             fprintf('\n---------------------------------------------------------------------------\n');
             fprintf('Reference location: %d degrees\n', srcAngle);
