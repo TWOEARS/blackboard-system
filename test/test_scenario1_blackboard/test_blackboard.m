@@ -143,8 +143,8 @@ for n=1:nAngles
         % NEED TO BE UPDATED WITH THE NEW WP2 CODE
         ksPeriphery = PeripheryKS(bb, mObj, dObj);
         bb.addKS(ksPeriphery);
-        % ksAcousticCues = AcousticCuesKS(bb, dObj, mObj);
-        % bb.addKS(ksAcousticCues);
+        ksAcousticCues = AcousticCuesKS(bb, dObj);
+        bb.addKS(ksAcousticCues);
         
         ksLoc = LocationKS(bb, gmName, dimFeatures, angles);
         bb.addKS(ksLoc);
@@ -159,7 +159,7 @@ for n=1:nAngles
         bm = BlackboardMonitor(bb);
         bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
         bm.registerEvent('NewSignalBlock', ksPeriphery);
-        %bm.registerEvent('NewPeripherySignal', ksAcousticCues);
+        bm.registerEvent('NewPeripherySignal', ksAcousticCues);
         bm.registerEvent('NewAcousticCues', ksLoc);
         bm.registerEvent('NewLocationHypothesis', ksConf, ksConfSolver);
         bm.registerEvent('NewConfusionHypothesis', ksRotate);
@@ -210,15 +210,15 @@ for n=1:nAngles
             estAngles(m) = bb.perceivedLocations(m).location + ...
                 bb.perceivedLocations(m).headOrientation;
         end
-        %locErrors(p,f) = mean(calc_localisation_errors(srcAngle, estAngles));
+        locErrors(p,f) = mean(calc_localisation_errors(srcAngle, estAngles));
     end
-%     if nargout < 1
-%         if isinf(snr)
-%             save('localisation_errors_BB_clean', 'locErrors', 'sourceAngles');
-%         else
-%             save(sprintf('localisation_errors_BB_%s_%ddB', envNoiseType, snr), 'locErrors', 'sourceAngles');
-%         end
-%     end
+    if nargout < 1
+        if isinf(snr)
+            save('localisation_errors_BB_clean', 'locErrors', 'sourceAngles');
+        else
+            save(sprintf('localisation_errors_BB_%s_%ddB', envNoiseType, snr), 'locErrors', 'sourceAngles');
+        end
+    end
 end
 
 

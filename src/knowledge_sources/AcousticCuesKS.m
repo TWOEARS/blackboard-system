@@ -1,7 +1,7 @@
 classdef AcousticCuesKS < AbstractKS
     % ACOUSTICCUES
     
-    properties (Access = private)
+    properties (Access = public)
         dataObject;               % WP2 data object
     end
     
@@ -27,7 +27,7 @@ classdef AcousticCuesKS < AbstractKS
             if length(obj.blackboard.peripherySignals) < 1
                 return
             else
-%                 wp2Periphery = obj.blackboard.peripherySignals{1};
+                 wp2Periphery = obj.blackboard.peripherySignals{1};
 %                 
 %                 wp2Cues = process_WP2_cues(wp2Periphery.signals, ...
 %                     obj.wp2States);
@@ -39,7 +39,11 @@ classdef AcousticCuesKS < AbstractKS
 %                 ilds = wp2Cues(2).data;
 %                 ratemap = wp2Cues(4).data;
 
-                % Compute
+                % Compute acoustic cues from WP2 data object
+                ic = obj.dataObject.ic_xcorr{1}.Data;
+                itds = obj.dataObject.itd_xcorr{1}.Data;
+                ilds = obj.dataObject.ild{1}.Data;
+                ratemap = obj.dataObject.ratemap_power{1}.Data;
                 
                 acousticCues = AcousticCues(wp2Periphery.blockNo, ...
                     wp2Periphery.headOrientation, itds, ilds, ic, ratemap );
