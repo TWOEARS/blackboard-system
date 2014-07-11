@@ -4,13 +4,17 @@ classdef SignalBlockKS < AbstractKS
     
     properties (SetAccess = private)
         sim;                     % Scene simulator object
+        blockSize = 0.5;         % Default block size 0.5 second
         blockNo = 1;             % Current block number
     end
     
     methods
-        function obj = SignalBlockKS(blackboard, sim)
+        function obj = SignalBlockKS(blackboard, sim, blockSize)
             obj = obj@AbstractKS(blackboard);
             obj.sim = sim;
+            if exist('blockSize', 'var')
+                obj.blockSize = blockSize;
+            end
         end
         
         function b = canExecute(obj)
@@ -24,10 +28,7 @@ classdef SignalBlockKS < AbstractKS
         function execute(obj)
             
             % WP1 processing
-            obj.sim.set('Refresh',true);  % Refresh Positions 
-            obj.sim.set('Process',true);  % Process Ear Signals
-            signalFrame = double(obj.sim.Sinks.getData(obj.sim.BlockSize));  % get data from Buffer
-            obj.sim.Sinks.removeData(obj.sim.BlockSize);  % remove data from Buffer
+            signalFrame = obj.sim.getSignal(obj.BlockSize);  % get data from Buffer
             
             % Create signal block object
             signalBlock = SignalBlock(obj.blockNo, obj.blackboard.headOrientation, signalFrame);
