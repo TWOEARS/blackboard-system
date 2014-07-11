@@ -34,6 +34,7 @@ classdef PeripheryKS < AbstractKS
                 % Grab current signal block
                 signalBlock = obj.blackboard.signalBlocks{1};
                 
+                % Get ear signals from current signal block
                 earSignals = signalBlock.signals;
                 
                 % WP2 Processing
@@ -56,6 +57,7 @@ classdef PeripheryKS < AbstractKS
                 % Add periphery signal to the blackboard
                 idx = obj.blackboard.addPeripherySignal(peripherySignal);
                 
+                % Mark current signal block as processed
                 obj.blackboard.signalBlocks{1}.setSeenByPeripheryKS();
                 
                 % Display that KS has fired
@@ -66,9 +68,6 @@ classdef PeripheryKS < AbstractKS
                 % Trigger event
                 notify(obj.blackboard, 'NewPeripherySignal', BlackboardEventData(idx));
             end
-            
-            % JUST FOR DEBUGGING
-            %obj.blackboard.setReadyForNextFrame(true);
         end
     end
 end
