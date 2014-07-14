@@ -28,7 +28,7 @@ classdef SignalBlockKS < AbstractKS
         function execute(obj)
             
             % WP1 processing
-            signalFrame = obj.sim.getSignal(obj.blockSize);  % get data from Buffer
+            signalFrame = double(obj.sim.getSignal(obj.blockSize));  % get data from Buffer
             
             % Create signal block object
             signalBlock = SignalBlock(obj.blockNo, obj.blackboard.headOrientation, signalFrame);
