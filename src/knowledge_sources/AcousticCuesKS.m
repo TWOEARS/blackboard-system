@@ -31,11 +31,12 @@ classdef AcousticCuesKS < AbstractKS
                 peripherySignals = obj.blackboard.peripherySignals{1};
 
                 % Compute acoustic cues from WP2 data object
-                ic = obj.dataObject.ic_xcorr{1}.Data;
+                % as [numChannels x numFrames]
+                ic = obj.dataObject.ic_xcorr{1}.Data';
                 % Convert ITD unit from s to ms
-                itds = obj.dataObject.itd_xcorr{1}.Data .* 1000;
-                ilds = obj.dataObject.ild{1}.Data;
-                ratemap = obj.dataObject.ratemap_power{1}.Data;
+                itds = obj.dataObject.itd_xcorr{1}.Data' .* 1000;
+                ilds = obj.dataObject.ild{1}.Data';
+                ratemap = obj.dataObject.ratemap_power{1}.Data';
                 
                 % Compute new acoustic cues data structure
                 acousticCues = AcousticCues(peripherySignals.blockNo, ...
