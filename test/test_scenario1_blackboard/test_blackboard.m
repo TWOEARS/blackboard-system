@@ -190,6 +190,7 @@ for n=1:nAngles
             ok = scheduler.iterate;
         end
 
+        clc;
         if plotting
             fprintf('\n---------------------------------------------------------------------------\n');
             fprintf('Reference target angle: %d degrees\n', srcAngle);
