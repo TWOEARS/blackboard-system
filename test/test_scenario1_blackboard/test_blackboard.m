@@ -123,10 +123,10 @@ for n=1:nAngles
         % Use 'ReInit' before setting the new speech file
         sim.set('ReInit',true);
         
-        % Read ii-th TIMIT sentence
+        % Read f-th GRID sentence
         [x,fsHz_x] = audioread(fullfile(rootGRID, testFiles{f}));
         
-        % Upsampel speech to fsHz_HRTF if required
+        % Upsample speech if required
         if fsHz_x ~= fsHz
             x = resample(x, fsHz, fsHz_x);
         end

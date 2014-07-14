@@ -1,5 +1,5 @@
-function train_GM(updateGM, genData)
-% GM training script using the Graphical Model Toolkit (GMTK)
+function train_blackboard(updateGM, genData)
+% Training script using the Graphical Model Toolkit (GMTK)
 %
 % Sound sources are positioned in the horizontal plane in the range of 0 
 % ... 355 degrees, with an angular resolution of 5 degrees (0:5:355).
