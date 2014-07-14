@@ -21,8 +21,8 @@ classdef AcousticCueSavingKS < AbstractKS
         function b = canExecute(obj)
             b = false;
             if obj.activeIndex < 1
-                numSpatialCues = obj.blackboard.getNumSpatialCues;
-                for n=1:numSpatialCues
+                numAcousticCues = obj.blackboard.getNumAcousticCues;
+                for n=1:numAcousticCues
                     if obj.blackboard.acousticCues{n}.seenByLocationKS == false
                         obj.activeIndex = n;
                         b = true;
@@ -42,11 +42,13 @@ classdef AcousticCueSavingKS < AbstractKS
                 return
             end
             
-            fprintf('-------- AcousticCueSavingKS has fired\n');
-            
+            if obj.blackboard.verbosity > 0
+                fprintf('-------- AcousticCueSavingKS has fired\n');
+            end
+
             % Add spatial cues to the feature array
             featureBlock = [acousticCues.itds; acousticCues.ilds];
-            fprintf('Saving spatial data for block %d\n', acousticCues.blockNo);
+            fprintf('Saving acoustic cues for block %d\n', acousticCues.blockNo);
             fn = fullfile(obj.dataPath, sprintf('%s_location%d_block%d', 'spatial_cues', obj.label, acousticCues.blockNo));
             writehtk(strcat(fn, '.htk'), featureBlock);
 
