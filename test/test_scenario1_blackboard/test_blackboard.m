@@ -18,7 +18,7 @@ angularResolution = 5;
 angles = 0:angularResolution:(360-angularResolution);
 
 % Azimuth of speech source for testing
-sourceAngles = [270 300 330 0 30 60 90];
+sourceAngles = [300 330 0 30 60];
 
 
 %% Initialise simulation
@@ -130,6 +130,7 @@ for n=1:nAngles
         if fsHz_x ~= fsHz
             x = resample(x, fsHz, fsHz_x);
         end
+        x = x ./ max(x(:));
         
         % Fill speech buffer
         sourceBuffer.setData(x);
@@ -213,6 +214,9 @@ for n=1:nAngles
             estAngles(m) = bb.perceivedLocations(m).location + ...
                 bb.perceivedLocations(m).headOrientation;
         end
+        if plotting
+            fprintf('---------------------------------------------------------------------------\n');
+        end
         locErrors(n,f) = mean(calc_localisation_errors(srcAngle, estAngles));
     end
 end
@@ -284,11 +288,10 @@ caxis([0 1]);
 title(sprintf('Block %d, head orientation: %d deg, IC', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 
 subplot(4, 4, 8)
-imagesc(acousticCue.ratemap(:, :, 1));
+imagesc(acousticCue.ratemap);
 set(gca,'YDir','normal');
 ylabel('GFB Channels');
 xlabel('Frame index');   
-caxis([0 1]);
 title(sprintf('Block %d, head orientation: %d deg, RATEMAP', acousticCue.blockNo, acousticCue.headOrientation), 'FontSize', 12);
 drawnow
 
