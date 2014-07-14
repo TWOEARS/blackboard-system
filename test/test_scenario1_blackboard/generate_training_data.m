@@ -83,8 +83,8 @@ WP2_param = genParStruct('f_low',f_low,'f_high',f_high,...
 %
 trainfn = fullfile(xml.dbPath, 'sound_databases/grid_subset/training/training.wav'); 
 [train_signal,fsHz_train] = audioread(trainfn);
-% Use 60 seconds for training
-train_seconds = 60;
+% Use 5 seconds for training
+train_seconds = 5;
 train_signal = train_signal(1:(fsHz_train*train_seconds));
 % Upsample speech if required
 if fsHz_train ~= fsHz
@@ -94,10 +94,13 @@ end
 
 %% Generate binaural cues
 %
+tic;
 numAngles = length(angles);
 for n = 1 : numAngles
     
     clc;
+    toc;
+    tic;
     fprintf('---- Generating acoustic cues at %d degrees\n', angles(n));
     
     % Set source azimuth
@@ -118,11 +121,11 @@ for n = 1 : numAngles
     mObj.processSignal();
     
     % Save binaural cues
-    itd = dObj.itd_xcorr{1}.Data .* 1000; % convert to ms
-    ild = dObj.ild{1}.Data;
+    itd = dObj.itd_xcorr{1}.Data' .* 1000; % convert to ms
+    ild = dObj.ild{1}.Data';
     
     fn = fullfile(dataPath, sprintf('spatial_cues_angle%d', angles(n)));
-    writehtk(strcat(fn, '.htk'), [itd'; ild']);
+    writehtk(strcat(fn, '.htk'), [itd; ild]);
     
     % Save labels for each frame
     fid = fopen(strcat(fn, '.lab'), 'w');
