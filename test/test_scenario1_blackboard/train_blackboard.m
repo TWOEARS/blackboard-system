@@ -18,11 +18,9 @@ if nargin < 1
     genData = 1;
 end
 
-tic
 
-%--------------------------------------------------------------------------
-% Define training parameters
-%--------------------------------------------------------------------------
+%% Define training parameters
+%
 gmName = 'scenario1';
 
 % Define angular resolution
@@ -89,14 +87,4 @@ fclose(fidObsList);
 fclose(fidLabList);
 gmtkLoc.train(trainFeatureList, trainLabelList);
 
-
-
-
-%         h = legend('No head turn', '30 degree right turn');
-%         set(h, 'FontSize', 16);
-%     end
-%     ylabel('Mean posteriors', 'FontSize', 16);
-%     axis([0 numAngles+1 0 1.2]);
-%     title(sprintf('Sound located at %d degrees', testAngle), 'FontSize', 16);
-%colormap(summer)
 
