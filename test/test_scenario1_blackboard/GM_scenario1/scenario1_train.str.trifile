@@ -7,7 +7,7 @@
 @@@!!!TRIFILE_END_OF_ID_STRING!!!@@@ 
 
 % ---
-% GMTK Triangulation File Created: Monday May 26 2014, 14:48:11 CEST
+% GMTK Triangulation File Created: Monday July 14 2014, 13:58:53 BST
 % Options-: triangulationHeuristic: R, jtWeight: T, jtwUB: F, jtwPUI: 0.000000, jtwMC: F, jtwSNSC: 1.000000, jtwDNSC: 1.000000, pfCobWeight: 0.000000, findBestBoundary: T, traverseFraction: 1.000000, noBoundaryMemoize: F, forceLeftRight: , boundaryHeuristic: S, 
 % ---
 
@@ -78,28 +78,28 @@ CE_PARTITION 0
 % ---- 2 total max-cliques 
 % ---- Triangulation came from method: 1-R
 % 0 : 1  0.000000
-%    obs(1)
-% 1 : 1  0.000000
 %    location(1)
+% 1 : 1  0.000000
+%    obs(1)
 % Maximum clique state space = 1e0.000000, total state space = 1e0.301030
 1-R 
 2 
-0 1 obs 1 
-1 1 location 1 
+0 1 location 1 
+1 1 obs 1 
 
 % ---
 % ---- E Partitions Cliques and their weights
 % ---- 2 total max-cliques 
 % ---- Triangulation came from method: 1-R
 % 0 : 1  0.000000
-%    location(2)
-% 1 : 1  0.000000
 %    obs(2)
+% 1 : 1  0.000000
+%    location(2)
 % Maximum clique state space = 1e0.000000, total state space = 1e0.301030
 1-R 
 2 
-0 1 location 2 
-1 1 obs 2 
+0 1 obs 2 
+1 1 location 2 
 
 
 % ----

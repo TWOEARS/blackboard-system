@@ -1,0 +1,10 @@
+#!/bin/sh
+
+/usr/local/bin/gmtkEMtrain -iswp1 -of1 GM_scenario1/flists/train_features.flist -nf1 64 -fmt1 htk \
+        -of2 GM_scenario1/flists/train_labels.flist -ni2 1 -fmt2 ascii \
+        -strFile GM_scenario1/scenario1_train.str \
+        -inputMasterFile GM_scenario1/scenario1_train.master \
+        -outputTrainableParameters GM_scenario1/scenario1_learned_params@D.gmp \
+        -maxE 1 \
+        -random F
+

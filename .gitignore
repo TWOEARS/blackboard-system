@@ -11,4 +11,6 @@
 .post_*
 *_bak?
 jt_info.txt
+*.htk
+*.lab
 
