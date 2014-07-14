@@ -1,24 +1,15 @@
-function generate_training_data(dataPath, trainDurationSec)
+function generate_training_data(dataPath, angles, nChannels)
 %
-% dataPath              Path for saving training data
-% trainDurationSec      Duration of training data in seconds (default 4)
+%  dataPath              Path for saving training data
+%  angles                All angles used in training
+%  nChannels             The number of filter channels
 %
+
 
 %% Add relevant paths
 %
-run('../add_WP_paths.m');
-
 import simulator.*
 import xml.*
-
-%% Testing parameters
-%
-% Define angular resolution
-angularResolution = 5;
-
-% All possible azimuth angles
-angles = 0:angularResolution:(360-angularResolution);
-numAngles = length(angles);
 
 
 %% Initialise simulation
@@ -70,7 +61,6 @@ stepSec  = 10E-3;
 % Gammatone parameters
 f_low       = 80;
 f_high      = 8000;
-nChannels   = 32;
 rm_decaySec = 0;
 
 % Request cues being extracted
@@ -104,6 +94,7 @@ end
 
 %% Generate binaural cues
 %
+numAngles = length(angles);
 for n = 1 : numAngles
     
     clc;
@@ -112,7 +103,6 @@ for n = 1 : numAngles
     % Set source azimuth
     srcPosition = distSource * [cosd(angles(n)); sind(angles(n)); 0];
     source.set('Position', srcPosition);
-        
     % Use 'ReInit' before setting the new speech file
     sim.set('ReInit',true);
     
@@ -128,18 +118,23 @@ for n = 1 : numAngles
     mObj.processSignal();
     
     % Save binaural cues
-    itd = dObj.itd_xcorr{1}.Data;
-    ild = dObj.ild{1}.Data;
+    itd = dObj.itd_xcorr{1}.Data' .* 1000; % convert to ms
+    ild = dObj.ild{1}.Data';
+    
     fn = fullfile(dataPath, sprintf('spatial_cues_angle%d', angles(n)));
     writehtk(strcat(fn, '.htk'), [itd; ild]);
     
     % Save labels for each frame
     fid = fopen(strcat(fn, '.lab'), 'w');
-    fprintf(fid, '%d\n', repmat(angles(n),1,size(itd,2)));
+    fprintf(fid, '%d\n', repmat(n-1,1,size(itd,2)));
     fclose(fid);
     
     fprintf('\n');
 end
+
+%% clean up
+%
+sim.set('ShutDown',true);
 
 
 

@@ -1,4 +1,4 @@
-function generateGMTKParameters(gmtkEngine, numAngles, featureRange)
+function generate_GMTK_parameters(gmtkEngine, numAngles, featureRange)
 %generateInitialParameters Summary of this function goes here
 %   Detailed explanation goes here
 
