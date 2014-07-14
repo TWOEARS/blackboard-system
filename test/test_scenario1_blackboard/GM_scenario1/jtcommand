@@ -1,0 +1,14 @@
+#!/bin/sh
+
+/usr/local/bin/gmtkJT -iswp1 -of1 /private/tmp/tp90613951_650c_49ce_af62_a603e211f4ef.flist -nf1 64 -fmt1 htk \
+        -strFile GM_scenario1/scenario1.str \
+        -inputMasterFile GM_scenario1/scenario1.master \
+        -inputTrainableParameters GM_scenario1/scenario1_learned_params.gmp \
+        -pCliquePrintRange 0 \
+        -cCliquePrintRange 0 \
+        -eCliquePrintRange 0 \
+        -cliqueOutputFileName GM_scenario1/scenario1.post \
+        -cliqueListFileName GM_scenario1/scenario1.post \
+        -verbosity 0 \
+        -cliquePrintFormat ascii
+

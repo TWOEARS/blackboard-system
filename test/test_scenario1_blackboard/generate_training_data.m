@@ -94,12 +94,10 @@ end
 
 %% Generate binaural cues
 %
-tic;
+clc;
 numAngles = length(angles);
 for n = 1 : numAngles
     
-    clc;
-    toc;
     tic;
     fprintf('---- Generating acoustic cues at %d degrees\n', angles(n));
     
@@ -132,6 +130,8 @@ for n = 1 : numAngles
     fprintf(fid, '%d\n', repmat(n-1,1,size(itd,2)));
     fclose(fid);
     
+    clc;
+    toc;
     fprintf('\n');
 end
 

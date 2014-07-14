@@ -106,7 +106,7 @@ clear C;
 % Name of the graphical model
 gmName = 'scenario1';
 
-nFiles = length(testFiles);
+nFiles = 1; %length(testFiles);
 nAngles = length(sourceAngles);
 locErrors = zeros(nAngles, nFiles);
 for n=1:nAngles
@@ -114,8 +114,8 @@ for n=1:nAngles
     srcPosition = distSource * [cosd(srcAngle); sind(srcAngle); 0];
         
     for f=1:nFiles
-        clc;
-        fprintf('---- Localising target source at %d degrees: file %d (%s)\n', srcAngle, f, testFiles{f});
+
+        fprintf('\n---- Localising target source at %d degrees: file %d (%s)\n', srcAngle, f, testFiles{f});
         
         % Set source azimuth
         speech.set('Position', srcPosition);
@@ -191,9 +191,9 @@ for n=1:nAngles
 
         if plotting
             fprintf('\n---------------------------------------------------------------------------\n');
-            fprintf('Reference location: %d degrees\n', srcAngle);
+            fprintf('Reference target angle: %d degrees\n', srcAngle);
             fprintf('---------------------------------------------------------------------------\n');
-            fprintf('Target source locations\n');
+            fprintf('Localised source angle:\n');
             fprintf('---------------------------------------------------------------------------\n');
             fprintf('Block\tLocation   (head orientation    relative location)\tProbability\n');
             fprintf('---------------------------------------------------------------------------\n');
@@ -213,14 +213,7 @@ for n=1:nAngles
             estAngles(m) = bb.perceivedLocations(m).location + ...
                 bb.perceivedLocations(m).headOrientation;
         end
-        locErrors(p,f) = mean(calc_localisation_errors(srcAngle, estAngles));
-    end
-    if nargout < 1
-        if isinf(snr)
-            save('localisation_errors_BB_clean', 'locErrors', 'sourceAngles');
-        else
-            save(sprintf('localisation_errors_BB_%s_%ddB', envNoiseType, snr), 'locErrors', 'sourceAngles');
-        end
+        locErrors(n,f) = mean(calc_localisation_errors(srcAngle, estAngles));
     end
 end
 
