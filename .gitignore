@@ -7,8 +7,8 @@
 *.asv
 *~
 .DS_Store
-.post
-.post_*
+*.post
+*.post_*
 *_bak?
 jt_info.txt
 *.htk
