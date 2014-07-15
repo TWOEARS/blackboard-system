@@ -7,7 +7,12 @@
 *.asv
 *~
 .DS_Store
-.post
-.post_*
-*_bak?
 jt_info.txt
+*.post
+*.post_*
+*_bak?
+*.htk
+*.lab
+traincommand
+tricommand
+jtcommand
