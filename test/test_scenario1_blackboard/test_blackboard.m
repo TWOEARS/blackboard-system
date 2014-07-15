@@ -4,8 +4,8 @@ plotting = 1;
 
 %% Add relevant paths
 %
-run('../add_WP_paths.m');
-
+addpath('..');
+add_WP_paths;
 import simulator.*
 import xml.*
 

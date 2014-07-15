@@ -1,6 +1,6 @@
 #!/bin/sh
 
-/usr/local/bin/gmtkJT -iswp1 -of1 /private/tmp/tp2414702c_8ba3_4960_8f44_0cebfebf49aa.flist -nf1 64 -fmt1 htk \
+/usr/local/bin/gmtkJT -iswp1 -of1 /private/tmp/tp761482b2_2cf6_4d65_a2c1_152056c15a87.flist -nf1 64 -fmt1 htk \
         -strFile GM_scenario1/scenario1.str \
         -inputMasterFile GM_scenario1/scenario1.master \
         -inputTrainableParameters GM_scenario1/scenario1_learned_params.gmp \

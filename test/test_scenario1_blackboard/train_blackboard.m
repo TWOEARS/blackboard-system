@@ -12,7 +12,8 @@ function train_blackboard(genData)
 % Ning Ma, 10 March 2014, n.ma@sheffield.ac.uk
 %
 
-run('../add_WP_paths.m');
+addpath('..');
+add_WP_paths;
 
 if nargin < 1
     genData = 1;
