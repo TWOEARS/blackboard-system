@@ -51,6 +51,9 @@ sim.set(...
 
 sim.set('Init',true);
 
+% Set source distance
+source.set('Radius', distSource);
+
 
 %% Initialise all WP2 related parameters
 %
@@ -102,8 +105,8 @@ for n = 1 : numAngles
     fprintf('---- Generating acoustic cues at %d degrees\n', angles(n));
     
     % Set source azimuth
-    srcPosition = distSource * [cosd(angles(n)); sind(angles(n)); 0];
-    source.set('Position', srcPosition);
+    source.set('Azimuth', angles(n));
+
     % Use 'ReInit' before setting the new speech file
     sim.set('ReInit',true);
     
