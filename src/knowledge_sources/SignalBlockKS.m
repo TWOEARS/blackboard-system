@@ -18,7 +18,7 @@ classdef SignalBlockKS < AbstractKS
         end
         
         function b = canExecute(obj)
-            if obj.sim.Sources.isEmpty()
+            if obj.sim.isFinished()
                 b = false;
             else
                 b = obj.blackboard.readyForNextBlock;
