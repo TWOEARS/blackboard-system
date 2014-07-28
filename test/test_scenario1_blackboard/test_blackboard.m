@@ -59,6 +59,10 @@ sim.set(...
     'Sinks', head);                 % assign sinks to Simulator
 
 sim.set('Init',true);
+
+% Set source distance
+speech.set('Radius', distSource);
+
 % sim.draw();
 
 %% Initialise all WP2 related parameters
@@ -106,19 +110,19 @@ clear C;
 % Name of the graphical model
 gmName = 'scenario1';
 
-nFiles = 1; %length(testFiles);
+nFiles = length(testFiles);
+nFiles = 1;
 nAngles = length(sourceAngles);
 locErrors = zeros(nAngles, nFiles);
 for n=1:nAngles
     srcAngle = sourceAngles(n);
-    srcPosition = distSource * [cosd(srcAngle); sind(srcAngle); 0];
+
+    % Set source azimuth
+    speech.set('Azimuth', srcAngle);
         
     for f=1:nFiles
 
         fprintf('\n---- Localising target source at %d degrees: file %d (%s)\n', srcAngle, f, testFiles{f});
-        
-        % Set source azimuth
-        speech.set('Position', srcPosition);
         
         % Use 'ReInit' before setting the new speech file
         sim.set('ReInit',true);
