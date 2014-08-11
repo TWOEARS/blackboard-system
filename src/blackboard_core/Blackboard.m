@@ -143,9 +143,14 @@ classdef Blackboard < handle
             end
         end
         
-        %% Change head orientation
+        %% Set absolute head orientation
         function setHeadOrientation(obj, angle)
             obj.headOrientation = angle;
+        end
+        
+        %% Adjust head orientation relative to the current orientation
+        function adjustHeadOrientation(obj, angle)
+            obj.headOrientation = mod(obj.headOrientation + angle, 360);
         end
         
         %% Reset head orientation to default look direction (0 degrees)
