@@ -148,7 +148,7 @@ classdef Blackboard < handle
             obj.headOrientation = angle;
         end
         
-        %% Adjust head orientation relative to the current orientation
+        %% Adjust relative to the current head orientation
         function adjustHeadOrientation(obj, angle)
             obj.headOrientation = mod(obj.headOrientation + angle, 360);
         end

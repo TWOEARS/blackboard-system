@@ -3,14 +3,14 @@ classdef RotationKS < AbstractKS
     
     properties (SetAccess = private)
         rotationScheduled = false;    % To avoid repetitive head rotations
-        sim;                          % Scene simulator object
+        robot;                        % Reference to a robot object
         activeIndex = 0;              % Index of the new confusion hypothesis
     end
     
     methods
-        function obj = RotationKS(blackboard, sim)
+        function obj = RotationKS(blackboard, robot)
             obj = obj@AbstractKS(blackboard);
-            obj.sim = sim;
+            obj.robot = robot;
         end
         function setActiveArgument(obj, arg)
             obj.activeIndex = arg;
@@ -43,9 +43,9 @@ classdef RotationKS < AbstractKS
                 headRotateAngle = maxAngle - 360;
             end
             
-            obj.blackboard.setHeadOrientation(maxAngle);
+            obj.blackboard.adjustHeadOrientation(maxAngle);
             
-            obj.sim.rotateHead(headRotateAngle);
+            obj.robot.rotateHead(headRotateAngle);
             
             if obj.blackboard.verbosity > 0
                 fprintf('New head orientation is %d degrees\n', obj.blackboard.headOrientation);
