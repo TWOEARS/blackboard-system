@@ -6,7 +6,7 @@ classdef LocationHypothesis < Hypothesis
         blockNo;                           % Block number
         posteriors;                        % Posterior distribution for all angles
         locations;                         % Relative locations
-        headOrientation;                   % Head orientation angle. Negative values mean left turn                
+        headOrientation;                   % Head orientation angle
         seenByConfusionKS = false;
         seenByConfusionSolvingKS = false;
     end

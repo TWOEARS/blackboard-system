@@ -33,8 +33,7 @@ classdef RotationKS < AbstractKS
             end
             
             % Workout the head rotation angle so that the head will face
-            % the most likely source location. Negative values mean left 
-            % turn
+            % the most likely source location.
             locHyp = obj.blackboard.confusionHypotheses(obj.activeIndex);
             [~,idx] = max(locHyp.posteriors);
             maxAngle = locHyp.locations(idx);
