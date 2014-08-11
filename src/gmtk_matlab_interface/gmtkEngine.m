@@ -1,5 +1,5 @@
 classdef gmtkEngine < handle
-    %gmtkEngine Summary of this class goes here
+    %gmtkEngine A Matlab interface for GMTK (graphical model toolkit)
     %   Detailed explanation goes here
     
     properties (GetAccess = public, SetAccess = private)
@@ -258,7 +258,7 @@ classdef gmtkEngine < handle
                     fprintf(fid, '        -cliqueOutputFileName %s \\\n', obj.outputCliqueFile);
                     fprintf(fid, '        -cliqueListFileName %s \\\n', obj.outputCliqueFile);
                     fprintf(fid, '        -verbosity 0 \\\n');
-                    fprintf(fid, '        -cliquePrintFormat ascii\n');
+                    fprintf(fid, '        -cliquePrintFormat ascii > /dev/null\n');
                     fprintf(fid, '\n');
                     fclose(fid);
                     unix(['chmod a+x ' cmdfn]);
