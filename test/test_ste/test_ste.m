@@ -1,13 +1,13 @@
-%function test_ste
 % TEST_STE Test script for the "Sharpening the Ears" task
 %
 % Christopher Schymura, 12 August 2014
 % christopher.schymura@rub.de
 
 clear all;
+close all;
 clc;
 
-% DEBUG
+% JUST FOR TESTING
 numUtterances = 10;
 azimuthTarget = 90;
 azimuthMasker = 270;
@@ -104,6 +104,19 @@ sim.Sources(2).setData(signalMasker);
 sim.Sources(1).set('Azimuth', azimuthTarget);
 sim.Sources(2).set('Azimuth', azimuthMasker);
 
+%% Render output signals
+
+while ~sim.Sources(1).isEmpty();
+    sim.set('Refresh',true);
+    sim.set('Process',true);
+end
+
+% Get output signals
+out = sim.Sinks.getData();
+
+% Normalize
+out = out / max(abs(out(:)));
+
 %% Initialise WP2 related parameters
 
 % Framing parameters
@@ -116,36 +129,28 @@ f_high      = 8000;
 nChannels   = 32;
 rm_decaySec = 0;
 
-% Frequency range and number of channels
-WP2_param = genParStruct('f_low',f_low,'f_high',f_high,...
-                         'nChannels',nChannels,...
-                         'rm_decaySec',rm_decaySec,...
-                         'ild_wSizeSec',blockSec,...
-                         'ild_hSizeSec',stepSec,'rm_wSizeSec',blockSec,...
-                         'rm_hSizeSec',stepSec,'cc_wSizeSec',blockSec,...
-                         'cc_hSizeSec',stepSec);    
+% Request a gammatone filtering...
+request = 'ratemap_magnitude';
+dObj = dataObject(out, sim.SampleRate);
+mObj = manager(dObj);
 
-% Request cues being extracted
-WP2_requests = {'ild' 'itd_xcorr' 'ic_xcorr', 'ratemap_power'};
+% Generate WP2 parameters
+wp2Par = genParStruct('f_low', f_low, 'f_high', f_high, ...
+    'nChannels', nChannels, 'rm_decaySec', rm_decaySec,...
+    'rm_wSizeSec', blockSec, 'rm_hSizeSec', stepSec);
 
-% Create an empty data object. It will be filled up as new ear signal
-% chunks are "acquired". 
-dObj = dataObject([], sim.SampleRate, 1);  % Last input (1) indicates a stereo signal
-mObj = manager(dObj, WP2_requests, WP2_param);   % Instantiate a manager
+% Add corresponding processor
+mObj.addProcessor(request, wp2Par);
 
-%% Main loop
+% Process output signal
+mObj.processSignal();
 
-while ~sim.Sources(1).isEmpty();
-    %sim.set('Refresh',true);
-    %sim.set('Process',true);
-    s = sim.getSignal(0.5);
-    mObj.processChunk(s);
-end
+%% Plot results
 
-% out = sim.Sinks.getData();
-% out = out / max(abs(out(:))); % normalize
-% audiowrite('ste_out.wav', out, sim.SampleRate);
+% Plot ratemap
+figure(1)
+imagesc(dObj.ratemap_magnitude{1}.Data);
+set(gca, 'YDir', 'normal');
 
-
-%% clean up
+%% Clean up
 sim.set('ShutDown', true);
