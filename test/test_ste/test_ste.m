@@ -136,18 +136,16 @@ mObj = manager(dObj, WP2_requests, WP2_param);   % Instantiate a manager
 %% Main loop
 
 while ~sim.Sources(1).isEmpty();
-  sim.set('Refresh',true);
-  sim.set('Process',true);
-%   s = sim.getSignal(0.5);
-%   mObj.processChunk(s);
+    %sim.set('Refresh',true);
+    %sim.set('Process',true);
+    s = sim.getSignal(0.5);
+    mObj.processChunk(s);
 end
 
-out = sim.Sinks.getData();
-out = out / max(abs(out(:))); % normalize
-audiowrite('ste_out.wav', out, sim.SampleRate);
+% out = sim.Sinks.getData();
+% out = out / max(abs(out(:))); % normalize
+% audiowrite('ste_out.wav', out, sim.SampleRate);
 
 
 %% clean up
 sim.set('ShutDown', true);
-
-%clear all;
