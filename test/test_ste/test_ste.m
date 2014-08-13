@@ -8,7 +8,7 @@ close all;
 clc;
 
 % JUST FOR TESTING
-numUtterances = 10;
+numUtterances = 3;
 azimuthTarget = 90;
 azimuthMasker = 270;
 
@@ -137,7 +137,7 @@ WP2_param = genParStruct('f_low',f_low,'f_high',f_high,...
                          'rm_hSizeSec',stepSec);    
 
 % Request cues being extracted
-WP2_requests = {'ratemap_power'};
+WP2_requests = {'ratemap_power', 'ild', 'itd_xcorr'};
 
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
@@ -151,12 +151,30 @@ mObj.processSignal();
 
 % Plot ratemap
 figure(1)
-subplot 121
-imagesc(dObj.ratemap_power{1}.Data);
+subplot 221
+imagesc(10 * log10(dObj.ratemap_power{1}.Data'));
 set(gca, 'YDir', 'normal');
-subplot 122
-imagesc(dObj.ratemap_power{2}.Data);
+xlabel('Frame index');
+ylabel('GFB channel');
+title('Ratemap left ear');
+subplot 222
+imagesc(10 * log10(dObj.ratemap_power{2}.Data'));
 set(gca, 'YDir', 'normal');
+xlabel('Frame index');
+ylabel('GFB channel');
+title('Ratemap right ear');
+subplot 223
+imagesc(dObj.itd_xcorr{1}.Data');
+set(gca, 'YDir', 'normal');
+xlabel('Frame index');
+ylabel('GFB channel');
+title('ITD');
+subplot 224
+imagesc(dObj.ild{1}.Data');
+set(gca, 'YDir', 'normal');
+xlabel('Frame index');
+ylabel('GFB channel');
+title('ILD');
 
 %% Clean up
 sim.set('ShutDown', true);
