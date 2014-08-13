@@ -8,7 +8,13 @@
   HRIRs="impulse_responses/qu_kemar_anechoic/QU_KEMAR_anechoic_3m.sofa">
   <source Position="0 -3 1.75"
           Type="point"
-          Name="Speaker1">
+          Name="TargetSpeaker">
+    <buffer ChannelMapping="1"
+            Type="fifo"/>
+  </source>
+  <source Position="0 -3 1.75"
+          Type="point"
+          Name="MaskerSpeaker">
     <buffer ChannelMapping="1"
             Type="fifo"/>
   </source>
