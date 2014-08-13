@@ -1,8 +1,5 @@
-%function test_ste(soundfile)
+%function test_ste
 % TEST_STE Test script for the "Sharpening the Ears" task
-%
-% Inputs:
-%   sceneXML - XML file describing the scene that should be analyzed
 %
 % Christopher Schymura, 12 August 2014
 % christopher.schymura@rub.de
@@ -33,10 +30,6 @@ sim.loadConfig('test_ste.xml');
 sim.set('Init',true);
 
 %% Read audio files
-
-% This test script picks a random speaker from the GRID Corpus and
-% concatenates a specified number of utternaces of that speaker to generate
-% the audio signals.
 
 % Get random ID for the target speaker (34 speakers in the GRID Corpus)
 targetID = randi(34);
@@ -155,6 +148,6 @@ audiowrite('ste_out.wav', out, sim.SampleRate);
 
 
 %% clean up
-sim.set('ShutDown',true);
+sim.set('ShutDown', true);
 
 %clear all;
