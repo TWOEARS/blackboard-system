@@ -107,12 +107,12 @@ sim.Sources(2).set('Azimuth', azimuthMasker);
 %% Render output signals
 
 while ~sim.Sources(1).isEmpty();
-    sim.set('Refresh',true);
-    sim.set('Process',true);
+    sim.set('Refresh', true);
+    sim.set('Process', true);
 end
 
-% Get output signals
-out = sim.Sinks.getData();
+% Get output signals and cast to double
+out = double(sim.Sinks.getData());
 
 % Normalize
 out = out / max(abs(out(:)));
@@ -129,18 +129,20 @@ f_high      = 8000;
 nChannels   = 32;
 rm_decaySec = 0;
 
-% Request a gammatone filtering...
-request = 'ratemap_magnitude';
-dObj = dataObject(out, sim.SampleRate);
-mObj = manager(dObj);
+% Frequency range and number of channels
+WP2_param = genParStruct('f_low',f_low,'f_high',f_high,...
+                         'nChannels',nChannels,...
+                         'rm_decaySec',rm_decaySec,...
+                         'rm_wSizeSec',blockSec,...
+                         'rm_hSizeSec',stepSec);    
 
-% Generate WP2 parameters
-wp2Par = genParStruct('f_low', f_low, 'f_high', f_high, ...
-    'nChannels', nChannels, 'rm_decaySec', rm_decaySec,...
-    'rm_wSizeSec', blockSec, 'rm_hSizeSec', stepSec);
+% Request cues being extracted
+WP2_requests = {'ratemap_power'};
 
-% Add corresponding processor
-mObj.addProcessor(request, wp2Par);
+% Create an empty data object. It will be filled up as new ear signal
+% chunks are "acquired". 
+dObj = dataObject(out, sim.SampleRate, 1);  % Last input (1) indicates a stereo signal
+mObj = manager(dObj, WP2_requests, WP2_param);   % Instantiate a manager
 
 % Process output signal
 mObj.processSignal();
@@ -149,7 +151,11 @@ mObj.processSignal();
 
 % Plot ratemap
 figure(1)
-imagesc(dObj.ratemap_magnitude{1}.Data);
+subplot 121
+imagesc(dObj.ratemap_power{1}.Data);
+set(gca, 'YDir', 'normal');
+subplot 122
+imagesc(dObj.ratemap_power{2}.Data);
 set(gca, 'YDir', 'normal');
 
 %% Clean up
