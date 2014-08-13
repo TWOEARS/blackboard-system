@@ -1,19 +1,14 @@
-%function test_ste(soundfile)
 % TEST_STE Test script for the "Sharpening the Ears" task
-%
-% Inputs:
-%   sceneXML - XML file describing the scene that should be analyzed
 %
 % Christopher Schymura, 12 August 2014
 % christopher.schymura@rub.de
 
 clear all;
+close all;
 clc;
 
-% DEBUG
-numUtterances = 10;
-azimuthTarget = 90;
-azimuthMasker = 270;
+% JUST FOR TESTING
+numUtterances = 2;
 
 %% Error and parameter handling
 
@@ -29,14 +24,10 @@ import simulator.*
 
 % Initialize SSR
 sim = SimulatorConvexRoom();  % simulator object
-sim.loadConfig('test_ste.xml');
+sim.loadConfig('test_ste_new.xml');
 sim.set('Init',true);
 
 %% Read audio files
-
-% This test script picks a random speaker from the GRID Corpus and
-% concatenates a specified number of utternaces of that speaker to generate
-% the audio signals.
 
 % Get random ID for the target speaker (34 speakers in the GRID Corpus)
 targetID = randi(34);
@@ -107,9 +98,26 @@ end
 sim.Sources(1).setData(signalTarget);
 sim.Sources(2).setData(signalMasker);
 
+% Get random source locations
+targetAzimuth = randi(179);
+maskerAzimuth = 180 + randi(179);
+
 % Set source azimuth
-sim.Sources(1).set('Azimuth', azimuthTarget);
-sim.Sources(2).set('Azimuth', azimuthMasker);
+sim.Sources(1).set('Azimuth', targetAzimuth);
+sim.Sources(2).set('Azimuth', maskerAzimuth);
+
+%% Render output signals
+
+while ~sim.Sources(1).isEmpty();
+    sim.set('Refresh', true);
+    sim.set('Process', true);
+end
+
+% Get output signals and cast to double
+out = double(sim.Sinks.getData());
+
+% Normalize
+out = out / max(abs(out(:)));
 
 %% Initialise WP2 related parameters
 
@@ -127,34 +135,55 @@ rm_decaySec = 0;
 WP2_param = genParStruct('f_low',f_low,'f_high',f_high,...
                          'nChannels',nChannels,...
                          'rm_decaySec',rm_decaySec,...
-                         'ild_wSizeSec',blockSec,...
-                         'ild_hSizeSec',stepSec,'rm_wSizeSec',blockSec,...
-                         'rm_hSizeSec',stepSec,'cc_wSizeSec',blockSec,...
-                         'cc_hSizeSec',stepSec);    
+                         'rm_wSizeSec',blockSec,...
+                         'rm_hSizeSec',stepSec);    
 
 % Request cues being extracted
-WP2_requests = {'ild' 'itd_xcorr' 'ic_xcorr', 'ratemap_power'};
+WP2_requests = {'ratemap_power', 'ild', 'itd_xcorr'};
 
 % Create an empty data object. It will be filled up as new ear signal
 % chunks are "acquired". 
-dObj = dataObject([], sim.SampleRate, 1);  % Last input (1) indicates a stereo signal
+dObj = dataObject(out, sim.SampleRate, 1);  % Last input (1) indicates a stereo signal
 mObj = manager(dObj, WP2_requests, WP2_param);   % Instantiate a manager
 
-%% Main loop
+% Process output signal
+mObj.processSignal();
 
-while ~sim.Sources(1).isEmpty();
-  sim.set('Refresh',true);
-  sim.set('Process',true);
-%   s = sim.getSignal(0.5);
-%   mObj.processChunk(s);
-end
+%% Plot results
 
-out = sim.Sinks.getData();
-out = out / max(abs(out(:))); % normalize
-audiowrite('ste_out.wav', out, sim.SampleRate);
+% Display scenario information
+disp(['Target source position: ', num2str(targetAzimuth), '°']);
+disp(['Masker source position: ', num2str(maskerAzimuth), '°']);
 
+% Plot ratemap
+figure(1)
+subplot 221
+imagesc(dObj.ratemap_power{1}.Data');
+set(gca, 'YDir', 'normal');
+xlabel('Frame index');
+ylabel('GFB channel');
+title('Ratemap left ear');
+subplot 222
+imagesc(dObj.ratemap_power{2}.Data');
+set(gca, 'YDir', 'normal');
+xlabel('Frame index');
+ylabel('GFB channel');
+title('Ratemap right ear');
+subplot 223
+imagesc(dObj.itd_xcorr{1}.Data');
+set(gca, 'YDir', 'normal');
+xlabel('Frame index');
+ylabel('GFB channel');
+title('ITD');
+subplot 224
+imagesc(dObj.ild{1}.Data');
+set(gca, 'YDir', 'normal');
+xlabel('Frame index');
+ylabel('GFB channel');
+title('ILD');
 
-%% clean up
-sim.set('ShutDown',true);
+% Play sound
+soundsc(out, sim.SampleRate);
 
-%clear all;
+%% Clean up
+sim.set('ShutDown', true);
