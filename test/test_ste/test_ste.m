@@ -9,8 +9,6 @@ clc;
 
 % JUST FOR TESTING
 numUtterances = 2;
-azimuthTarget = 90;
-azimuthMasker = 270;
 
 %% Error and parameter handling
 
@@ -100,9 +98,13 @@ end
 sim.Sources(1).setData(signalTarget);
 sim.Sources(2).setData(signalMasker);
 
+% Get random source locations
+targetAzimuth = randi(179);
+maskerAzimuth = 180 + randi(179);
+
 % Set source azimuth
-sim.Sources(1).set('Azimuth', azimuthTarget);
-sim.Sources(2).set('Azimuth', azimuthMasker);
+sim.Sources(1).set('Azimuth', targetAzimuth);
+sim.Sources(2).set('Azimuth', maskerAzimuth);
 
 %% Render output signals
 
@@ -148,6 +150,10 @@ mObj = manager(dObj, WP2_requests, WP2_param);   % Instantiate a manager
 mObj.processSignal();
 
 %% Plot results
+
+% Display scenario information
+disp(['Target source position: ', num2str(targetAzimuth), '°']);
+disp(['Masker source position: ', num2str(maskerAzimuth), '°']);
 
 % Plot ratemap
 figure(1)
