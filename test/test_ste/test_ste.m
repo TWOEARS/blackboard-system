@@ -12,7 +12,8 @@ clc;
 
 % DEBUG
 numUtterances = 10;
-azimuth = 90;
+azimuthTarget = 90;
+azimuthMasker = 270;
 
 %% Error and parameter handling
 
@@ -38,48 +39,77 @@ sim.set('Init',true);
 % the audio signals.
 
 % Get random ID for the target speaker (34 speakers in the GRID Corpus)
-speakerID = randi(34);
+targetID = randi(34);
 
-% Get file list from folder
-fileList = dir(fullfile([repoRoot, ...
-    '/twoears-data/sound_databases/grid_subset/wav/s', num2str(speakerID)]));
+% Get random ID for the masking speaker
+maskerID = targetID;
+while maskerID == targetID
+    maskerID = randi(34);
+end
+
+% Get file lists for both speakers from subfolders
+fileListTarget = dir(fullfile([repoRoot, ...
+    '/twoears-data/sound_databases/grid_subset/wav/s', num2str(targetID)]));
+fileListMasker = dir(fullfile([repoRoot, ...
+    '/twoears-data/sound_databases/grid_subset/wav/s', num2str(maskerID)]));
 
 % Remove dots at the beginning of the file list
-fileList = fileList(3 : end);
+fileListTarget = fileListTarget(3 : end);
+fileListMasker = fileListMasker(3 : end);
 
 % Get number of available sound files
-numFiles = length(fileList);
+numFilesTarget = length(fileListTarget);
+numFilesMasker = length(fileListMasker);
 
 % Randomly pick files from the list
-fileIDs = randi(numFiles, numUtterances, 1);
+fileIDTarget = randi(numFilesTarget, numUtterances, 1);
+fileIDMasker = randi(numFilesMasker, numUtterances, 1);
 
-% Allocate signal vector
-signal = [];
+% Allocate signal vectors
+signalTarget = [];
+signalMasker = [];
 
 % Load and concatenate sound files
-for k = 1 : numUtterances
-    % Read audio
-    [input, fsHz] = audioread(fullfile([repoRoot, ...
-        '/twoears-data/sound_databases/grid_subset/wav/s', ...
-        num2str(speakerID), '/', fileList(fileIDs(k)).name]));
-
-    % Upsample if necessary
-    if fsHz ~= sim.SampleRate
-        input = resample(input, sim.SampleRate, fsHz);
+for l = 1 : 2
+    for k = 1 : numUtterances
+        % Get filename and ID
+        if l == 1
+            id = targetID;
+            fileName = fileListTarget(fileIDTarget(k)).name;
+        else
+            id = maskerID;
+            fileName = fileListMasker(fileIDMasker(k)).name;
+        end
+        
+        % Read audio
+        [input, fsHz] = audioread(fullfile([repoRoot, ...
+            '/twoears-data/sound_databases/grid_subset/wav/s', ...
+            num2str(id), '/', fileName]));
+        
+        % Upsample if necessary
+        if fsHz ~= sim.SampleRate
+            input = resample(input, sim.SampleRate, fsHz);
+        end
+        input = input ./ max(input(:));
+        
+        % Concatenate audio
+        if l == 1
+            signalTarget = [signalTarget; input];
+        else
+            signalMasker = [signalMasker; input];
+        end
     end
-    input = input ./ max(input(:));
-    
-    % Concatenate audio
-    signal = [signal; input];
 end
 
 %% Setup simulation
 
 % Fill speech buffer
-sim.Sources(1).setData(signal);
+sim.Sources(1).setData(signalTarget);
+sim.Sources(2).setData(signalMasker);
 
 % Set source azimuth
-sim.Sources(1).set('Azimuth', azimuth);
+sim.Sources(1).set('Azimuth', azimuthTarget);
+sim.Sources(2).set('Azimuth', azimuthMasker);
 
 %% Initialise WP2 related parameters
 
@@ -120,8 +150,8 @@ while ~sim.Sources(1).isEmpty();
 end
 
 out = sim.Sinks.getData();
-out = out/max(abs(out(:))); % normalize
-audiowrite('out_event.wav',out,sim.SampleRate);
+out = out / max(abs(out(:))); % normalize
+audiowrite('ste_out.wav', out, sim.SampleRate);
 
 
 %% clean up
