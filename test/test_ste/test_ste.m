@@ -8,7 +8,7 @@ close all;
 clc;
 
 % JUST FOR TESTING
-numUtterances = 3;
+numUtterances = 2;
 azimuthTarget = 90;
 azimuthMasker = 270;
 
@@ -152,13 +152,13 @@ mObj.processSignal();
 % Plot ratemap
 figure(1)
 subplot 221
-imagesc(10 * log10(dObj.ratemap_power{1}.Data'));
+imagesc(dObj.ratemap_power{1}.Data');
 set(gca, 'YDir', 'normal');
 xlabel('Frame index');
 ylabel('GFB channel');
 title('Ratemap left ear');
 subplot 222
-imagesc(10 * log10(dObj.ratemap_power{2}.Data'));
+imagesc(dObj.ratemap_power{2}.Data');
 set(gca, 'YDir', 'normal');
 xlabel('Frame index');
 ylabel('GFB channel');
