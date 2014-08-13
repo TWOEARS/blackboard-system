@@ -40,21 +40,94 @@ classdef SimulationWrapper < handle
             obj.simulator.set('Init', true);
         end
         
-        function outputSignal = renderSignals(obj, duration)
+        function outputSignal = renderSignals(obj, targetFile, ...
+                targetAzimuth, maskerFile, maskerAzimuth, ...
+                diffuseNoiseFile, targetMaskerSNR, targetdiffuseSNR)
             %% RENDERSIGNALS - Rendering engine
             % Generates output signals according to the scenario
             % specification given in the scene XML file.
             
             % Check input
-            if nargin ~= 2
+            if nargin ~= 8
                 error('Wrong number of input arguments.');
             end
             
-            if ~isa(duration, 'double') || numel(duration) ~= 1
-                error(['The scene duration has to be specified as ', ...
-                    'scalar value.']);
+            % TODO: Sufficient error handling
+            
+            % Read target and masker signals
+            if isempty(maskerFile)
+                % Just compute the target signal if no masker was specified
+                [targetSignal, fsHzTarget] = audioread(targetFile);
+                
+                % Upsample if necessary
+                if fsHzTarget ~= obj.simulator.SampleRate
+                    targetSignal = resample(targetSignal, ...
+                        obj.simulator.SampleRate, fsHzTarget);
+                end
+                
+                % Normalize
+                targetSignal = targetSignal ./ max(targetSignal(:));
+                
+                % Add target signal to simulator
+                obj.simulator.Sources(1).setData(targetSignal);
+                
+                % Leave masker signal empty in this case
+                obj.simulator.Sources(2).setData([]);
+                
+                % Set target source location
+                obj.simulator.Sources(1).set('Azimuth', targetAzimuth);
+            else
+                % Compute both signals otherwise
+                [targetSignal, fsHzTarget] = audioread(targetFile);
+                [maskerSignal, fsHzMasker] = audioread(maskerFile);
+                
+                % Upsample if necessary
+                if fsHzTarget ~= obj.simulator.SampleRate
+                    targetSignal = resample(targetSignal, ...
+                        obj.simulator.SampleRate, fsHzTarget);
+                end
+                
+                if fsHzMasker ~= obj.simulator.SampleRate
+                    maskerSignal = resample(maskerSignal, ...
+                        obj.simulator.SampleRate, fsHzMasker);
+                end
+                
+                % Normalize
+                targetSignal = targetSignal ./ max(targetSignal(:));
+                maskerSignal = maskerSignal ./ max(maskerSignal(:));
+                
+                % Add target signal to simulator
+                sim.Sources(1).setData(targetSignal);
+                
+                % Add masker signal to simulator
+                sim.Sources(2).setData(maskerSignal);
+                
+                % Set source locations
+                obj.simulator.Sources(1).set('Azimuth', targetAzimuth);
+                obj.simulator.Sources(1).set('Azimuth', maskerAzimuth);
             end
             
+            % Read diffuse noise signals
+            if ~isempty(diffuseNoiseFile)
+                % Read audio
+                [noiseSignal, fsHzNoise] = audioread(diffuseNoiseFile);
+                
+                % Upsample if necessary
+                if fsHzNoise ~= obj.simulator.SampleRate
+                    noiseSignal = resample(noiseSignal, ...
+                        obj.simulator.SampleRate, fsHzNoise);
+                end
+                
+                % Normalize
+                noiseSignal(:, 1) = noiseSignal(:, 1) ./ ...
+                    max(noiseSignal(:, 1));
+                noiseSignal(:, 2) = noiseSignal(:, 2) ./ ...
+                    max(noiseSignal(:, 2));
+                
+                % Add diffuse noise signal to simulator
+                sim.Sources(3).setData(noiseSignal);
+            end
+           
             % Get output signal from SSR
             outputSignal = obj.simulator.getSignal(duration);
             
