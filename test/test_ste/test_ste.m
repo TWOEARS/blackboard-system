@@ -182,5 +182,8 @@ xlabel('Frame index');
 ylabel('GFB channel');
 title('ILD');
 
+% Play sound
+soundsc(out, sim.SampleRate);
+
 %% Clean up
 sim.set('ShutDown', true);
