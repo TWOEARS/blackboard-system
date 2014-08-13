@@ -24,7 +24,7 @@ import simulator.*
 
 % Initialize SSR
 sim = SimulatorConvexRoom();  % simulator object
-sim.loadConfig('test_ste.xml');
+sim.loadConfig('test_ste_new.xml');
 sim.set('Init',true);
 
 %% Read audio files

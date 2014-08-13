@@ -8,15 +8,20 @@
   HRIRs="impulse_responses/qu_kemar_anechoic/QU_KEMAR_anechoic_3m.sofa">
   <source Position="0 -3 1.75"
           Type="point"
-          Name="TargetSpeaker">
+          Name="TargetSource">
     <buffer ChannelMapping="1"
             Type="fifo"/>
   </source>
-  <source Position="0 -3 1.75"
+  <source Position="0 1 1.75"
           Type="point"
-          Name="MaskerSpeaker">
+          Name="MaskerSource">
     <buffer ChannelMapping="1"
             Type="fifo"/>
+  </source>
+  <source Name="DiffuseNoise"
+          Type="direct">
+    <buffer ChannelMapping="1 2"
+            Type="ring"/>
   </source>
   <sink Position="0 0 1.75"
         UnitFront="1 0 0"

@@ -2,7 +2,7 @@ classdef SimulationWrapper < handle
     %UNTITLED Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (Access = private)
+    properties %(Access = private)
         xmlFile             % XML file containing the scenario description
         simulator           % Instance of SSR SimulatorConvexRoom class        
     end
@@ -23,13 +23,6 @@ classdef SimulationWrapper < handle
             import xml.*
             import simulator.*
             
-            % Check if XML file is valid
-            try
-                xml.dbValidate(xmlFile);
-            catch
-                error([xmlFile, ' is not a valid XML file.']);
-            end
-            
             % Create simnulator object
             obj.simulator = SimulatorConvexRoom();
             
@@ -46,6 +39,8 @@ classdef SimulationWrapper < handle
             %% RENDERSIGNALS - Rendering engine
             % Generates output signals according to the scenario
             % specification given in the scene XML file.
+            %
+            % TODO: Add parameter description
             
             % Check input
             if nargin ~= 8
@@ -72,7 +67,7 @@ classdef SimulationWrapper < handle
                 obj.simulator.Sources(1).setData(targetSignal);
                 
                 % Leave masker signal empty in this case
-                obj.simulator.Sources(2).setData([]);
+                obj.simulator.Sources(2).setData(0);
                 
                 % Set target source location
                 obj.simulator.Sources(1).set('Azimuth', targetAzimuth);
@@ -96,11 +91,16 @@ classdef SimulationWrapper < handle
                 targetSignal = targetSignal ./ max(targetSignal(:));
                 maskerSignal = maskerSignal ./ max(maskerSignal(:));
                 
+                % Scale according to specified SNR between target and
+                % masker
+                targetSignal = std(maskerSignal) / std(targetSignal) * ...
+                  (sqrt(10^(-targetMaskerSNR / 10))) * targetSignal;
+
                 % Add target signal to simulator
-                sim.Sources(1).setData(targetSignal);
+                obj.simulator.Sources(1).setData(targetSignal);
                 
                 % Add masker signal to simulator
-                sim.Sources(2).setData(maskerSignal);
+                obj.simulator.Sources(2).setData(maskerSignal);
                 
                 % Set source locations
                 obj.simulator.Sources(1).set('Azimuth', targetAzimuth);
@@ -125,11 +125,21 @@ classdef SimulationWrapper < handle
                     max(noiseSignal(:, 2));
                 
                 % Add diffuse noise signal to simulator
-                sim.Sources(3).setData(noiseSignal);
+                obj.simulator.Sources(3).setData(noiseSignal);
+            else
+                % Leave diffuse noise signal empty if not specified
+                dummy = zeros(length(obj.simulator.Sources(1).getData), 2);
+                obj.simulator.Sources(3).setData(dummy);
             end
-           
-            % Get output signal from SSR
-            outputSignal = obj.simulator.getSignal(duration);
+            
+            % Render output signal
+            while ~obj.simulator.Sources(1).isEmpty();
+                obj.simulator.set('Refresh', true);
+                obj.simulator.set('Process', true);
+            end
+            
+            % Fetch output signal and cast to double
+            outputSignal = double(obj.simulator.Sinks.getData());
             
             % Normalize
             outputSignal = outputSignal / max(abs(outputSignal(:)));

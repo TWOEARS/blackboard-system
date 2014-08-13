@@ -11,6 +11,8 @@ startWP1;
 
 addpath(genpath(fullfile(reporoot, ...
     'twoears-data/sound_databases/grid_subset/wav')));
+addpath(genpath(fullfile(reporoot, ...
+    'twoears-data/sound_databases/stimuli/binaural')));
 addpath(genpath(fullfile(reporoot, 'twoears-wp2/src')));
 %addpath(genpath(fullfile(reporoot, 'twoears-wp3/src')));
 addpath(genpath(fullfile(reporoot, 'twoears-wp4/src')));
