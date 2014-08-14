@@ -200,7 +200,7 @@ classdef SimulationWrapper < handle
         end
         
         function outputSignal = renderSignals(obj, targetMaskerSNR, ...
-                targetdiffuseSNR)
+                targetNoiseSNR)
             %% RENDERSIGNALS - Rendering engine
             % Generates output signals according to the scenario
             % specification given in the scene XML file.
@@ -214,16 +214,48 @@ classdef SimulationWrapper < handle
             
             % TODO: Sufficient error handling
             
-            % Render individual signals
-            outputSignal = renderSignal(obj, 'target');
+            % Render target signal
+            targetOutput = renderSignal(obj, 'target');
             
+            % Assign target output to output signal
+            outputSignal = targetOutput;
+            
+            % Render masker if specified
             if ~isempty(obj.maskerSignal)
+                % Get masker signal
                 maskerOutput = renderSignal(obj, 'masker');
+                
+                % Compute energies of target and masker signals
+                energyTarget = sum(sum(abs(targetOutput).^2));
+                energyMasker = sum(sum(abs(maskerOutput).^2));
+                
+                % Compute scaling factor for the masker signal
+                maskerGain = sqrt((energyTarget / ...
+                    (10^(targetMaskerSNR / 10))) / energyMasker);
+                
+                % Adjust the masker level to get required SNR
+                maskerOutput = maskerGain * maskerOutput;
+                
+                % Generate output signal
                 outputSignal = outputSignal + maskerOutput;
             end
             
             if ~isempty(obj.noiseSignal)
+                % Get noise signal
                 noiseOutput = renderSignal(obj, 'noise');
+                
+                % Compute noise energy
+                energyTarget = sum(sum(abs(targetOutput).^2));
+                energyNoise = sum(sum(abs(noiseOutput).^2));
+                
+                % Compute scaling factor for the noise signal
+                noiseGain = sqrt((energyTarget / ...
+                    (10^(targetNoiseSNR / 10))) / energyNoise);
+                
+                % Adjust the noise level to get required SNR
+                noiseOutput = noiseGain * noiseOutput;
+                
+                % Generate output signal
                 outputSignal = outputSignal + noiseOutput;
             end
         end        
