@@ -12,7 +12,7 @@ classdef SimulationWrapper < handle
         noiseSignal = [];   % Noise signal
     end
     
-    methods (Static)
+    methods (Access = private)
         function audioData = readAudioFile(obj, filename)
             %% READAUDIOFILE
             %
@@ -144,7 +144,7 @@ classdef SimulationWrapper < handle
             % TODO: Add error handling
             
             % Add signal to class properties
-            obj.targetSignal = obj.readAudioFile(obj, targetSignalFile);
+            obj.targetSignal = readAudioFile(obj, targetSignalFile);
             
             % Add azimuth to class properties
             obj.targetAzimuth = targetAzimuth;
@@ -158,7 +158,7 @@ classdef SimulationWrapper < handle
             % TODO: Add error handling
             
             % Add signal to class properties
-            obj.maskerSignal = obj.readAudioFile(obj, maskerSignalFile);
+            obj.maskerSignal = readAudioFile(obj, maskerSignalFile);
             
             % Add azimuth to class properties
             obj.maskerAzimuth = maskerAzimuth;
@@ -174,7 +174,7 @@ classdef SimulationWrapper < handle
             % Check if signal is stereo etc.
             
             % Add signal to class properties
-            obj.noiseSignal = obj.readAudioFile(obj, noiseSignalFile);
+            obj.noiseSignal = readAudioFile(obj, noiseSignalFile);
         end
         
         function changeTargetAzimuth(obj, targetAzimuth)
@@ -215,15 +215,15 @@ classdef SimulationWrapper < handle
             % TODO: Sufficient error handling
             
             % Render individual signals
-            outputSignal = obj.renderSignal(obj, 'target');
+            outputSignal = renderSignal(obj, 'target');
             
             if ~isempty(obj.maskerSignal)
-                maskerOutput = obj.renderSignal(obj, 'masker');
+                maskerOutput = renderSignal(obj, 'masker');
                 outputSignal = outputSignal + maskerOutput;
             end
             
             if ~isempty(obj.noiseSignal)
-                noiseOutput = obj.renderSignal(obj, 'noise');
+                noiseOutput = renderSignal(obj, 'noise');
                 outputSignal = outputSignal + noiseOutput;
             end
         end        
