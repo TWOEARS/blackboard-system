@@ -105,8 +105,8 @@ classdef SimulationWrapper < handle
             outputSignal = obj.simulator.getSignal(targetLength / ...
                 obj.simulator.SampleRate); 
             
-            % Normalize
-            outputSignal = outputSignal / max(abs(outputSignal(:)));
+            % Normalize and cast to double
+            outputSignal = double(outputSignal / max(abs(outputSignal(:))));
         end
     end
     
@@ -251,6 +251,10 @@ classdef SimulationWrapper < handle
                 % Compute scaling factor for the noise signal
                 noiseGain = sqrt((energyTarget / ...
                     (10^(targetNoiseSNR / 10))) / energyNoise);
+                
+                % FIXME: I don't know why the gain is inverse here. I'll
+                % take a look at it later.
+                noiseGain = 1 / noiseGain;
                 
                 % Adjust the noise level to get required SNR
                 noiseOutput = noiseGain * noiseOutput;
