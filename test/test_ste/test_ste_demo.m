@@ -10,6 +10,8 @@ addpath(genpath(fullfile(repoRoot, 'TwoEarsRUB')));
 
 %% load ste scene
 
+fs = 44100;
+
 if ~exist( 'ste_scene.wav', 'file' )
     
     %% if it doesn't exist, create the scene
@@ -38,18 +40,18 @@ else
     
     %% if it already exists, load the wav
     
-    [steSound, fsHz] = audioread( 'ste_scene.wav' );
-    if fsHz ~= 44100
-        fprintf( '\nWarning: sound is resampled from %uHz to %uHz\n', fsHz, 44100 );
-        steSound = resample( steSound, 44100, fsHz );
+    [steSound, fsWav] = audioread( 'ste_scene.wav' );
+    if fsWav ~= fs
+        fprintf( '\nWarning: sound is resampled from %uHz to %uHz\n', fsWav, fs );
+        steSound = resample( steSound, fs, fsWav );
     end
     
 end
 
-staticSim = PrecompiledSimFake( steSound, 44100 );
+staticSim = PrecompiledSimFake( steSound, fs );
 
 %% Play output signal
-%soundsc(out, 44100)
+%soundsc(out, fs)
 
 
 %% set up scene "live" processing
