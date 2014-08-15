@@ -46,5 +46,50 @@ else
     
 end
 
+staticSim = PrecompiledSimFake( steSound, 44100 );
+
 %% Play output signal
 %soundsc(out, 44100)
+
+
+%% set up scene "live" processing
+
+% Create blackboard. 1 makes KSs to print more information
+bb = Blackboard(1);
+
+% Initialise Knowledge Sources
+ksSignalBlock = SignalBlockKS( bb, staticSim, 0.5 ); % 0.5 -> blocklenght in s
+bb.addKS(ksSignalBlock);
+
+ksPeriphery = PeripheryKS(bb, mObj, dObj);
+bb.addKS(ksPeriphery);
+
+ksAcousticCues = AcousticCuesKS(bb, dObj);
+bb.addKS(ksAcousticCues);
+
+
+% Register events with a list of KSs that should be triggered
+bm = BlackboardMonitor(bb);
+bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
+bm.registerEvent('NewSignalBlock', ksPeriphery);
+bm.registerEvent('NewPeripherySignal', ksAcousticCues);
+%bm.registerEvent('NewAcousticCues', []);
+
+if plotting
+    %% Add event listeners for plotting
+    addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
+    addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
+    addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
+    figure(1)
+    movegui('northwest');
+end
+
+%% Start the bb scheduler
+bb.setReadyForNextBlock(true);
+scheduler = Scheduler(bm);
+ok = scheduler.iterate;
+while ok
+    ok = scheduler.iterate;
+end
+
+
