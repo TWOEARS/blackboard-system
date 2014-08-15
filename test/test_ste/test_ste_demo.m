@@ -63,24 +63,26 @@ bb = Blackboard(1);
 ksSignalBlock = SignalBlockKS( bb, staticSim, 0.5 ); % 0.5 -> blocklenght in s
 bb.addKS(ksSignalBlock);
 
-ksPeriphery = PeripheryKS(bb, mObj, dObj);
-bb.addKS(ksPeriphery);
+wp2dataObj = dataObject( [], fs, 1 );  % Last input (1) indicates a stereo signal
+wp2manager = manager( wp2dataObj );
+ksWp2 = Wp2KS( bb, wp2manager );
+bb.addKS(ksWp2);
 
-ksAcousticCues = AcousticCuesKS(bb, dObj);
+ksAcousticCues = AcousticCuesKS(bb, wp2dataObj);
 bb.addKS(ksAcousticCues);
 
 
 % Register events with a list of KSs that should be triggered
 bm = BlackboardMonitor(bb);
 bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
-bm.registerEvent('NewSignalBlock', ksPeriphery);
-bm.registerEvent('NewPeripherySignal', ksAcousticCues);
+bm.registerEvent('NewSignalBlock', ksWp2);
+bm.registerEvent('NewWp2Signal', ksAcousticCues);
 %bm.registerEvent('NewAcousticCues', []);
 
 if plotting
     %% Add event listeners for plotting
     addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
-    addlistener(bb, 'NewPeripherySignal', @plotPeripherySignal);
+    addlistener(bb, 'NewWp2Signal', @plotPeripherySignal);
     addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
     figure(1)
     movegui('northwest');
