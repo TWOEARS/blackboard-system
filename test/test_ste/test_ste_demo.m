@@ -17,11 +17,11 @@ file3 = fullfile('/stimuli/binaural/binaural_forest.wav');
 % Add files to the class instance
 testWrapper.addTargetSignal(file1, 90);
 testWrapper.addMaskerSignal(file2, 270);
-testWrapper.addNoiseSignal(noise);
+testWrapper.addNoiseSignal(file3);
 
 % Generate output signal
-targetToMaskerSNR = -15; % Target-to-Masker SNR in dB
-targetToNoiseSNR = -15; % Target-to-Noise SNRin dB
+targetToMaskerSNR = 15; % Target-to-Masker SNR in dB
+targetToNoiseSNR = 15; % Target-to-Noise SNR in dB
 out = testWrapper.renderSignals(targetToMaskerSNR, targetToNoiseSNR);
 
 % Play output signal

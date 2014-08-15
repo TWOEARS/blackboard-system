@@ -252,10 +252,6 @@ classdef SimulationWrapper < handle
                 noiseGain = sqrt((energyTarget / ...
                     (10^(targetNoiseSNR / 10))) / energyNoise);
                 
-                % FIXME: I don't know why the gain is inverse here. I'll
-                % take a look at it later.
-                noiseGain = 1 / noiseGain;
-                
                 % Adjust the noise level to get required SNR
                 noiseOutput = noiseGain * noiseOutput;
                 
