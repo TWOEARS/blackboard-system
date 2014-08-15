@@ -15,15 +15,8 @@ classdef PeripheryKS < AbstractKS
         end
         
         function b = canExecute(obj)
-            b = false;
-            
             numSignalBlocks = obj.blackboard.getNumSignalBlocks;
-            
-            if numSignalBlocks == 0
-                return
-            else
-                b = true;
-            end
+            b = (numSignalBlocks ~= 0);
         end
         
         function execute(obj)
