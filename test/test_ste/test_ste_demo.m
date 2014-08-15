@@ -20,7 +20,7 @@ testWrapper.addMaskerSignal(file2, 270);
 testWrapper.addNoiseSignal(file3);
 
 % Generate output signal
-targetToMaskerSNR = 15; % Target-to-Masker SNR in dB
+targetToMaskerSNR = 0; % Target-to-Masker SNR in dB
 targetToNoiseSNR = 15; % Target-to-Noise SNR in dB
 out = testWrapper.renderSignals(targetToMaskerSNR, targetToNoiseSNR);
 

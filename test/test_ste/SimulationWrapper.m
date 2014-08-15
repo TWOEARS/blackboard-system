@@ -185,17 +185,30 @@ classdef SimulationWrapper < handle
     
     methods (Access = public)
         function obj = SimulationWrapper(xmlFile)
-            %% SIMULATIONWRAPPER - Class constructor
-            % Initialization of the simulation environment according to the
-            % specifications in the XML file that is associated with the
-            % corresponding class instance.
+            % SIMULATIONWRAPPER - Class constructor. Initialization of the
+            % simulation environment according to the specifications in the
+            % XML file that is associated with the corresponding class 
+            % instance.
+            %
+            % Inputs:
+            %   xmlFile - XML file that describes the scene parameters that
+            %   should be used for simulation [string].
+            %
+            % Authors :  Christopher Schymura
+            %            Ruhr-Universität Bochum
+            %            christopher.schymura@rub.de
+            %
+            % Last revision: 15/08/2014
+            %
+            % ------------- BEGIN CODE --------------
             
             % Check input
             if nargin ~= 1
                 error('Wrong number of input arguments.');
             end
             
-            % Import XML and simulation functionalities
+            % Import XML and simulation functionalities (XML validation is
+            % implicitly handled here)
             import xml.*
             import simulator.*
             
