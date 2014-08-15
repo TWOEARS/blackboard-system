@@ -1,9 +1,19 @@
 classdef SimulationWrapper < handle
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    % SIMULATIONWRAPPER This class can be used to generate a binaural
+    % signal containing arbitrary target and masker sources with additional
+    % ambient noise. It is possible to specify the SNR between the target
+    % and the masker and between the target and the noise. The class is a
+    % wrapper containing the simulation code provided by WP1.
+    %
+    % Authors :  Christopher Schymura
+    %            Ruhr-Universität Bochum
+    %            christopher.schymura@rub.de
+    %
+    % Last revision: 15/08/2014
+    %
+    % ------------- BEGIN CODE --------------
     
     properties (Access = private)
-        xmlFile             % XML file containing the scenario description
         simulator           % Instance of SSR SimulatorConvexRoom class
         targetSignal = [];  % Target signal
         targetAzimuth       % Azimuth of target signal in degrees
@@ -14,11 +24,41 @@ classdef SimulationWrapper < handle
     
     methods (Access = private)
         function audioData = readAudioFile(obj, filename)
-            %% READAUDIOFILE
+            % READAUDIOFILE Helper-function that reads audio data from a
+            % file, normalizes it and resamples to the sampling frequency
+            % specified in the simulator.
             %
-            % TODO: Add proper documentation
+            % Inputs:
+            %   filename - Valid filename of a .wav-file [string].
+            %
+            % Outputs:
+            %   audioData - Normalized audio signals, represented as a NxC
+            %   matrix, where N is the number of samples in the signal and
+            %   C is the number of audio channels [matrix, double].
+            %
+            % Authors :  Christopher Schymura
+            %            Ruhr-Universität Bochum
+            %            christopher.schymura@rub.de
+            %
+            % Last revision: 15/08/2014
+            %
+            % ------------- BEGIN CODE --------------
             
-            % TODO: Error handling
+            % Check input
+            if nargin ~= 2
+                error('Wrong number of input arguments.');
+            end
+            
+            % Check output
+            if nargout ~= 1
+                error(['This function must be specified with an ', ...
+                    'output argument.']);
+            end
+            
+            % Check if input is a string
+            if ~isa(filename, 'char')
+                error([filename, ' is not a valid filename.']);
+            end
             
             % Read the audio file
             [signal, fsHz] = audioread(filename);
@@ -45,15 +85,46 @@ classdef SimulationWrapper < handle
                 audioData = signal;
             end
         end
-        
         function outputSignal = renderSignal(obj, signalType)
-            %% RENDERSCENE
+            % RENDERSIGNAL Helper-function that individually computes the
+            % target, masker or noise signal according to the specified
+            % scene parameters.
             %
-            % TODO: Add proper documentation
+            % Inputs:
+            %   signalType - Specification of the signal that should be 
+            %   rendered [string]. Valid keywords are:
+            %       - 'target': Renders the target signal
+            %       - 'masker': Renders the masker signal
+            %       - 'noise':  Renders the ambient noise
             %
-            % signalType: 'target', 'masker', 'noise'
+            % Outputs:
+            %   outputSignal - Rendered signal, represented as a NxC
+            %   matrix, where N is the number of samples in the signal and
+            %   C is the number of audio channels [matrix, double].
+            %
+            % Authors :  Christopher Schymura
+            %            Ruhr-Universität Bochum
+            %            christopher.schymura@rub.de
+            %
+            % Last revision: 15/08/2014
+            %
+            % ------------- BEGIN CODE --------------
             
-            % TODO: Error handling
+            % Check input
+            if nargin ~= 2
+                error('Wrong number of input arguments.');
+            end
+            
+            % Check output
+            if nargout ~= 1
+                error(['This function must be specified with an ', ...
+                    'output argument.']);
+            end
+            
+            % Check if input is a string
+            if ~isa(signalType, 'char')
+                error([signalType, ' is not a valid keyword.']);
+            end
             
             % Re-Initialize simulation
             obj.simulator.set('ReInit', true);
@@ -98,7 +169,9 @@ classdef SimulationWrapper < handle
                     % Add noise signal to simulator
                     obj.simulator.Sources(3).setData(obj.noiseSignal);
                 otherwise
-                    error(['Signal type ', signalType, ' is not specified.']);
+                    error(['Signal type ', signalType, ' is not ', ...
+                        'specified. It has to be either ''target'', ', ...
+                        '''masker'' or ''noise''.']);
             end
 
             % Start the rendering process
@@ -240,6 +313,7 @@ classdef SimulationWrapper < handle
                 outputSignal = outputSignal + maskerOutput;
             end
             
+            % Render noise if specified
             if ~isempty(obj.noiseSignal)
                 % Get noise signal
                 noiseOutput = renderSignal(obj, 'noise');

@@ -9,10 +9,6 @@ reporoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 addpath(fullfile(reporoot, 'twoears-wp1/src'));
 startWP1;
 
-% addpath(genpath(fullfile(reporoot, ...
-%     'twoears-data/sound_databases/grid_subset/wav')));
-% addpath(genpath(fullfile(reporoot, ...
-%     'twoears-data/sound_databases/stimuli/binaural')));
 addpath(genpath(fullfile(reporoot, 'twoears-data')));
 addpath(genpath(fullfile(reporoot, 'twoears-wp2/src')));
 addpath(genpath(fullfile(reporoot, 'twoears-wp3/src')));
