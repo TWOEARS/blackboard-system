@@ -60,7 +60,8 @@ staticSim = PrecompiledSimFake( steSound, fs );
 bb = Blackboard(0);
 
 % Peripheral simulator KS:
-ksPeriphSim = Wp1Wp2KS( bb, fs, staticSim, 0.02, 0.5 ); % 0.02 -> basic time step, 0.5 -> max blocklenght in s
+basicTimeStep = 0.02;
+ksPeriphSim = Wp1Wp2KS( bb, fs, staticSim, basicTimeStep, 0.5 ); % 0.02 -> basic time step, 0.5 -> max blocklenght in s
 bb.addKS(ksPeriphSim);
 
 ksIdentity1 = IdentityKS( bb, 'baby', 'e39682bfc16bde30164ac58f516df09e' );
@@ -70,6 +71,13 @@ bb.addKS( ksIdentity2 );
 
 IdentityKS.createProcessors( ksPeriphSim, ksIdentity1 );
 IdentityKS.createProcessors( ksPeriphSim, ksIdentity2 );
+
+% TODO: add IdentityPlausabilityKS
+% register to IdentityHypothesis event
+% and in case of confusion, notify with SharpenIdentityEars event
+
+% TODO: add IdentitySharpenKS
+% register to SharpenIdentityEars event -> modify identityKSs
 
 % Register events with a list of KSs that should be triggered
 bm = BlackboardMonitor(bb);
@@ -84,6 +92,11 @@ while ~staticSim.isFinished()
     bb.setReadyForNextBlock();
     while scheduler.iterate(), end;
 end
+
 %% evaluation
-
-
+figure;
+babyHyps = bb.identityHypotheses(strcmpi({bb.identityHypotheses.label},'baby'));
+femaleHyps = bb.identityHypotheses(strcmpi({bb.identityHypotheses.label},'femaleSpeech'));
+babyProbs = {babyHyps.p};
+femaleProbs = {femaleHyps.p};
+plot( (1:length(babyProbs))*basicTimeStep, babyProbs, femaleProbs );

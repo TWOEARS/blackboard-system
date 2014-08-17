@@ -73,11 +73,11 @@ classdef IdentityKS < AbstractKS
             [label, ~, probs] = libsvmpredict( [0], features, obj.model, '-q -b 1' );
             %libsvmpredict is the renamed svmpredict of the LIBSVM package
             
-            if label == +1
+%            if label == +1
                 fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
                     obj.modelname, int16(probs(1)*100) );
-            end
-            identHyp = IdentityHypothesis( 0, obj.modelname, probs(1) );
+%            end
+            identHyp = IdentityHypothesis( obj.modelname, probs(1) );
             idx = obj.blackboard.addIdentityHypothesis( identHyp );
             notify( obj.blackboard, 'NewIdentityHypothesis', BlackboardEventData(idx) );
         end
