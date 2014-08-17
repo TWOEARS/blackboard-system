@@ -22,7 +22,7 @@ classdef PrecompiledSimFake < handle
             blockEnd = min( length( obj.sceneSound ), obj.currentPos + blockSizeSamples - 1 );
             signal = obj.sceneSound(obj.currentPos:blockEnd,:);
             if length( signal ) < blockSizeSamples
-                signal = [signal zeros( 2, blockSizeSamples - length( signal ) )];
+                signal = [signal; zeros( blockSizeSamples - length( signal ), 2 )];
             end
             obj.currentPos = blockEnd + 1;
         end
