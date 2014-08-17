@@ -14,11 +14,7 @@ classdef BlackboardMonitor < handle
             switch mc.Name;
                 case 'SignalBlockKS'
                     n = 10;
-                case 'PeripheryKS'
-                    n = 10;
                 case 'Wp2KS'
-                    n = 10;
-                case 'AcousticCuesKS'
                     n = 10;
                 case 'LocationKS'
                 	n = 20;

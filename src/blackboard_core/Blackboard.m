@@ -7,8 +7,6 @@ classdef Blackboard < handle
         readyForNextBlock = true;       % 
         headOrientation = 0;            % Current head orientation
         signalBlocks = {};              % Layer 1a: Signals
-        peripherySignals = {};          % Layer 1b: Periphery
-        acousticCues = {};              % Layer 2: Acoustic cues
         wp2signals = [];                % Layer 1a-2: _handles_ to wp2 signals
         locationHypotheses = [];        % Layer 3: Location hypotheses
         identityHypotheses = [];        % Layer 3: Identity hypotheses
@@ -20,9 +18,7 @@ classdef Blackboard < handle
     events
         ReadyForNextBlock
         NewSignalBlock
-        NewPeripherySignal
         NewWp2Signal
-        NewAcousticCues
         NewLocationHypothesis
         NewIdentityHypothesis
         NewConfusionHypothesis
@@ -41,14 +37,7 @@ classdef Blackboard < handle
         function obj = addKS(obj, ks)
             obj.KSs = [obj.KSs {ks}];
         end
-        
-        %% Add new acoustic cues to blackboard
-        function n = addAcousticCues(obj, newCues)
-            n_old = length(obj.acousticCues);
-            n = n_old + 1;
-            obj.acousticCues{n} = newCues;
-        end
-           
+                   
         %% Get number of KSs
         function n = numKSs(obj)
             n = length(obj.KSs);
@@ -74,23 +63,6 @@ classdef Blackboard < handle
             obj.signalBlocks = {};
         end
         
-        %% Add new periphery signals to layer 1b
-        function n = addPeripherySignal(obj, peripherySignal)
-            n_old = length(obj.peripherySignals);
-            n = n_old + 1;
-            obj.peripherySignals{n} = peripherySignal;
-        end
-        
-        %% Remove periphery signals from layer 1b
-        function removePeripherySignals(obj)
-            obj.peripherySignals = {};
-        end
-        
-        %% Remove old acoustic cues from layer 2
-        function removeAcousticCues(obj)
-            obj.acousticCues = {};
-        end
-            
         %% Add new location hypothesis to layer 3a            
         function n = addLocationHypothesis(obj, location)
             obj.locationHypotheses = [obj.locationHypotheses location];
