@@ -4,10 +4,8 @@ classdef Blackboard < handle
     
     properties (SetAccess = private)
         KSs = {};                       % List of all KSs
-        readyForNextBlock = true;       % 
         headOrientation = 0;            % Current head orientation
-        signalBlocks = {};              % Layer 1a: Signals
-        wp2signals = [];                % Layer 1a-2: _handles_ to wp2 signals
+        wp2signals = [];                % Layer 1a-2: _handles_ to  requested signals
         locationHypotheses = [];        % Layer 3: Location hypotheses
         identityHypotheses = [];        % Layer 3: Identity hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
@@ -16,8 +14,7 @@ classdef Blackboard < handle
     end
     
     events
-        ReadyForNextBlock
-        NewSignalBlock
+        NextSoundUpdate
         NewWp2Signal
         NewLocationHypothesis
         NewIdentityHypothesis
@@ -51,18 +48,6 @@ classdef Blackboard < handle
             obj.wp2signals(regHash) = regSignal;
         end
 
-        %% Add new signal block to layer 1a
-        function n = addSignalBlock(obj, signalBlock)
-            n_old = length(obj.signalBlocks);
-            n = n_old + 1;
-            obj.signalBlocks{n} = signalBlock;
-        end
-        
-        %% Remove signal block from layer 1a
-        function removeSignalBlock(obj)
-            obj.signalBlocks = {};
-        end
-        
         %% Add new location hypothesis to layer 3a            
         function n = addLocationHypothesis(obj, location)
             obj.locationHypotheses = [obj.locationHypotheses location];
@@ -87,21 +72,6 @@ classdef Blackboard < handle
             n = length(obj.perceivedLocations);
         end
         
-        %% Get number of signal blocks on the BB
-        function n = getNumSignalBlocks(obj)
-            n = length(obj.signalBlocks);
-        end
-        
-        %% Get number of periphery signals on the BB
-        function n = getNumPeripherySignals(obj)
-            n = length(obj.peripherySignals);
-        end
-        
-        %% Get number of acoustic cues on the BB
-        function n = getNumAcousticCues(obj)
-            n = length(obj.acousticCues);
-        end
-                
         %% Get number of location hypotheses on the BB
         function n = getNumLocationHypotheses(obj)
             n = length(obj.locationHypotheses);
@@ -118,11 +88,8 @@ classdef Blackboard < handle
         end
         
         %% Ready for next frame
-        function setReadyForNextBlock(obj, b)
-            obj.readyForNextBlock = b;
-            if b == true
-                notify(obj, 'ReadyForNextBlock');
-            end
+        function setReadyForNextBlock(obj)
+            notify(obj, 'NextSoundUpdate');
         end
         
         %% Set absolute head orientation

@@ -12,8 +12,6 @@ classdef BlackboardMonitor < handle
         function n = rankKS(ks)
             mc = metaclass(ks);
             switch mc.Name;
-                case 'SignalBlockKS'
-                    n = 10;
                 case 'Wp1Wp2KS'
                     n = 10;
                 case 'LocationKS'

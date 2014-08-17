@@ -1,11 +1,11 @@
-clearAllButBreakpoints;
-close all;
-clc;
-
 % Add necessary paths
 addpath('..');
 repoRoot = add_WP_paths;
 addpath(genpath(fullfile(repoRoot, 'TwoEarsRUB')));
+
+%clearAllButBreakpoints;
+close all;
+clc;
 
 
 %% load ste scene
@@ -48,16 +48,16 @@ else
     
 end
 
-staticSim = PrecompiledSimFake( steSound, fs );
-
 %% Play output signal
 %soundsc(out, fs)
 
 
 %% set up scene "live" processing
 
+staticSim = PrecompiledSimFake( steSound, fs );
+
 % Create blackboard. 1 makes KSs to print more information
-bb = Blackboard(1);
+bb = Blackboard(0);
 
 % Peripheral simulator KS:
 ksPeriphSim = Wp1Wp2KS( bb, fs, staticSim, 0.02, 0.5 ); % 0.02 -> basic time step, 0.5 -> max blocklenght in s
@@ -70,26 +70,16 @@ IdentityKS.createProcessors( ksPeriphSim, ksIdentity );
 
 % Register events with a list of KSs that should be triggered
 bm = BlackboardMonitor(bb);
-bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
-bm.registerEvent('NewSignalBlock', ksWp2);
+bm.registerEvent('NextSoundUpdate', ksPeriphSim);
 bm.registerEvent('NewWp2Signal', ksIdentity);
-
-% if plotting
-%     %% Add event listeners for plotting
-%     addlistener(bb, 'NewSignalBlock', @SignalBlockKS.plotSignalBlocks);
-%     figure(1)
-%     movegui('northwest');
-% end
 
 %% Start the scene "live" processing
 
-bb.setReadyForNextBlock(true);
 scheduler = Scheduler(bm);
-ok = scheduler.iterate;
-while ok
-    ok = scheduler.iterate;
+while ~staticSim.isFinished()
+    bb.setReadyForNextBlock();
+    while scheduler.iterate(), end;
 end
-
 %% evaluation
 
 
