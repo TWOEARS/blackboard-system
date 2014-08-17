@@ -19,18 +19,18 @@ if ~exist( 'ste_scene.wav', 'file' )
     testWrapper = SimulationWrapper('test_ste.xml');
     
     % Specify audio file paths
-    file1 = fullfile('/sound_databases/grid_subset/wav/s1/bbas2p.wav');
-    file2 = fullfile('/sound_databases/grid_subset/wav/s2/bbie8s.wav');
-    file3 = fullfile('/stimuli/binaural/binaural_forest.wav');
+    file1 = fullfile('/TwoEarsRUB/baby.wav');
+    file2 = fullfile('/TwoEarsRUB/test/femaleSpeech/bbad2n.wav');
+    file3 = fullfile('/TwoEarsRUB/test/fire/FireHouse+CRB02_24.wav');
     
     % Add files to the class instance
-    testWrapper.addTargetSignal(file1, 90);
+    testWrapper.addTargetSignal(file1, 0);
     testWrapper.addMaskerSignal(file2, 270);
     testWrapper.addNoiseSignal(file3);
     
     % Generate output signal
-    targetToMaskerSNR = 0; % Target-to-Masker SNR in dB
-    targetToNoiseSNR = 15; % Target-to-Noise SNR in dB
+    targetToMaskerSNR = 20; % Target-to-Masker SNR in dB
+    targetToNoiseSNR = 300; % Target-to-Noise SNR in dB
     steSound = testWrapper.renderSignals(targetToMaskerSNR, targetToNoiseSNR);
     
     % save for later use
@@ -63,15 +63,19 @@ bb = Blackboard(0);
 ksPeriphSim = Wp1Wp2KS( bb, fs, staticSim, 0.02, 0.5 ); % 0.02 -> basic time step, 0.5 -> max blocklenght in s
 bb.addKS(ksPeriphSim);
 
-ksIdentity = IdentityKS( bb, 'baby', 'e39682bfc16bde30164ac58f516df09e' );
-bb.addKS( ksIdentity );
+ksIdentity1 = IdentityKS( bb, 'baby', 'e39682bfc16bde30164ac58f516df09e' );
+bb.addKS( ksIdentity1 );
+ksIdentity2 = IdentityKS( bb, 'femaleSpeech', 'e39682bfc16bde30164ac58f516df09e' );
+bb.addKS( ksIdentity2 );
 
-IdentityKS.createProcessors( ksPeriphSim, ksIdentity );
+IdentityKS.createProcessors( ksPeriphSim, ksIdentity1 );
+IdentityKS.createProcessors( ksPeriphSim, ksIdentity2 );
 
 % Register events with a list of KSs that should be triggered
 bm = BlackboardMonitor(bb);
 bm.registerEvent('NextSoundUpdate', ksPeriphSim);
-bm.registerEvent('NewWp2Signal', ksIdentity);
+bm.registerEvent('NewWp2Signal', ksIdentity1);
+bm.registerEvent('NewWp2Signal', ksIdentity2);
 
 %% Start the scene "live" processing
 
