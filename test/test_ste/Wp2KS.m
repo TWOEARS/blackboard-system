@@ -7,6 +7,13 @@ classdef Wp2KS < AbstractKS
         managerObject;           % WP2 manager object
     end
     
+    methods (Static)
+        function regHash = getRequestHash( request, params )
+            regHash = DataHash( {request, params} );
+        end
+    
+    end
+    
     methods
         function obj = Wp2KS( blackboard, fs )
             obj = obj@AbstractKS(blackboard);
@@ -17,6 +24,12 @@ classdef Wp2KS < AbstractKS
         function b = canExecute(obj)
             numSignalBlocks = obj.blackboard.getNumSignalBlocks;
             b = (numSignalBlocks ~= 0);
+        end
+        
+        function addProcessor( obj, request, rParams )
+            reqSignal = obj.managerObject.addProcessor( request, rParams );
+            reqHash = Wp2KS.getRequestHash( request, rParams );
+            obj.blackboard.addWp2Signal( reqHash, reqSignal );
         end
         
         function execute(obj)

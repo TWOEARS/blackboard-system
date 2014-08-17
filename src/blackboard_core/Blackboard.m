@@ -9,6 +9,7 @@ classdef Blackboard < handle
         signalBlocks = {};              % Layer 1a: Signals
         peripherySignals = {};          % Layer 1b: Periphery
         acousticCues = {};              % Layer 2: Acoustic cues
+        wp2signals = [];                % Layer 1a-2: _handles_ to wp2 signals
         locationHypotheses = [];        % Layer 3: Location hypotheses
         identityHypotheses = [];        % Layer 3: Identity hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
@@ -20,6 +21,7 @@ classdef Blackboard < handle
         ReadyForNextBlock
         NewSignalBlock
         NewPeripherySignal
+        NewWp2Signal
         NewAcousticCues
         NewLocationHypothesis
         NewIdentityHypothesis
@@ -51,7 +53,15 @@ classdef Blackboard < handle
         function n = numKSs(obj)
             n = length(obj.KSs);
         end
-        
+
+        %% Add general wp2 signal
+        function obj = addWp2Signal( obj, regHash, regSignal )
+            if isempty( obj.wp2signals )
+                obj.wp2signals = containers.Map();
+            end
+            obj.wp2signals(regHash) = regSignal;
+        end
+
         %% Add new signal block to layer 1a
         function n = addSignalBlock(obj, signalBlock)
             n_old = length(obj.signalBlocks);

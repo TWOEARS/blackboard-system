@@ -16,6 +16,8 @@ classdef BlackboardMonitor < handle
                     n = 10;
                 case 'PeripheryKS'
                     n = 10;
+                case 'Wp2KS'
+                    n = 10;
                 case 'AcousticCuesKS'
                     n = 10;
                 case 'LocationKS'
