@@ -59,17 +59,14 @@ staticSim = PrecompiledSimFake( steSound, fs );
 % Create blackboard. 1 makes KSs to print more information
 bb = Blackboard(1);
 
-% Initialise Knowledge Sources
-ksSignalBlock = SignalBlockKS( bb, staticSim, 0.5 ); % 0.5 -> blocklenght in s
-bb.addKS(ksSignalBlock);
-
-ksWp2 = Wp2KS( bb, fs );
-bb.addKS(ksWp2);
+% Peripheral simulator KS:
+ksPeriphSim = Wp1Wp2KS( bb, fs, staticSim, 0.02, 0.5 ); % 0.02 -> basic time step, 0.5 -> max blocklenght in s
+bb.addKS(ksPeriphSim);
 
 ksIdentity = IdentityKS( bb, 'baby', 'e39682bfc16bde30164ac58f516df09e' );
 bb.addKS( ksIdentity );
 
-IdentityKS.createProcessors( ksWp2, ksIdentity );
+IdentityKS.createProcessors( ksPeriphSim, ksIdentity );
 
 % Register events with a list of KSs that should be triggered
 bm = BlackboardMonitor(bb);
