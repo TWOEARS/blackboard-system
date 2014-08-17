@@ -19,7 +19,7 @@ classdef PrecompiledSimFake < handle
         
         function signal = getSignal( obj, blockSize )
             blockSizeSamples = blockSize * obj.fs;
-            blockEnd = min( length( obj.sceneSound ), obj.currentPos + blockSizeSamples );
+            blockEnd = min( length( obj.sceneSound ), obj.currentPos + blockSizeSamples - 1 );
             signal = obj.sceneSound(obj.currentPos:blockEnd,:);
             if length( signal ) < blockSizeSamples
                 signal = [signal zeros( 2, blockSizeSamples - length( signal ) )];
