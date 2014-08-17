@@ -66,32 +66,33 @@ bb.addKS(ksSignalBlock);
 ksWp2 = Wp2KS( bb, fs );
 bb.addKS(ksWp2);
 
-ksAcousticCues = AcousticCuesKS(bb, wp2dataObj);
-bb.addKS(ksAcousticCues);
+ksIdentity = IdentityKS( bb, 'baby', 'e39682bfc16bde30164ac58f516df09e' );
+bb.addKS( ksIdentity );
 
+IdentityKS.createProcessors( ksWp2, ksIdentity );
 
 % Register events with a list of KSs that should be triggered
 bm = BlackboardMonitor(bb);
 bm.registerEvent('ReadyForNextBlock', ksSignalBlock);
 bm.registerEvent('NewSignalBlock', ksWp2);
-bm.registerEvent('NewWp2Signal', ksAcousticCues);
-%bm.registerEvent('NewAcousticCues', []);
+bm.registerEvent('NewWp2Signal', ksIdentity);
 
-if plotting
-    %% Add event listeners for plotting
-    addlistener(bb, 'NewSignalBlock', @plotSignalBlocks);
-    addlistener(bb, 'NewWp2Signal', @plotPeripherySignal);
-    addlistener(bb, 'NewAcousticCues', @plotAcousticCues);
-    figure(1)
-    movegui('northwest');
-end
+% if plotting
+%     %% Add event listeners for plotting
+%     addlistener(bb, 'NewSignalBlock', @SignalBlockKS.plotSignalBlocks);
+%     figure(1)
+%     movegui('northwest');
+% end
 
-%% Start the bb scheduler
+%% Start the scene "live" processing
+
 bb.setReadyForNextBlock(true);
 scheduler = Scheduler(bm);
 ok = scheduler.iterate;
 while ok
     ok = scheduler.iterate;
 end
+
+%% evaluation
 
 
