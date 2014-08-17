@@ -1,4 +1,4 @@
-clear all;
+clearAllButBreakpoints;
 close all;
 clc;
 
