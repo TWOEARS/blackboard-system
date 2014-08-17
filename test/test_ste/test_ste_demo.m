@@ -63,9 +63,7 @@ bb = Blackboard(1);
 ksSignalBlock = SignalBlockKS( bb, staticSim, 0.5 ); % 0.5 -> blocklenght in s
 bb.addKS(ksSignalBlock);
 
-wp2dataObj = dataObject( [], fs, 1 );  % Last input (1) indicates a stereo signal
-wp2manager = manager( wp2dataObj );
-ksWp2 = Wp2KS( bb, wp2manager );
+ksWp2 = Wp2KS( bb, fs );
 bb.addKS(ksWp2);
 
 ksAcousticCues = AcousticCuesKS(bb, wp2dataObj);

@@ -8,9 +8,10 @@ classdef Wp2KS < AbstractKS
     end
     
     methods
-        function obj = Wp2KS( blackboard, managerObject )
+        function obj = Wp2KS( blackboard, fs )
             obj = obj@AbstractKS(blackboard);
-            obj.managerObject = managerObject;
+            wp2dataObj = dataObject( [], fs, 1 );  % Last input (1) indicates a stereo signal
+            obj.managerObject = manager( wp2dataObj );
         end
         
         function b = canExecute(obj)
@@ -41,7 +42,7 @@ classdef Wp2KS < AbstractKS
                 end
                 
                 % Trigger event
-                notify( obj.blackboard, 'NewWp2Signal', BlackboardEventData(idx) );
+                notify( obj.blackboard, 'NewWp2Signal' );
             end
         end
     end
