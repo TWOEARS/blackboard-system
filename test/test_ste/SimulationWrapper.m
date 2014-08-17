@@ -232,6 +232,13 @@ classdef SimulationWrapper < handle
             % Add signal to class properties
             obj.targetSignal = readAudioFile(obj, targetSignalFile);
             
+            if ~isvector(obj.targetSignal)
+                % stereo doesn't make sense. SSR computes earsignals from a
+                % point source. Point => mono.
+                [~,m] = max( std( obj.targetSignal ) );
+                obj.targetSignal = obj.targetSignal(:,m);
+            end
+            
             % Add azimuth to class properties
             obj.targetAzimuth = targetAzimuth;
         end
@@ -245,6 +252,13 @@ classdef SimulationWrapper < handle
             
             % Add signal to class properties
             obj.maskerSignal = readAudioFile(obj, maskerSignalFile);
+            
+            if ~isvector(obj.targetSignal)
+                % stereo doesn't make sense. SSR computes earsignals from a
+                % point source. Point => mono.
+                [~,m] = max( std( obj.targetSignal ) );
+                obj.targetSignal = obj.targetSignal(:,m);
+            end
             
             % Add azimuth to class properties
             obj.maskerAzimuth = maskerAzimuth;
