@@ -74,7 +74,7 @@ classdef IdentityKS < AbstractKS
             %libsvmpredict is the renamed svmpredict of the LIBSVM package
             
             if label == +1
-                fprintf( 'Positive Identity Hypothesis: %s with %i%% probability.\n', ...
+                fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
                     obj.modelname, int16(probs(1)*100) );
             end
             identHyp = IdentityHypothesis( 0, obj.modelname, probs(1) );

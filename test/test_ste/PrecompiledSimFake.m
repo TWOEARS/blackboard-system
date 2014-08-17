@@ -25,6 +25,7 @@ classdef PrecompiledSimFake < handle
                 signal = [signal; zeros( blockSizeSamples - length( signal ), 2 )];
             end
             obj.currentPos = blockEnd + 1;
+            fprintf( 'time: %.3gs\n', obj.currentPos / obj.fs );
         end
     end
     
