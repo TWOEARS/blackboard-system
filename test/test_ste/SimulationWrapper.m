@@ -16,13 +16,29 @@ classdef SimulationWrapper < handle
     properties (Access = private)
         simulator           % Instance of SSR SimulatorConvexRoom class
         targetSignal = [];  % Target signal
-        targetAzimuth       % Azimuth of target signal in degrees
+        targetLabels = [];
+        targetAzimuth;       % Azimuth of target signal in degrees
         maskerSignal = [];  % Masker signal
-        maskerAzimuth       % Azimuth of masker signal in degrees
+        maskerLabels = [];
+        maskerAzimuth;       % Azimuth of masker signal in degrees
         noiseSignal = [];   % Noise signal
+        noiseLabels = [];
     end
     
     methods (Access = private)
+        function labels = readLabels( obj, soundFileName )
+            annotFid = fopen( [soundFileName '.txt'] );
+            labels = [];
+            if annotFid ~= -1
+                while 1
+                    annotLine = fgetl( annotFid );
+                    if ~ischar( annotLine ), break, end
+                    labels(end+1,:) = sscanf( annotLine, '%f' );
+                end
+                fclose( annotFid );
+            end
+        end
+        
         function audioData = readAudioFile(obj, filename)
             % READAUDIOFILE Helper-function that reads audio data from a
             % file, normalizes it and resamples to the sampling frequency
@@ -231,6 +247,7 @@ classdef SimulationWrapper < handle
             
             % Add signal to class properties
             obj.targetSignal = readAudioFile(obj, targetSignalFile);
+            obj.targetLabels = obj.readLabels( targetSignalFile );
             
             if ~isvector(obj.targetSignal)
                 % stereo doesn't make sense. SSR computes earsignals from a
@@ -252,6 +269,7 @@ classdef SimulationWrapper < handle
             
             % Add signal to class properties
             obj.maskerSignal = readAudioFile(obj, maskerSignalFile);
+            obj.maskerLabels = obj.readLabels( maskerSignalFile );
             
             if ~isvector(obj.targetSignal)
                 % stereo doesn't make sense. SSR computes earsignals from a
@@ -275,6 +293,7 @@ classdef SimulationWrapper < handle
             
             % Add signal to class properties
             obj.noiseSignal = readAudioFile(obj, noiseSignalFile);
+            obj.noiseLabels = obj.readLabels( noiseSignalFile );
         end
         
         function changeTargetAzimuth(obj, targetAzimuth)
@@ -359,7 +378,38 @@ classdef SimulationWrapper < handle
                 % Generate output signal
                 outputSignal = outputSignal + noiseOutput;
             end
-        end        
+        end 
+        
+        function [lt, lm, ln] = renderLabels( obj, labelFs )
+            sceneLen_samples = max( length( obj.targetSignal ), length( obj.maskerSignal ) );
+            sceneLen_s = sceneLen_samples / obj.simulator.SampleRate;
+            labelTimeStep = 1 / labelFs;
+            lt = [];
+            lm = [];
+            ln = [];
+            z = 1;
+            for t = labelTimeStep:labelTimeStep:sceneLen_s
+                lt(z) = 0;
+                lm(z) = 0;
+                ln(z) = 0;
+                for k = 1 : size( obj.targetLabels, 1 )
+                    onset = obj.targetLabels(k,1);
+                    offset = obj.targetLabels(k,2);
+                    lt(z) = lt(z) || ((onset <= t) && (t <= offset));
+                end
+                for k = 1 : size( obj.maskerLabels, 1 )
+                    onset = obj.maskerLabels(k,1);
+                    offset = obj.maskerLabels(k,2);
+                    lm(z) = lm(z) || ((onset <= t) && (t <= offset));
+                end
+                for k = 1 : size( obj.noiseLabels, 1 )
+                    onset = obj.noiseLabels(k,1);
+                    offset = obj.noiseLabels(k,2);
+                    ln(z) = ln(z) || ((onset <= t) && (t <= offset));
+                end
+                z = z + 1;
+            end
+        end
     end
 end
 
