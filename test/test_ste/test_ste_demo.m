@@ -88,7 +88,6 @@ end
 
 %% evaluation
 
-figure;
 babyHyps = bb.identityHypotheses(strcmpi({bb.identityHypotheses.label},'baby'));
 femaleHyps = bb.identityHypotheses(strcmpi({bb.identityHypotheses.label},'femaleSpeech'));
 babyProbs = cell2mat( {babyHyps.p} );
@@ -110,4 +109,30 @@ if length(femaleProbs) < sceneLen_steps
     femaleProbs = [femaleProbs zeros(1,sceneLen_steps-length(femaleProbs))];
 end
 t = (1:sceneLen_steps) * basicTimeStep;
-plot( t, babyProbs, t, femaleProbs, t, lt, t, lm );
+%plot( t, babyProbs, t, femaleProbs, t, lt, t, lm );
+
+figure1 = figure( 'Name','label probabilities' );
+axes1 = axes( 'Parent',figure1,'YTickLabel',{'0','0,33','0,5','0,66','1'},...
+    'YTick',[0 0.33 0.5 0.66 1],...
+    'YGrid','on' );
+xlim( axes1,[-0.05 (sceneLen_steps * basicTimeStep + 0.05)] );
+ylim( axes1,[-0.05 1.05] );
+box( axes1,'on' );
+hold( axes1,'all' );
+plot1 = plot( t, babyProbs, t, femaleProbs, t, lt, t, lm ,'Parent',axes1,'LineWidth',2);
+set( plot1(1),...
+    'Color',[0.0431372560560703 0.517647087574005 0.780392169952393],...
+    'DisplayName','baby model' );
+set( plot1(2),'Color',[0.847058832645416 0.160784319043159 0],...
+    'DisplayName','female model' );
+set( plot1(3),'LineStyle',':',...
+    'Color',[0.0431372560560703 0.517647087574005 0.780392169952393],...
+    'DisplayName','baby true' );
+set( plot1(4),'LineStyle',':',...
+    'Color',[0.847058832645416 0.160784319043159 0],...
+    'DisplayName','female true' );
+title( 'Label Probabilities' );
+xlabel( 't (s)' );
+ylabel( 'p' );
+legend1 = legend( axes1,'show' );
+set( legend1,'Location','Best' );
