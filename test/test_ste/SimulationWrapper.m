@@ -146,7 +146,7 @@ classdef SimulationWrapper < handle
             obj.simulator.set('ReInit', true);
 
             % Get length of the target signal
-            targetLength = length(obj.targetSignal);
+            targetLength = max( [length(obj.targetSignal), length(obj.maskerSignal), length(obj.noiseSignal)] );
             
             switch signalType
                 case 'target'
@@ -271,11 +271,11 @@ classdef SimulationWrapper < handle
             obj.maskerSignal = readAudioFile(obj, maskerSignalFile);
             obj.maskerLabels = obj.readLabels( maskerSignalFile );
             
-            if ~isvector(obj.targetSignal)
+            if ~isvector(obj.maskerSignal)
                 % stereo doesn't make sense. SSR computes earsignals from a
                 % point source. Point => mono.
-                [~,m] = max( std( obj.targetSignal ) );
-                obj.targetSignal = obj.targetSignal(:,m);
+                [~,m] = max( std( obj.maskerSignal ) );
+                obj.maskerSignal = obj.maskerSignal(:,m);
             end
             
             % Add azimuth to class properties
@@ -381,7 +381,7 @@ classdef SimulationWrapper < handle
         end 
         
         function [lt, lm, ln] = renderLabels( obj, labelFs )
-            sceneLen_samples = max( length( obj.targetSignal ), length( obj.maskerSignal ) );
+            sceneLen_samples = max( [length( obj.targetSignal ), length( obj.maskerSignal ), length( obj.noiseSignal )] );
             sceneLen_s = sceneLen_samples / obj.simulator.SampleRate;
             labelTimeStep = 1 / labelFs;
             lt = [];
