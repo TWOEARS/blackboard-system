@@ -61,9 +61,12 @@ ksIdentity1 = IdentityKS( bb, 'baby', 'e39682bfc16bde30164ac58f516df09e' );
 bb.addKS( ksIdentity1 );
 ksIdentity2 = IdentityKS( bb, 'femaleSpeech', 'e39682bfc16bde30164ac58f516df09e' );
 bb.addKS( ksIdentity2 );
+ksIdentity3 = IdentityKS( bb, 'fire', 'e39682bfc16bde30164ac58f516df09e' );
+bb.addKS( ksIdentity3 );
 
 IdentityKS.createProcessors( ksPeriphSim, ksIdentity1 );
 IdentityKS.createProcessors( ksPeriphSim, ksIdentity2 );
+IdentityKS.createProcessors( ksPeriphSim, ksIdentity3 );
 
 % TODO: add IdentityPlausabilityKS
 % register to IdentityHypothesis event
@@ -77,6 +80,7 @@ bm = BlackboardMonitor(bb);
 bm.registerEvent('NextSoundUpdate', ksPeriphSim);
 bm.registerEvent('NewWp2Signal', ksIdentity1);
 bm.registerEvent('NewWp2Signal', ksIdentity2);
+bm.registerEvent('NewWp2Signal', ksIdentity3);
 
 %% Start the scene "live" processing
 
@@ -90,6 +94,8 @@ end
 
 babyHyps = bb.identityHypotheses(strcmpi({bb.identityHypotheses.label},'baby'));
 femaleHyps = bb.identityHypotheses(strcmpi({bb.identityHypotheses.label},'femaleSpeech'));
+fireHyps = bb.identityHypotheses(strcmpi({bb.identityHypotheses.label},'fire'));
+fireProbs = cell2mat( {fireHyps.p} );
 babyProbs = cell2mat( {babyHyps.p} );
 femaleProbs = cell2mat( {femaleHyps.p} );
 sceneLen_steps = max( length(lt), length(babyProbs) );
@@ -108,6 +114,9 @@ end
 if length(femaleProbs) < sceneLen_steps
     femaleProbs = [femaleProbs zeros(1,sceneLen_steps-length(femaleProbs))];
 end
+if length(fireProbs) < sceneLen_steps
+    fireProbs = [fireProbs zeros(1,sceneLen_steps-length(fireProbs))];
+end
 t = (1:sceneLen_steps) * basicTimeStep;
 
 figure1 = figure( 'Name','label probabilities' );
@@ -118,7 +127,7 @@ xlim( axes1,[-0.05 (sceneLen_steps * basicTimeStep + 0.05)] );
 ylim( axes1,[-0.05 1.05] );
 box( axes1,'on' );
 hold( axes1,'all' );
-plot1 = plot( t, babyProbs, t, femaleProbs, t, lt, t, lm ,'Parent',axes1,'LineWidth',2);
+plot1 = plot( t, babyProbs, t, femaleProbs, t, lt, t, lm , t, fireProbs, 'Parent',axes1,'LineWidth',2);
 set( plot1(1),...
     'Color',[0.05 0.5 0.8],...
     'DisplayName','baby model' );
@@ -130,6 +139,9 @@ set( plot1(3),'LineStyle',':',...
 set( plot1(4),'LineStyle',':',...
     'Color',[0.05 0.8 0.5],...
     'DisplayName','female true' );
+set( plot1(5),'LineStyle','-.',...
+    'Color',[0.85 0.15 0],...
+    'DisplayName','fire model' );
 title( 'Label Probabilities' );
 xlabel( 't (s)' );
 ylabel( 'p' );
