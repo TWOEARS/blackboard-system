@@ -238,7 +238,7 @@ classdef SimulationWrapper < handle
             obj.simulator.set('Init', true);
         end
         
-        function addTargetSignal(obj, targetSignalFile, targetAzimuth)
+        function addTargetSignal(obj, targetSignalFile, targetAzimuth, offset_s )
             %% ADDTARGETSIGNAL
             %
             % TODO: Add proper documentation
@@ -248,6 +248,7 @@ classdef SimulationWrapper < handle
             % Add signal to class properties
             obj.targetSignal = readAudioFile(obj, targetSignalFile);
             obj.targetLabels = obj.readLabels( targetSignalFile );
+            obj.targetLabels = obj.targetLabels + offset_s;
             
             if ~isvector(obj.targetSignal)
                 % stereo doesn't make sense. SSR computes earsignals from a
@@ -256,11 +257,13 @@ classdef SimulationWrapper < handle
                 obj.targetSignal = obj.targetSignal(:,m);
             end
             
+            obj.targetSignal = [zeros( offset_s * obj.simulator.SampleRate, 1 ); obj.targetSignal];
+            
             % Add azimuth to class properties
             obj.targetAzimuth = targetAzimuth;
         end
         
-        function addMaskerSignal(obj, maskerSignalFile, maskerAzimuth)
+        function addMaskerSignal(obj, maskerSignalFile, maskerAzimuth, offset_s )
             %% ADDTARGETSIGNAL
             %
             % TODO: Add proper documentation
@@ -270,6 +273,7 @@ classdef SimulationWrapper < handle
             % Add signal to class properties
             obj.maskerSignal = readAudioFile(obj, maskerSignalFile);
             obj.maskerLabels = obj.readLabels( maskerSignalFile );
+            obj.maskerLabels = obj.maskerLabels + offset_s;
             
             if ~isvector(obj.maskerSignal)
                 % stereo doesn't make sense. SSR computes earsignals from a
@@ -278,6 +282,8 @@ classdef SimulationWrapper < handle
                 obj.maskerSignal = obj.maskerSignal(:,m);
             end
             
+            obj.maskerSignal = [zeros( offset_s * obj.simulator.SampleRate, 1 ); obj.maskerSignal];
+
             % Add azimuth to class properties
             obj.maskerAzimuth = maskerAzimuth;
         end
