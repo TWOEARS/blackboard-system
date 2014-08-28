@@ -345,8 +345,8 @@ classdef SimulationWrapper < handle
                 maskerOutput = renderSignal(obj, 'masker');
                 
                 % Compute energies of target and masker signals
-                energyTarget = sum(sum(abs(targetOutput).^2));
-                energyMasker = sum(sum(abs(maskerOutput).^2));
+                energyTarget = sum(sum(abs(targetOutput).^2)) / length( targetOutput(targetOutput~=0) );
+                energyMasker = sum(sum(abs(maskerOutput).^2)) / length( maskerOutput(maskerOutput~=0) );
                 
                 % Compute scaling factor for the masker signal
                 maskerGain = sqrt((energyTarget / ...
@@ -365,8 +365,8 @@ classdef SimulationWrapper < handle
                 noiseOutput = renderSignal(obj, 'noise');
                 
                 % Compute noise energy
-                energyTarget = sum(sum(abs(targetOutput).^2));
-                energyNoise = sum(sum(abs(noiseOutput).^2));
+                energyTarget = sum(sum(abs(targetOutput).^2)) / length( targetOutput(targetOutput~=0) );
+                energyNoise = sum(sum(abs(noiseOutput).^2)) / length( noiseOutput(noiseOutput~=0) );
                 
                 % Compute scaling factor for the noise signal
                 noiseGain = sqrt((energyTarget / ...
