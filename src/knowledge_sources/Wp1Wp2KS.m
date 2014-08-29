@@ -33,9 +33,9 @@ classdef Wp1Wp2KS < AbstractKS
     
     methods
         %% constructor
-        function obj = Wp1Wp2KS( blackboard, fs, wp1sim, timeStep, maxBlockSize )
+        function obj = Wp1Wp2KS( blackboard, wp1sim, timeStep, maxBlockSize )
             obj = obj@AbstractKS(blackboard);
-            wp2dataObj = dataObject( [], fs, 1 );  % Last input (1) indicates a stereo signal
+            wp2dataObj = dataObject( [], wp1sim.SampleRate, 1 );  % Last input (1) indicates a stereo signal
             obj.managerObject = manager( wp2dataObj );
             obj.wp1sim = wp1sim;
             if nargin >= 4
