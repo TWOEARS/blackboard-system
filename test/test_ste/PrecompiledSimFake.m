@@ -2,14 +2,14 @@ classdef PrecompiledSimFake < handle
     
     properties (SetAccess = private)
         sceneSound;
-        fs;
+        SampleRate;
         currentPos;
     end
     
     methods
         function obj = PrecompiledSimFake( sceneSound, fs )
             obj.sceneSound = sceneSound;
-            obj.fs = fs;
+            obj.SampleRate = fs;
             obj.currentPos = 1;
         end
         
@@ -18,14 +18,14 @@ classdef PrecompiledSimFake < handle
         end
         
         function signal = getSignal( obj, blockSize )
-            blockSizeSamples = blockSize * obj.fs;
+            blockSizeSamples = blockSize * obj.SampleRate;
             blockEnd = min( length( obj.sceneSound ), obj.currentPos + blockSizeSamples - 1 );
             signal = obj.sceneSound(obj.currentPos:blockEnd,:);
             if length( signal ) < blockSizeSamples
                 signal = [signal; zeros( blockSizeSamples - length( signal ), 2 )];
             end
             obj.currentPos = blockEnd + 1;
-            fprintf( 'time: %.3gs\n', obj.currentPos / obj.fs );
+            fprintf( 'time: %.3gs\n', obj.currentPos / obj.SampleRate );
         end
     end
     

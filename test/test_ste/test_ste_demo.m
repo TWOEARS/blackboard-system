@@ -54,7 +54,7 @@ staticSim = PrecompiledSimFake( steSound, fs );
 bb = Blackboard(0);
 
 % Peripheral simulator KS:
-ksPeriphSim = Wp1Wp2KS( bb, fs, staticSim, basicTimeStep, 0.5 ); % 0.02 -> basic time step, 0.5 -> max blocklenght in s
+ksPeriphSim = Wp1Wp2KS( bb, staticSim, basicTimeStep, 0.5 ); % 0.02 -> basic time step, 0.5 -> max blocklenght in s
 bb.addKS(ksPeriphSim);
 
 ksIdentity1 = IdentityKS( bb, 'baby', 'e39682bfc16bde30164ac58f516df09e' );
