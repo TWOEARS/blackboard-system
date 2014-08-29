@@ -1,37 +1,27 @@
-classdef IdentityKS < AbstractKS
+classdef IdentityKS < Wp2DepKS
     
     properties (SetAccess = private)
         modelname;
         model;                 % classifier model
-        wp2requests;           % model training setup, including wp2 setup
         featureFunc;
         featureParam;
-        blocksize_s;
         scaleFunc;
         scale;
         tmpFuncs;
     end
 
-    methods (Static)
-        function createProcessors( wp2ks, idks )
-            for z = 1:length( idks.wp2requests )
-                wp2ks.addProcessor( idks.wp2requests.r{z}, idks.wp2requests.p{z} );
-            end
-        end
-    end
-    
     methods
         function obj = IdentityKS( blackboard, modelName, modelVersion )
-            obj = obj@AbstractKS( blackboard );
-            obj.modelname = modelName;
             modelFileName = [modelName '_' modelVersion];
             v = load( [modelFileName '_model.mat'] );
+            wp2requests.r = v.esetup.wp2dataCreation.requests;
+            wp2requests.p = v.esetup.wp2dataCreation.requestP;
+            blocksize_s = v.esetup.blockCreation.blockSize;
+            obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
+            obj.modelname = modelName;
             % TODO: model loading should include loading
             % a generic modelPredict function
             obj.model = v.model;
-            obj.wp2requests.r = v.esetup.wp2dataCreation.requests;
-            obj.wp2requests.p = v.esetup.wp2dataCreation.requestP;
-            obj.blocksize_s = v.esetup.blockCreation.blockSize;
             v = load( [modelFileName '_scale.mat'] );
             obj.scale.translators = v.translators;
             obj.scale.factors = v.factors;

@@ -1,18 +1,33 @@
-classdef LocationKS < AbstractKS
+classdef LocationKS < Wp2DepKS
     % LocationKS calculates posterior probabilities for each azimuth angle
     % and generates LocationHypothesis when provided with spatial 
     % observation
     
     properties (SetAccess = private)
         gmtkLoc;               % GMTK engine
-        activeIndex = 0;       % The index of AcousticCues to be processed
         angles;                % All azimuth angles to be considered
         tempPath;              % A path for temporary files
     end
     
     methods
         function obj = LocationKS(blackboard, gmName, dimFeatures, angles)
-            obj = obj@AbstractKS(blackboard);
+            blocksize_s = 0.5;
+            WP2_param = genParStruct('f_low',80,'f_high',8000,...
+                'nChannels',32,...
+                'rm_decaySec',0,...
+                'ild_wSizeSec',20E-3,...
+                'ild_hSizeSec',10E-3,'rm_wSizeSec',20E-3,...
+                'rm_hSizeSec',10E-3,'cc_wSizeSec',20E-3,...
+                'cc_hSizeSec',10E-3);
+            wp2requests.r{1} = 'ild';
+            wp2requests.p{1} = WP2_param;
+            wp2requests.r{2} = 'itd_xcorr';
+            wp2requests.p{2} = WP2_param;
+            wp2requests.r{3} = 'ic_xcorr';
+            wp2requests.p{3} = WP2_param;
+            wp2requests.r{4} = 'ratemap_power';
+            wp2requests.p{4} = WP2_param;
+            obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures);
             obj.angles = angles;
             obj.tempPath = fullfile(obj.gmtkLoc.workPath, 'flists');
@@ -20,32 +35,12 @@ classdef LocationKS < AbstractKS
                 mkdir(obj.tempPath);
             end
         end
-        function setActiveArgument(obj, arg)
-            obj.activeIndex = arg;
-        end
+        
         function b = canExecute(obj)
-            b = false;
-            if obj.activeIndex < 1
-                numAcousticCues = obj.blackboard.getNumAcousticCues;
-                for n=1:numAcousticCues
-                    if obj.blackboard.acousticCues{n}.seenByLocationKS == false
-                        obj.activeIndex = n;
-                        b = true;
-                        break
-                    end
-                end
-            elseif obj.blackboard.acousticCues{obj.activeIndex}.seenByLocationKS == false
-                b = true;
-            end
+            b = true;
         end
+        
         function execute(obj)
-            if obj.activeIndex < 1
-                return
-            end
-            acousticCues = obj.blackboard.acousticCues{obj.activeIndex};
-            if acousticCues.seenByLocationKS
-                return
-            end
             
             if obj.blackboard.verbosity > 0
                 fprintf('-------- LocationKS has fired\n');
@@ -80,9 +75,6 @@ classdef LocationKS < AbstractKS
             locHyp = LocationHypothesis(acousticCues.blockNo, acousticCues.headOrientation, obj.angles, mean(post,1));
             idx = obj.blackboard.addLocationHypothesis(locHyp);
             notify(obj.blackboard, 'NewLocationHypothesis', BlackboardEventData(idx));
-            
-            obj.activeIndex = 0;
-            acousticCues.setSeenByLocationKS;
         end
     end
 end
