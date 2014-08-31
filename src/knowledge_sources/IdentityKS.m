@@ -45,8 +45,7 @@ classdef IdentityKS < Wp2DepKS
             
             wp2data = [];
             for z = 1:length( obj.wp2requests.r )
-                wp2reqHash = Wp1Wp2KS.getRequestHash( obj.wp2requests.r{z}, obj.wp2requests.p{z} );
-                wp2reqSignal = obj.blackboard.wp2signals(wp2reqHash);
+                wp2reqSignal = obj.getReqSignal( z );
                 convWp2ReqSignal = [];
                 convWp2ReqSignal.Data{1} = wp2reqSignal{1}.getSignalBlock( obj.blocksize_s );
                 convWp2ReqSignal.Data{2} = wp2reqSignal{2}.getSignalBlock( obj.blocksize_s );

@@ -27,21 +27,9 @@ classdef Wp2DepKS < AbstractKS
     
     methods (Access = protected)
 
-        function wp2signals = getWp2Signals( obj )
-            wp2signals = [];
-            for z = 1:length( obj.wp2requests.r )
-                wp2reqHash = Wp1Wp2KS.getRequestHash( obj.wp2requests.r{z}, obj.wp2requests.p{z} );
-                wp2reqSignal = obj.blackboard.wp2signals(wp2reqHash);
-                convWp2ReqSignal = [];
-                convWp2ReqSignal.Data{1} = wp2reqSignal{1}.getSignalBlock( obj.blocksize_s );
-                convWp2ReqSignal.Data{2} = wp2reqSignal{2}.getSignalBlock( obj.blocksize_s );
-                convWp2ReqSignal.Name = wp2reqSignal{1}.Name;
-                convWp2ReqSignal.Dimensions = wp2reqSignal{1}.Dimensions;
-                convWp2ReqSignal.FsHz = wp2reqSignal{1}.FsHz;
-                convWp2ReqSignal.Canal{1} = wp2reqSignal{1}.Canal;
-                convWp2ReqSignal.Canal{2} = wp2reqSignal{2}.Canal;
-                wp2signals = [wp2signals; convWp2ReqSignal];
-            end
+        function reqSignal = getReqSignal( obj, reqIdx )
+            wp2reqHash = Wp1Wp2KS.getRequestHash( obj.wp2requests.r{reqIdx}, obj.wp2requests.p{reqIdx} );
+            reqSignal = obj.blackboard.wp2signals(wp2reqHash);
         end
     end
 end

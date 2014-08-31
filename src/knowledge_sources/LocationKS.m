@@ -45,9 +45,14 @@ classdef LocationKS < Wp2DepKS
             if obj.blackboard.verbosity > 0
                 fprintf('-------- LocationKS has fired\n');
             end
-            
+
+            ildsSObj = obj.getReqSignal( 1 );
+            ilds = ildsSObj.getSignalBlock( obj.blocksize_s )';
+            itdsSObj = obj.getReqSignal( 2 );
+            itds = itdsSObj.getSignalBlock( obj.blocksize_s )' .* 1000;
+
             % Generate a temporary feature flist for GMTK
-            featureBlock = [acousticCues.itds; acousticCues.ilds];
+            featureBlock = [itds; ilds];
             tmpfn = tempname;
             htkfn = strcat(tmpfn, '.htk');
             writehtk(htkfn, featureBlock);
