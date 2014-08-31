@@ -23,10 +23,6 @@ classdef LocationKS < Wp2DepKS
             wp2requests.p{1} = WP2_param;
             wp2requests.r{2} = 'itd_xcorr';
             wp2requests.p{2} = WP2_param;
-            wp2requests.r{3} = 'ic_xcorr';
-            wp2requests.p{3} = WP2_param;
-            wp2requests.r{4} = 'ratemap_power';
-            wp2requests.p{4} = WP2_param;
             obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
             dimFeatures = WP2_param.nChannels * 2; % ITD + ILD
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures);
