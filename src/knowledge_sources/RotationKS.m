@@ -52,7 +52,6 @@ classdef RotationKS < AbstractKS
                 fprintf('New head orientation is %d degrees\n', obj.blackboard.headOrientation);
             end
             obj.rotationScheduled = false;
-            obj.blackboard.setReadyForNextBlock(true);
         end
     end
 end

@@ -57,8 +57,6 @@ classdef ConfusionKS < AbstractKS
                 ploc = PerceivedLocation(locHyp.blockNo, locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
                 idx = obj.blackboard.addPerceivedLocation(ploc);
                 notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(idx));
-                % No confusion, and now it's ready for the next block
-                obj.blackboard.setReadyForNextBlock(true);
             end
             locHyp.setSeenByConfusionKS;
             obj.activeIndex = 0;
