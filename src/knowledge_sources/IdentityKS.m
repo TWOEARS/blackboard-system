@@ -60,13 +60,11 @@ classdef IdentityKS < Wp2DepKS
             
             features = obj.featureFunc( obj.featureParam, wp2data(:) );
             features = obj.scaleFunc( features, obj.scale.translators, obj.scale.factors );
-            [label, ~, probs] = libsvmpredict( [0], features, obj.model, '-q -b 1' );
+            [~, ~, probs] = libsvmpredict( 0, features, obj.model, '-q -b 1' );
             %libsvmpredict is the renamed svmpredict of the LIBSVM package
             
-%            if label == +1
-                fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
-                    obj.modelname, int16(probs(1)*100) );
-%            end
+            fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
+                obj.modelname, int16(probs(1)*100) );
             identHyp = IdentityHypothesis( obj.modelname, probs(1) );
             idx = obj.blackboard.addIdentityHypothesis( identHyp );
             notify( obj.blackboard, 'NewIdentityHypothesis', BlackboardEventData(idx) );
