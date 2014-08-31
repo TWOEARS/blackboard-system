@@ -7,7 +7,7 @@ classdef Wp2DepKS < AbstractKS
 
     methods (Static)
         function createProcessors( wp2ks, wp2depKs )
-            for z = 1:length( wp2depKs.wp2requests )
+            for z = 1:length( wp2depKs.wp2requests.r )
                 wp2ks.addProcessor( wp2depKs.wp2requests.r{z}, wp2depKs.wp2requests.p{z} );
             end
         end
