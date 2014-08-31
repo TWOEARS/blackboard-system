@@ -74,7 +74,7 @@ classdef LocationKS < Wp2DepKS
             
             % We simply take the average of posteriors across all the
             % samples for this block
-            locHyp = LocationHypothesis(acousticCues.blockNo, acousticCues.headOrientation, obj.angles, mean(post,1));
+            locHyp = LocationHypothesis(ildsSObj.LastChunk(2), obj.blackboard.headOrientation, obj.angles, mean(post,1));
             idx = obj.blackboard.addLocationHypothesis(locHyp);
             notify(obj.blackboard, 'NewLocationHypothesis', BlackboardEventData(idx));
         end
