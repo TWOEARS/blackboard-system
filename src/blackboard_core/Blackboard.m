@@ -19,6 +19,7 @@ classdef Blackboard < handle
         NewWp2Signal
         NewLocationHypothesis
         NewIdentityHypothesis
+        NewIdentityDecision
         NewConfusionHypothesis
         NewPerceivedLocation
     end
@@ -76,6 +77,17 @@ classdef Blackboard < handle
             n = obj.soundTimeIdx;
         end
         
+        %% Add new identity decision to layer             
+        function n = addIdentityDecision( obj, identity )
+            if obj.data.isKey(obj.soundTimeIdx) && isfield( obj.data(obj.soundTimeIdx), 'identityDecisions' )
+                tmpData = obj.data(obj.soundTimeIdx);
+                tmpData.identityDecisions = [tmpData.identityDecisions, identity];
+            else
+                tmpData.identityDecisions = identity;
+            end
+            obj.data(obj.soundTimeIdx) = tmpData;
+            n = obj.soundTimeIdx;
+        end
         
         %% Add confused frame to layer 3b
         function n = addConfusionHypothesis(obj, cf)
