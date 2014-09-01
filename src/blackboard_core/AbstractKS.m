@@ -18,5 +18,7 @@ classdef AbstractKS < handle
                 obj.blackboard = blackboard;
             end
         end
+        function setActiveArgument(obj, arg)
+        end
     end
 end
