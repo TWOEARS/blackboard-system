@@ -7,9 +7,9 @@ classdef Blackboard < handle
         headOrientation = 0;            % Current head orientation
         wp2signals = [];                % Layer 1a-2: _handles_ to  requested signals
         locationHypotheses = [];        % Layer 3: Location hypotheses
-        identityHypotheses = [];        % Layer 3: Identity hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
         perceivedLocations = [];        % Layer 5: Perceived source locations
+        data = [];                      % general data storage Map, with soundTimeIdx as key
         verbosity = 0;                  % Verbosity of 0 switches off screen output
         soundTimeIdx = 0;
     end
@@ -29,6 +29,7 @@ classdef Blackboard < handle
             if exist('verbosity', 'var')
                 obj.verbosity = verbosity;
             end
+            obj.data = containers.Map( 'KeyType', 'uint64', 'ValueType', 'any' );
         end
         
         %% Add KS to the blackboard system
@@ -65,9 +66,16 @@ classdef Blackboard < handle
         
         %% Add new identity hypothesis to layer 3a            
         function n = addIdentityHypothesis( obj, identity )
-            obj.identityHypotheses = [obj.identityHypotheses identity];
-            n = length( obj.identityHypotheses );
+            if obj.data.isKey(obj.soundTimeIdx) && isfield( obj.data(obj.soundTimeIdx), 'identityHypotheses' )
+                tmpData = obj.data(obj.soundTimeIdx);
+                tmpData.identityHypotheses = [tmpData.identityHypotheses, identity];
+            else
+                tmpData.identityHypotheses = identity;
+            end
+            obj.data(obj.soundTimeIdx) = tmpData;
+            n = obj.soundTimeIdx;
         end
+        
         
         %% Add confused frame to layer 3b
         function n = addConfusionHypothesis(obj, cf)
