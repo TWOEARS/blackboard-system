@@ -10,7 +10,7 @@ classdef LocationKS < Wp2DepKS
     end
     
     methods
-        function obj = LocationKS(blackboard, gmName, angles)
+        function obj = LocationKS(blackboard, gmName)
             blocksize_s = 0.5;
             WP2_param = genParStruct('f_low',80,'f_high',8000,...
                 'nChannels',32,...
@@ -26,7 +26,8 @@ classdef LocationKS < Wp2DepKS
             obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
             dimFeatures = WP2_param.nChannels * 2; % ITD + ILD
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures);
-            obj.angles = angles;
+            angularResolution = 5; % determined by trained net.
+            obj.angles = 0:angularResolution:(360-angularResolution);
             obj.tempPath = fullfile(obj.gmtkLoc.workPath, 'flists');
             if ~exist(obj.tempPath, 'dir')
                 mkdir(obj.tempPath);
