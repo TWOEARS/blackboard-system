@@ -25,17 +25,15 @@ classdef IdDecisionKS < AbstractKS
             end
             
             
-            idHyps = obj.blackboard.identityHypotheses;
-            lastIdHypSndTmIdx = idHyps{1,end};
-            curIdHyps = [idHyps{2,cell2mat(idHyps(1,:))==lastIdHypSndTmIdx}];
-            [~,idx] = max( [curIdHyps.p] );
-            maxProbHyp = curIdHyps(idx);
+            sndTmIdx = max( cell2mat( keys( obj.blackboard.data ) ) ); % TODO: consider "history" case
+            idHyps = obj.blackboard.data(sndTmIdx).identityHypotheses;
+            [~,idx] = max( [idHyps.p] );
+            maxProbHyp = idHyps(idx);
             
             if maxProbHyp.p > 0.44
                 fprintf( 'Identity Decision: %s with %i%% probability.\n', ...
                     maxProbHyp.label, int16(maxProbHyp.p*100) );
-                identDec = IdentityHypothesis( maxProbHyp.label, maxProbHyp.p );
-                idx = obj.blackboard.addIdentityDecision( identDec );
+                idx = obj.blackboard.addData( 'identityDecisions', maxProbHyp, false );
                 notify( obj.blackboard, 'NewIdentityDecision', BlackboardEventData(idx) );
             end
         end

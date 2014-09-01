@@ -65,27 +65,19 @@ classdef Blackboard < handle
             n = length(obj.locationHypotheses);
         end
         
-        %% Add new identity hypothesis to layer 3a            
-        function n = addIdentityHypothesis( obj, identity )
-            if obj.data.isKey(obj.soundTimeIdx) && isfield( obj.data(obj.soundTimeIdx), 'identityHypotheses' )
-                tmpData = obj.data(obj.soundTimeIdx);
-                tmpData.identityHypotheses = [tmpData.identityHypotheses, identity];
+        %% Add new data to blackboard
+        function n = addData( obj, dataLabel, data, append ) % append=true -> save more than one date per timestep
+            if obj.data.isKey( obj.soundTimeIdx ) 
+                curData = obj.data(obj.soundTimeIdx);
             else
-                tmpData.identityHypotheses = identity;
+                curData = [];
             end
-            obj.data(obj.soundTimeIdx) = tmpData;
-            n = obj.soundTimeIdx;
-        end
-        
-        %% Add new identity decision to layer             
-        function n = addIdentityDecision( obj, identity )
-            if obj.data.isKey(obj.soundTimeIdx) && isfield( obj.data(obj.soundTimeIdx), 'identityDecisions' )
-                tmpData = obj.data(obj.soundTimeIdx);
-                tmpData.identityDecisions = [tmpData.identityDecisions, identity];
+            if append && isfield( curData, dataLabel )
+                curData.(dataLabel) = [curData.(dataLabel), data];
             else
-                tmpData.identityDecisions = identity;
+                curData.(dataLabel) = data;
             end
-            obj.data(obj.soundTimeIdx) = tmpData;
+            obj.data(obj.soundTimeIdx) = curData;
             n = obj.soundTimeIdx;
         end
         
