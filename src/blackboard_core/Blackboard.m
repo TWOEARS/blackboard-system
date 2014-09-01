@@ -11,6 +11,7 @@ classdef Blackboard < handle
         confusionHypotheses = [];       % Layer 4: Confusions
         perceivedLocations = [];        % Layer 5: Perceived source locations
         verbosity = 0;                  % Verbosity of 0 switches off screen output
+        soundTimeIdx = 0;
     end
     
     events
@@ -38,6 +39,14 @@ classdef Blackboard < handle
         %% Get number of KSs
         function n = numKSs(obj)
             n = length(obj.KSs);
+        end
+        
+        %% Set soundTimeIdx
+        function obj = setSoundTimeIdx( obj, newSoundTimeIdx )
+            if newSoundTimeIdx <= obj.soundTimeIdx
+                error( 'time is usually monotonically increasing.' );
+            end
+            obj.soundTimeIdx = newSoundTimeIdx;
         end
 
         %% Add general wp2 signal
