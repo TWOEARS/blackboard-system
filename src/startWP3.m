@@ -12,3 +12,4 @@ addpath(fullfile(basepath, 'gmtk_matlab_interface'));
 addpath(fullfile(basepath, 'identificationTraining'));
 addpath(fullfile(basepath, 'knowledge_sources'));
 
+clear basepath;
