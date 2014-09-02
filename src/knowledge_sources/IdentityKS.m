@@ -64,7 +64,7 @@ classdef IdentityKS < Wp2DepKS
             
             fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
                 obj.modelname, int16(probs(1)*100) );
-            identHyp = IdentityHypothesis( obj.modelname, probs(1) );
+            identHyp = IdentityHypothesis( obj.modelname, probs(1), obj.blocksize_s );
             idx = obj.blackboard.addData( 'identityHypotheses', identHyp, true );
             notify( obj.blackboard, 'NewIdentityHypothesis', BlackboardEventData(idx) );
         end
