@@ -30,9 +30,9 @@ classdef gmtkEngine < handle
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
                     if nargin < 3
-                        workPath = '/Volumes/GMTK_ramdisk';
+                        workPath = [];
                     end
-                    if ~exist(workPath, 'dir')
+                    if ~isempty(workPath) && ~exist(workPath, 'dir')
                         error('workPath %s does not exist!', workPath);
                     end
                     if nargin < 4
@@ -58,7 +58,10 @@ classdef gmtkEngine < handle
                     obj.dimFeatures = dimFeatures;
                     
                     % Create a working folder for GMTK
-                    obj.workPath = fullfile(workPath, strcat('GM_', gmName));
+                    obj.workPath = strcat('GM_', gmName);
+                    if ~isempty(workPath)
+                        obj.workPath = fullfile(workPath, obj.workPath);
+                    end
                     if ~exist(obj.workPath, 'dir')
                         [success, message] = mkdir(obj.workPath);
                         if ~success

@@ -13,9 +13,9 @@ classdef LocationKS < AbstractKS
     methods
         function obj = LocationKS(blackboard, gmName, dimFeatures, angles)
             obj = obj@AbstractKS(blackboard);
-            obj.gmtkLoc = gmtkEngine(gmName, dimFeatures);
+            obj.gmtkLoc = gmtkEngine(gmName, dimFeatures, '/Volumes/GMTK_ramdisk');
             obj.angles = angles;
-            obj.tempPath = fullfile(obj.gmtkLoc.workPath, 'flists');
+            obj.tempPath = fullfile(obj.gmtkLoc.workPath, 'tempdata');
             if ~exist(obj.tempPath, 'dir')
                 mkdir(obj.tempPath);
             end
@@ -53,7 +53,8 @@ classdef LocationKS < AbstractKS
             
             % Generate a temporary feature flist for GMTK
             featureBlock = [acousticCues.itds; acousticCues.ilds];
-            tmpfn = tempname;
+            [~,tmpfn] = fileparts(tempname);
+            tmpfn = fullfile(obj.tempPath, tmpfn);
             htkfn = strcat(tmpfn, '.htk');
             writehtk(htkfn, featureBlock);
             flist = strcat(tmpfn, '.flist');
