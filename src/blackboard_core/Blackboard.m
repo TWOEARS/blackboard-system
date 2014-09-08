@@ -66,7 +66,9 @@ classdef Blackboard < handle
         end
         
         %% Add new data to blackboard
-        function n = addData( obj, dataLabel, data, append ) % append=true -> save more than one date per timestep
+        % append=true ->    save more than one date per timestep,
+        %                   for example several identity hypotheses
+        function n = addData( obj, dataLabel, data, append )
             if obj.data.isKey( obj.soundTimeIdx ) 
                 curData = obj.data(obj.soundTimeIdx);
             else
@@ -79,6 +81,11 @@ classdef Blackboard < handle
             end
             obj.data(obj.soundTimeIdx) = curData;
             n = obj.soundTimeIdx;
+        end
+        
+        %% get data from blackboard
+        %   sndTimeIdx: optional. Array of time indexes requested.
+        function data = getData( obj, dataLabel, sndTimeIdx )
         end
         
         %% Add confused frame to layer 3b
