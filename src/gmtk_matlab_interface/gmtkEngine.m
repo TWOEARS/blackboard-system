@@ -23,13 +23,19 @@ classdef gmtkEngine < handle
     end
     
     methods (Access = public)
-        function obj = gmtkEngine(gmName, dimFeatures, gmtkPath, cygwinPath)
+        function obj = gmtkEngine(gmName, dimFeatures, workPath, gmtkPath, cygwinPath)
             % gmtkEngine Class constructor
             
             % Check operating system
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
                     if nargin < 3
+                        workPath = [];
+                    end
+                    if ~isempty(workPath) && ~exist(workPath, 'dir')
+                        error('workPath %s does not exist!', workPath);
+                    end
+                    if nargin < 4
                         gmtkPath = '/usr/local/bin';
                     end
                     obj.gmtkPath = gmtkPath;
@@ -53,6 +59,9 @@ classdef gmtkEngine < handle
                     
                     % Create a working folder for GMTK
                     obj.workPath = strcat('GM_', gmName);
+                    if ~isempty(workPath)
+                        obj.workPath = fullfile(workPath, obj.workPath);
+                    end
                     if ~exist(obj.workPath, 'dir')
                         [success, message] = mkdir(obj.workPath);
                         if ~success

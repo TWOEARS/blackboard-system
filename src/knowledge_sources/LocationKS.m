@@ -25,10 +25,10 @@ classdef LocationKS < Wp2DepKS
             wp2requests.p{2} = WP2_param;
             obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
             dimFeatures = WP2_param.nChannels * 2; % ITD + ILD
-            obj.gmtkLoc = gmtkEngine(gmName, dimFeatures);
+            obj.gmtkLoc = gmtkEngine(gmName, dimFeatures, '/Volumes/GMTK_ramdisk');
             angularResolution = 5; % determined by trained net.
             obj.angles = 0:angularResolution:(360-angularResolution);
-            obj.tempPath = fullfile(obj.gmtkLoc.workPath, 'flists');
+            obj.tempPath = fullfile(obj.gmtkLoc.workPath, 'tempdata');
             if ~exist(obj.tempPath, 'dir')
                 mkdir(obj.tempPath);
             end
@@ -51,7 +51,8 @@ classdef LocationKS < Wp2DepKS
 
             % Generate a temporary feature flist for GMTK
             featureBlock = [itds; ilds];
-            tmpfn = tempname;
+            [~,tmpfn] = fileparts(tempname);
+            tmpfn = fullfile(obj.tempPath, tmpfn);
             htkfn = strcat(tmpfn, '.htk');
             writehtk(htkfn, featureBlock);
             flist = strcat(tmpfn, '.flist');
