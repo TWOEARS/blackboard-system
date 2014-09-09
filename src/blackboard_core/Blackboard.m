@@ -84,8 +84,9 @@ classdef Blackboard < handle
         end
         
         %% get data from blackboard
-        %   reqSndTimeIdxs:	optional. Array of time indexes requested.
-        %                   if not given, all time indexes available are used
+        %   dataLabel:  the label of the data needed
+        %   [reqSndTimeIdxs]:	Array of time indexes requested.
+        %                       if not given, all time indexes available are used
         function requestedData = getData( obj, dataLabel, reqSndTimeIdxs )
             if nargin < 3
                 reqSndTimeIdxs = sort( cell2mat( keys( obj.data ) ) );
@@ -98,6 +99,17 @@ classdef Blackboard < handle
                 dtmp = obj.data(sndTmIdx);
                 requestedData(k).data = dtmp.(dataLabel);
                 k = k + 1;
+            end
+        end
+        
+        %% get last data from blackboard
+        %   dataLabel:  the label of the data needed
+        function requestedData = getLastData( obj, dataLabel )
+            sndTimeIdxs = sort( cell2mat( keys( obj.data ) ), 'descend' );
+            requestedData = [];
+            for sndTmIdx = sndTimeIdxs
+                requestedData = obj.getData( dataLabel, sndTmIdx );
+                if ~isempty( requestedData ), break; end;
             end
         end
         
