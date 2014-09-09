@@ -84,8 +84,21 @@ classdef Blackboard < handle
         end
         
         %% get data from blackboard
-        %   sndTimeIdx: optional. Array of time indexes requested.
-        function data = getData( obj, dataLabel, sndTimeIdx )
+        %   reqSndTimeIdxs:	optional. Array of time indexes requested.
+        %                   if not given, all time indexes available are used
+        function requestedData = getData( obj, dataLabel, reqSndTimeIdxs )
+            if nargin < 3
+                reqSndTimeIdxs = sort( cell2mat( keys( obj.data ) ) );
+            end
+            k = 1;
+            requestedData = [];
+            for sndTmIdx = reqSndTimeIdxs
+                if ~isfield( obj.data(sndTmIdx), dataLabel ), continue; end;
+                requestedData(k).sndTmIdx = sndTmIdx;
+                dtmp = obj.data(sndTmIdx);
+                requestedData(k).data = dtmp.(dataLabel);
+                k = k + 1;
+            end
         end
         
         %% Add confused frame to layer 3b
