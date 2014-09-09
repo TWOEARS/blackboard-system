@@ -9,9 +9,9 @@ classdef Blackboard < handle
         locationHypotheses = [];        % Layer 3: Location hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
         perceivedLocations = [];        % Layer 5: Perceived source locations
-        data = [];                      % general data storage Map, with soundTimeIdx as key
+        data = [];                      % general data storage Map, with currentSoundTimeIdx as key
         verbosity = 0;                  % Verbosity of 0 switches off screen output
-        soundTimeIdx = 0;
+        currentSoundTimeIdx = 0;
     end
     
     events
@@ -43,12 +43,12 @@ classdef Blackboard < handle
             n = length(obj.KSs);
         end
         
-        %% Set soundTimeIdx
+        %% Set currentSoundTimeIdx
         function obj = setSoundTimeIdx( obj, newSoundTimeIdx )
-            if newSoundTimeIdx <= obj.soundTimeIdx
+            if newSoundTimeIdx <= obj.currentSoundTimeIdx
                 error( 'time is usually monotonically increasing.' );
             end
-            obj.soundTimeIdx = newSoundTimeIdx;
+            obj.currentSoundTimeIdx = newSoundTimeIdx;
         end
 
         %% Add general wp2 signal
@@ -69,8 +69,8 @@ classdef Blackboard < handle
         % append=true ->    save more than one date per timestep,
         %                   for example several identity hypotheses
         function n = addData( obj, dataLabel, data, append )
-            if obj.data.isKey( obj.soundTimeIdx ) 
-                curData = obj.data(obj.soundTimeIdx);
+            if obj.data.isKey( obj.currentSoundTimeIdx ) 
+                curData = obj.data(obj.currentSoundTimeIdx);
             else
                 curData = [];
             end
@@ -79,8 +79,8 @@ classdef Blackboard < handle
             else
                 curData.(dataLabel) = data;
             end
-            obj.data(obj.soundTimeIdx) = curData;
-            n = obj.soundTimeIdx;
+            obj.data(obj.currentSoundTimeIdx) = curData;
+            n = obj.currentSoundTimeIdx;
         end
         
         %% get data from blackboard
