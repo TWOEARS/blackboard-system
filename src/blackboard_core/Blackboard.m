@@ -115,6 +115,16 @@ classdef Blackboard < handle
             end
         end
         
+        %% get a block of data from blackboard
+        %   dataLabel:  the label of the data needed
+        %   blockSize_s:	the length of the block in seconds. The block
+        %                   ends at the current time.
+        function requestedData = getDataBlock( obj, dataLabel, blockSize_s )
+            sndTimeIdxs = sort( cell2mat( keys( obj.data ) ) );
+            sndTimeIdxs = sndTimeIdxs( sndTimeIdxs(end) - sndTimeIdxs >= blockSize_s );
+            requestedData = obj.getData( dataLabel, sndTimeIdxs );
+        end
+        
         %% Add confused frame to layer 3b
         function n = addConfusionHypothesis(obj, cf)
             obj.confusionHypotheses = [obj.confusionHypotheses cf];
