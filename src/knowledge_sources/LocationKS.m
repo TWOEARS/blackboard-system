@@ -25,7 +25,7 @@ classdef LocationKS < Wp2DepKS
             wp2requests.p{2} = WP2_param;
             obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
             dimFeatures = WP2_param.nChannels * 2; % ITD + ILD
-            obj.gmtkLoc = gmtkEngine(gmName, dimFeatures, '/Volumes/GMTK_ramdisk');
+            obj.gmtkLoc = gmtkEngine(gmName, dimFeatures); %, '/Volumes/GMTK_ramdisk'
             angularResolution = 5; % determined by trained net.
             obj.angles = 0:angularResolution:(360-angularResolution);
             obj.tempPath = fullfile(obj.gmtkLoc.workPath, 'tempdata');
