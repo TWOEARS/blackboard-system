@@ -57,7 +57,9 @@ classdef Wp1Wp2KS < AbstractKS
             
             % WP2 Processing
             obj.managerObject.processChunk( signalFrame, 1 );  % process new data, append
-            obj.blackboard.setSoundTimeIdx( obj.managerObject.Data.time{1,1}.LastChunk(2) );
+            obj.blackboard.setSoundTimeIdx( ...
+                obj.managerObject.Data.time{1,1}.LastChunk(2)...
+                / obj.wp1sim.SampleRate );
             
             %TODO: this should be implemented in wp2.
             %obj.ltrimSignalBuffersToMaxBlocksize();

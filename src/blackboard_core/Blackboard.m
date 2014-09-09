@@ -11,7 +11,9 @@ classdef Blackboard < handle
         perceivedLocations = [];        % Layer 5: Perceived source locations
         data = [];                      % general data storage Map, with currentSoundTimeIdx as key
         verbosity = 0;                  % Verbosity of 0 switches off screen output
-        currentSoundTimeIdx = 0;
+        currentSoundTimeIdx = 0;        % the current "sound time". 
+                                        % Has to be set when a new signal
+                                        % chunk arrives
     end
     
     events
@@ -30,7 +32,7 @@ classdef Blackboard < handle
             if exist('verbosity', 'var')
                 obj.verbosity = verbosity;
             end
-            obj.data = containers.Map( 'KeyType', 'uint64', 'ValueType', 'any' );
+            obj.data = containers.Map( 'KeyType', 'double', 'ValueType', 'any' );
         end
         
         %% Add KS to the blackboard system
@@ -46,7 +48,7 @@ classdef Blackboard < handle
         %% Set currentSoundTimeIdx
         function obj = setSoundTimeIdx( obj, newSoundTimeIdx )
             if newSoundTimeIdx <= obj.currentSoundTimeIdx
-                error( 'time is usually monotonically increasing.' );
+                error( 'time has to be monotonically increasing.' );
             end
             obj.currentSoundTimeIdx = newSoundTimeIdx;
         end
