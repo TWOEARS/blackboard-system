@@ -4,7 +4,6 @@ classdef Blackboard < handle
     
     properties (SetAccess = private)
         KSs = {};                       % List of all KSs
-        headOrientation = 0;            % Current head orientation
         wp2signals = [];                % Layer 1a-2: _handles_ to  requested signals
         locationHypotheses = [];        % Layer 3: Location hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
@@ -158,20 +157,6 @@ classdef Blackboard < handle
             notify(obj, 'NextSoundUpdate');
         end
         
-        %% Set absolute head orientation
-        function setHeadOrientation(obj, angle)
-            obj.headOrientation = angle;
-        end
-        
-        %% Adjust relative to the current head orientation
-        function adjustHeadOrientation(obj, angle)
-            obj.headOrientation = mod(obj.headOrientation + angle, 360);
-        end
-        
-        %% Reset head orientation to default look direction (0 degrees)
-        function resetHeadOrientation(obj)
-            obj.headOrientation = 0;
-        end
     end
     
 end

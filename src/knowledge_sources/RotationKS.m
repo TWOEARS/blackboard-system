@@ -43,13 +43,11 @@ classdef RotationKS < AbstractKS
                 headRotateAngle = maxAngle - 360;
             end
             
-            obj.blackboard.adjustHeadOrientation(headRotateAngle);
-            
             % Rotate head with a relative angle
             obj.robot.rotateHead(headRotateAngle);
             
             if obj.blackboard.verbosity > 0
-                fprintf('New head orientation is %d degrees\n', obj.blackboard.headOrientation);
+                fprintf('Commanded head to rotate about %d degrees\n', headRotateAngle);
             end
             obj.rotationScheduled = false;
         end

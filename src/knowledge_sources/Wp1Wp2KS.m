@@ -60,6 +60,7 @@ classdef Wp1Wp2KS < AbstractKS
             obj.blackboard.setSoundTimeIdx( ...
                 obj.managerObject.Data.time{1,1}.LastChunk(2)...
                 / obj.wp1sim.SampleRate );
+            obj.blackboard.addData( 'headOrientation', mod( obj.wp1sim.getCurrentHeadOrientation(), 360 ) );
             
             %TODO: this should be implemented in wp2.
             %obj.ltrimSignalBuffersToMaxBlocksize();

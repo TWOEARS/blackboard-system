@@ -25,7 +25,8 @@ classdef ConfusionSolvingKS < AbstractKS
                 cf = obj.blackboard.confusionHypotheses(n);
                 % Fire only if there is an unseen confusion and head has
                 % been rotated
-                if cf.seenByConfusionSolvingKS == false && cf.headOrientation ~= obj.blackboard.headOrientation
+                lastHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
+                if cf.seenByConfusionSolvingKS == false && cf.headOrientation ~= lastHeadOrientation
                     obj.confusionHypothesis = cf;
                     b = true;
                     break
@@ -41,11 +42,12 @@ classdef ConfusionSolvingKS < AbstractKS
                 fprintf('-------- ConfusionSolvingKS has fired\n');
             end
             
-            headRotation = obj.blackboard.headOrientation - obj.confusionHypothesis.headOrientation;
+            lastHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
+            headRotation = lastHeadOrientation - obj.confusionHypothesis.headOrientation;
             % predictedLocations = mod(obj.confusionHypothesis.locations - headRotation, 360);
 
             newLocHyp = obj.blackboard.locationHypotheses(obj.activeIndex);
-            idxDelta = headRotation / (newLocHyp.locations(2) - newLocHyp.locations(1));
+            idxDelta = int16( headRotation / (newLocHyp.locations(2) - newLocHyp.locations(1)) );
             predictedPosteriors = circshift(newLocHyp.posteriors,[0 idxDelta]);
             % Take the average of the posterior distribution before head
             % rotation and predictd distribution from after head rotation
