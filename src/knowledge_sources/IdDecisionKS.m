@@ -31,10 +31,10 @@ classdef IdDecisionKS < AbstractKS
             maxProbHyp = idHyps(idx);
             
             if maxProbHyp.p > 0.44
-                fprintf( 'Identity Decision: %s with %i%% probability.\n', ...
-                    maxProbHyp.label, int16(maxProbHyp.p*100) );
-                idx = obj.blackboard.addData( 'identityDecision', maxProbHyp, false );
-                notify( obj.blackboard, 'NewIdentityDecision', BlackboardEventData(idx) );
+                    fprintf( 'Identity Decision: %s with %i%% probability.\n', ...
+                        maxProbHyp.label, int16(maxProbHyp.p*100) );
+                obj.blackboard.addData( 'identityDecision', maxProbHyp, false );
+                notify( obj.blackboard, 'NewIdentityDecision', BlackboardEventData(0) );
             end
         end
     end

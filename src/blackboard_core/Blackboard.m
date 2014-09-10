@@ -69,9 +69,10 @@ classdef Blackboard < handle
         end
         
         %% Add new data to blackboard
-        % append=true ->    save more than one date per timestep,
+        % [append]: 	save more than one date per timestep,
         %                   for example several identity hypotheses
-        function n = addData( obj, dataLabel, data, append )
+        function addData( obj, dataLabel, data, append )
+            if nargin < 4, append = 0; end;
             if obj.data.isKey( obj.currentSoundTimeIdx ) 
                 curData = obj.data(obj.currentSoundTimeIdx);
             else
@@ -83,7 +84,6 @@ classdef Blackboard < handle
                 curData.(dataLabel) = data;
             end
             obj.data(obj.currentSoundTimeIdx) = curData;
-            n = obj.currentSoundTimeIdx;
         end
         
         %% get data from blackboard
