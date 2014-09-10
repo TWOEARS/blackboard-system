@@ -62,8 +62,10 @@ classdef IdentityKS < Wp2DepKS
             [~, ~, probs] = libsvmpredict( 0, features, obj.model, '-q -b 1' );
             %libsvmpredict is the renamed svmpredict of the LIBSVM package
             
-            fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
-                obj.modelname, int16(probs(1)*100) );
+            if obj.blackboard.verbosity > 0
+                fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
+                    obj.modelname, int16(probs(1)*100) );
+            end
             identHyp = IdentityHypothesis( obj.modelname, probs(1), obj.blocksize_s );
             obj.blackboard.addData( 'identityHypotheses', identHyp, true );
             notify( obj.blackboard, 'NewIdentityHypothesis', BlackboardEventData(0) );
