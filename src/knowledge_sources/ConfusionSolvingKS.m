@@ -67,7 +67,7 @@ classdef ConfusionSolvingKS < AbstractKS
                     obj.confusionHypothesis.headOrientation, ...
                     obj.confusionHypothesis.locations(idx), m);
                 obj.blackboard.addData( 'perceivedLocations', ploc );
-                notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
+                notify(obj, 'KsFiredEvent');
             end
             obj.confusionHypothesis.setSeenByConfusionSolvingKS;
             obj.activeIndex = 0;

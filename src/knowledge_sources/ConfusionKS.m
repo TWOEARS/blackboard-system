@@ -7,6 +7,10 @@ classdef ConfusionKS < AbstractKS
         activeIndex = 0;            % Index of the location hypothesis to be processed
         postThreshold = 0.1;       % Posterior probability threshold for a valid LocationHypothesis
     end
+
+    events
+        ConfusedLocations
+    end
     
     methods
         function obj = ConfusionKS(blackboard)
@@ -38,12 +42,12 @@ classdef ConfusionKS < AbstractKS
                 % valid location
                 % cf = ConfusionHypothesis(locHyp.blockNo, locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
                 obj.blackboard.addData( 'confusionHypotheses', locHyp );
-                notify(obj.blackboard, 'NewConfusionHypothesis', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
+                notify(obj, 'ConfusedLocations');
             elseif numLoc == 1
                 % No confusion, generate Perceived Location
                 ploc = PerceivedLocation(locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
                 obj.blackboard.addData( 'perceivedLocations', ploc );
-                notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
+                notify(obj, 'KsFiredEvent');
             end
             locHyp.setSeenByConfusionKS;
             obj.activeIndex = 0;

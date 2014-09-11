@@ -4,7 +4,6 @@ classdef BlackboardMonitor < handle
     
     properties (SetAccess = private)
         agenda;                % Agenda contains KSIs
-        eventRegister;         % A register mapping an event to one or more KSs
         listeners;
         blackboard;
     end
@@ -33,24 +32,15 @@ classdef BlackboardMonitor < handle
     
     methods
         function obj = BlackboardMonitor(bb)
-            obj.eventRegister = containers.Map;
             obj.listeners = {};
             obj.blackboard = bb;
         end
         
-        function registerEvent(obj, eventName, varargin)
-            if ~obj.eventRegister.isKey(eventName)
-                addlistener(obj.blackboard, eventName, @obj.handleEvent);
-                obj.eventRegister(eventName) = varargin;
-            else
-                obj.eventRegister(eventName) = [obj.eventRegister(eventName) varargin];
-            end
-        end
-        
-        function bind( obj, sources, sinks )
+        function bind( obj, sources, sinks, eventName )
+            if nargin < 4, eventName = 'KsFiredEvent'; end;
             for src = sources
                 for snk = sinks
-                    obj.listeners{end+1} = addlistener( src{1}, 'KsFiredEvent', ...
+                    obj.listeners{end+1} = addlistener( src{1}, eventName, ...
                         @(evntSrc, evnt)(obj.handleBinding( evntSrc, evnt, snk{1} ) ) );
                 end
             end
@@ -69,34 +59,6 @@ classdef BlackboardMonitor < handle
                 fprintf('\n-------- [New Event] %s\n', evnt.EventName);
             end
             obj.addKSI( evntSink, obj.blackboard.currentSoundTimeIdx, evntSource );
-        end
-        
-        function handleEvent(obj, src, evnt)
-            
-            if obj.blackboard.verbosity > 0
-                fprintf('\n-------- [New Event] %s\n', evnt.EventName);
-            end
-            
-            if ~obj.eventRegister.isKey(evnt.EventName)
-                error('Unknown event in handleBlackboardEvent: %s', evnt.EventName);
-            end
-            ksList = obj.eventRegister(evnt.EventName);
-            if length(ksList) < 1
-                return;
-            end
-            % When several KSs should be triggered for an event, we sort
-            % them based on importance ranking
-            ranks = zeros(length(ksList));
-            for n = 1:length(ksList)
-                ks = ksList{n};
-                ranks(n) = obj.rankKS(ks);
-            end
-            [~,idx] = sort(ranks, 'descend');
-            sortedList = ksList(idx);
-            for n = 1:length(sortedList)
-                ks = sortedList{n};
-                obj.addKSI(ks, evnt.data, []);
-            end
         end
     end
     
