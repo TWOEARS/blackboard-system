@@ -18,9 +18,10 @@ classdef ConfusionSolvingKS < AbstractKS
             b = false;
             % If no new LocationHypothesis has arrived, do nothing
             if obj.activeIndex <= 0, return; end;
-            numConfusions = obj.blackboard.getNumConfusionHypotheses;
+            confusions = obj.blackboard.getData( 'confusionHypotheses' );
+            numConfusions = length( confusions );
             for n=1:numConfusions
-                cf = obj.blackboard.confusionHypotheses(n);
+                cf = confusions(n).data;
                 % Fire only if there is an unseen confusion and head has
                 % been rotated
                 lastHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;

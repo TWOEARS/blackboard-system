@@ -17,7 +17,7 @@ classdef RotationKS < AbstractKS
         end
         function b = canExecute(obj)
             b = false;
-            if obj.activeIndex < 1
+            if obj.activeIndex <= 0
                 return
             end
             if obj.rotationScheduled
@@ -34,7 +34,7 @@ classdef RotationKS < AbstractKS
             
             % Workout the head rotation angle so that the head will face
             % the most likely source location.
-            locHyp = obj.blackboard.confusionHypotheses(obj.activeIndex);
+            locHyp = obj.blackboard.getData( 'confusionHypotheses', obj.activeIndex ).data;
             [~,idx] = max(locHyp.posteriors);
             maxAngle = locHyp.locations(idx);
             if maxAngle <= 180

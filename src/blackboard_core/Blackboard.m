@@ -5,7 +5,6 @@ classdef Blackboard < handle
     properties (SetAccess = private)
         KSs = {};                       % List of all KSs
         wp2signals = [];                % Layer 1a-2: _handles_ to  requested signals
-        confusionHypotheses = [];       % Layer 4: Confusions
         perceivedLocations = [];        % Layer 5: Perceived source locations
         data = [];                      % general data storage Map, with currentSoundTimeIdx as key
         verbosity = 0;                  % Verbosity of 0 switches off screen output
@@ -114,21 +113,10 @@ classdef Blackboard < handle
             requestedData = obj.getData( dataLabel, sndTimeIdxs );
         end
         
-        %% Add confused frame to layer 3b
-        function n = addConfusionHypothesis(obj, cf)
-            obj.confusionHypotheses = [obj.confusionHypotheses cf];
-            n = length(obj.confusionHypotheses);
-        end
-        
         %% Add new source ID hypothesis to layer 4
         function n = addPerceivedLocation(obj, pl)
             obj.perceivedLocations = [obj.perceivedLocations pl];
             n = length(obj.perceivedLocations);
-        end
-        
-        %% Get number of confused frames on the BB
-        function n = getNumConfusionHypotheses(obj)
-            n = length(obj.confusionHypotheses);
         end
         
         %% Get number of perceived locations on the BB
