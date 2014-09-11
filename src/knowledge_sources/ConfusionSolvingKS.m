@@ -17,9 +17,7 @@ classdef ConfusionSolvingKS < AbstractKS
         function b = canExecute(obj)
             b = false;
             % If no new LocationHypothesis has arrived, do nothing
-            if obj.activeIndex < 1
-                return
-            end
+            if obj.activeIndex <= 0, return; end;
             numConfusions = obj.blackboard.getNumConfusionHypotheses;
             for n=1:numConfusions
                 cf = obj.blackboard.confusionHypotheses(n);
@@ -46,7 +44,7 @@ classdef ConfusionSolvingKS < AbstractKS
             headRotation = lastHeadOrientation - obj.confusionHypothesis.headOrientation;
             % predictedLocations = mod(obj.confusionHypothesis.locations - headRotation, 360);
 
-            newLocHyp = obj.blackboard.locationHypotheses(obj.activeIndex);
+            newLocHyp = obj.blackboard.getData( 'locationHypotheses', obj.activeIndex ).data;
             idxDelta = int16( headRotation / (newLocHyp.locations(2) - newLocHyp.locations(1)) );
             predictedPosteriors = circshift(newLocHyp.posteriors,[0 idxDelta]);
             % Take the average of the posterior distribution before head

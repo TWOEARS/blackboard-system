@@ -78,8 +78,8 @@ classdef LocationKS < Wp2DepKS
             % samples for this block
             lastHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
             locHyp = LocationHypothesis(ildsSObj.LastChunk(2), lastHeadOrientation, obj.angles, mean(post,1));
-            idx = obj.blackboard.addLocationHypothesis(locHyp);
-            notify(obj.blackboard, 'NewLocationHypothesis', BlackboardEventData(idx));
+            obj.blackboard.addData( 'locationHypotheses', locHyp );
+            notify(obj.blackboard, 'NewLocationHypothesis', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
         end
     end
 end

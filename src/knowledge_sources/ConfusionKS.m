@@ -18,30 +18,17 @@ classdef ConfusionKS < AbstractKS
         function setPostThreshold(obj, t)
             obj.postThreshold = t;
         end
+        
         function b = canExecute(obj)
-            b = false;
-            if obj.activeIndex < 1
-                for n=1:numLocationHypotheses
-                    if obj.blackboard.locationHypotheses(n).seenByConfusionKS == false
-                        obj.activeIndex = n;
-                        b = true;
-                        break
-                    end
-                end
-            elseif obj.blackboard.locationHypotheses(obj.activeIndex).seenByConfusionKS == false
-                b = true;
-            end
+            b = ~(obj.blackboard.getData( 'locationHypotheses', obj.activeIndex ).data.seenByConfusionKS);
         end
+        
         function execute(obj)
-            if obj.activeIndex < 1
-                return
-            end
-            
             if obj.blackboard.verbosity > 0
                 fprintf('-------- ConfusionKS has fired\n');
             end
             
-            locHyp = obj.blackboard.locationHypotheses(obj.activeIndex);
+            locHyp = obj.blackboard.getData( 'locationHypotheses', obj.activeIndex ).data;
             
             % Generates location hypotheses if posterior > threshold
             locIdx = locHyp.posteriors > obj.postThreshold;

@@ -5,7 +5,6 @@ classdef Blackboard < handle
     properties (SetAccess = private)
         KSs = {};                       % List of all KSs
         wp2signals = [];                % Layer 1a-2: _handles_ to  requested signals
-        locationHypotheses = [];        % Layer 3: Location hypotheses
         confusionHypotheses = [];       % Layer 4: Confusions
         perceivedLocations = [];        % Layer 5: Perceived source locations
         data = [];                      % general data storage Map, with currentSoundTimeIdx as key
@@ -57,12 +56,6 @@ classdef Blackboard < handle
             obj.wp2signals(regHash) = regSignal;
         end
 
-        %% Add new location hypothesis to layer 3a            
-        function n = addLocationHypothesis(obj, location)
-            obj.locationHypotheses = [obj.locationHypotheses location];
-            n = length(obj.locationHypotheses);
-        end
-        
         %% Add new data to blackboard
         % [append]: 	save more than one date per timestep,
         %                   for example several identity hypotheses
@@ -131,11 +124,6 @@ classdef Blackboard < handle
         function n = addPerceivedLocation(obj, pl)
             obj.perceivedLocations = [obj.perceivedLocations pl];
             n = length(obj.perceivedLocations);
-        end
-        
-        %% Get number of location hypotheses on the BB
-        function n = getNumLocationHypotheses(obj)
-            n = length(obj.locationHypotheses);
         end
         
         %% Get number of confused frames on the BB
