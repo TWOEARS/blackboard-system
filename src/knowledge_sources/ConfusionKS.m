@@ -41,9 +41,9 @@ classdef ConfusionKS < AbstractKS
                 notify(obj.blackboard, 'NewConfusionHypothesis', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
             elseif numLoc == 1
                 % No confusion, generate Perceived Location
-                ploc = PerceivedLocation(locHyp.blockNo, locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
-                idx = obj.blackboard.addPerceivedLocation(ploc);
-                notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(idx));
+                ploc = PerceivedLocation(locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
+                obj.blackboard.addData( 'perceivedLocations', ploc );
+                notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
             end
             locHyp.setSeenByConfusionKS;
             obj.activeIndex = 0;

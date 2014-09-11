@@ -63,11 +63,11 @@ classdef ConfusionSolvingKS < AbstractKS
             [m,idx] = max(post);
             if m > obj.postThreshold;
                 % Generate Perceived Location
-                ploc = PerceivedLocation(obj.confusionHypothesis.blockNo, ...
+                ploc = PerceivedLocation(...
                     obj.confusionHypothesis.headOrientation, ...
                     obj.confusionHypothesis.locations(idx), m);
-                idx = obj.blackboard.addPerceivedLocation(ploc);
-                notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(idx));
+                obj.blackboard.addData( 'perceivedLocations', ploc );
+                notify(obj.blackboard, 'NewPerceivedLocation', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
             end
             obj.confusionHypothesis.setSeenByConfusionSolvingKS;
             obj.activeIndex = 0;

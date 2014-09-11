@@ -5,7 +5,6 @@ classdef Blackboard < handle
     properties (SetAccess = private)
         KSs = {};                       % List of all KSs
         wp2signals = [];                % Layer 1a-2: _handles_ to  requested signals
-        perceivedLocations = [];        % Layer 5: Perceived source locations
         data = [];                      % general data storage Map, with currentSoundTimeIdx as key
         verbosity = 0;                  % Verbosity of 0 switches off screen output
         currentSoundTimeIdx = 0;        % the current "sound time". 
@@ -111,17 +110,6 @@ classdef Blackboard < handle
             sndTimeIdxs = sort( cell2mat( keys( obj.data ) ) );
             sndTimeIdxs = sndTimeIdxs( sndTimeIdxs(end) - sndTimeIdxs >= blockSize_s );
             requestedData = obj.getData( dataLabel, sndTimeIdxs );
-        end
-        
-        %% Add new source ID hypothesis to layer 4
-        function n = addPerceivedLocation(obj, pl)
-            obj.perceivedLocations = [obj.perceivedLocations pl];
-            n = length(obj.perceivedLocations);
-        end
-        
-        %% Get number of perceived locations on the BB
-        function n = getNumPerceivedLocations(obj)
-            n = length(obj.perceivedLocations);
         end
         
     end

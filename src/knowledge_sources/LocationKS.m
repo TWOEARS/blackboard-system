@@ -77,7 +77,7 @@ classdef LocationKS < Wp2DepKS
             % We simply take the average of posteriors across all the
             % samples for this block
             lastHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
-            locHyp = LocationHypothesis(ildsSObj.LastChunk(2), lastHeadOrientation, obj.angles, mean(post,1));
+            locHyp = LocationHypothesis(lastHeadOrientation, obj.angles, mean(post,1));
             obj.blackboard.addData( 'locationHypotheses', locHyp );
             notify(obj.blackboard, 'NewLocationHypothesis', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
         end
