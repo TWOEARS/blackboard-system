@@ -70,7 +70,7 @@ classdef Wp1Wp2KS < AbstractKS
             end
             
             % Trigger event
-            notify( obj.blackboard, 'NewWp2Signal' );
+            notify( obj, 'KsFiredEvent' );
         end
 
         %% KS utilities

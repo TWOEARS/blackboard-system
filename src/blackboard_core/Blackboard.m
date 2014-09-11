@@ -17,9 +17,7 @@ classdef Blackboard < handle
     
     events
         NextSoundUpdate
-        NewWp2Signal
         NewLocationHypothesis
-        NewIdentityDecision
         NewConfusionHypothesis
         NewPerceivedLocation
     end
@@ -148,11 +146,6 @@ classdef Blackboard < handle
         %% Get number of perceived locations on the BB
         function n = getNumPerceivedLocations(obj)
             n = length(obj.perceivedLocations);
-        end
-        
-        %% Ready for next frame
-        function setReadyForNextBlock(obj)
-            notify(obj, 'NextSoundUpdate');
         end
         
     end

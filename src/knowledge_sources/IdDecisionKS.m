@@ -36,7 +36,7 @@ classdef IdDecisionKS < AbstractKS
                         maxProbHyp.label, int16(maxProbHyp.p*100) );
                 end
                 obj.blackboard.addData( 'identityDecision', maxProbHyp, false );
-                notify( obj.blackboard, 'NewIdentityDecision', BlackboardEventData(0) );
+                notify( obj, 'KsFiredEvent' );
             end
         end
     end
