@@ -57,12 +57,11 @@ classdef BlackboardMonitor < handle
         end
         
         function addKSI( obj, ks, currentSoundTimeIdx, triggerSource )
-            if nargin < 3
-                currentSoundTimeIdx = 0;
-                triggerSource = [];
+            ks.setActiveArgument( currentSoundTimeIdx );
+            if ks.canExecute()
+                ksi = KSInstantiation( ks, currentSoundTimeIdx, triggerSource );
+                obj.agenda = [obj.agenda ksi];
             end
-            ksi = KSInstantiation( ks, currentSoundTimeIdx, triggerSource );
-            obj.agenda = [obj.agenda ksi];
         end
         
         function handleBinding(obj, evntSource, evnt, evntSink )
@@ -96,12 +95,7 @@ classdef BlackboardMonitor < handle
             sortedList = ksList(idx);
             for n = 1:length(sortedList)
                 ks = sortedList{n};
-                if isa(evnt,'BlackboardEventData')
-                    ks.setActiveArgument(evnt.data);
-                end
-                if ks.canExecute
-                    obj.addKSI(ks);
-                end
+                obj.addKSI(ks, evnt.data, []);
             end
         end
     end

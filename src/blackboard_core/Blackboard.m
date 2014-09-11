@@ -14,7 +14,6 @@ classdef Blackboard < handle
     
     events
         NextSoundUpdate
-        NewLocationHypothesis
         NewConfusionHypothesis
         NewPerceivedLocation
     end

@@ -79,7 +79,7 @@ classdef LocationKS < Wp2DepKS
             lastHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
             locHyp = LocationHypothesis(lastHeadOrientation, obj.angles, mean(post,1));
             obj.blackboard.addData( 'locationHypotheses', locHyp );
-            notify(obj.blackboard, 'NewLocationHypothesis', BlackboardEventData(obj.blackboard.currentSoundTimeIdx));
+            notify( obj, 'KsFiredEvent' );
         end
     end
 end

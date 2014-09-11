@@ -33,7 +33,7 @@ classdef ConfusionSolvingKS < AbstractKS
             end
         end
         function execute(obj)
-            if isempty(obj.confusionHypothesis) || obj.activeIndex < 1
+            if isempty(obj.confusionHypothesis) || obj.activeIndex <= 0
                 return
             end
             
