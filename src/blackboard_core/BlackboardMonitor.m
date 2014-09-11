@@ -1,10 +1,11 @@
 classdef BlackboardMonitor < handle
-    %AgendaManager   
+    %AgendaManager
     %   Detailed explanation goes here
-
+    
     properties (SetAccess = private)
         agenda;                % Agenda contains KSIs
         eventRegister;         % A register mapping an event to one or more KSs
+        listeners;
         blackboard;
     end
     
@@ -15,15 +16,15 @@ classdef BlackboardMonitor < handle
                 case 'Wp1Wp2KS'
                     n = 10;
                 case 'LocationKS'
-                	n = 20;
+                    n = 20;
                 case 'IdentityKS'
-                	n = 15;
+                    n = 15;
                 case 'ConfusionKS'
-                	n = 30;
+                    n = 30;
                 case 'RotationKS'
-                	n = 40;
+                    n = 40;
                 case 'ConfusionSolvingKS'
-                	n = 50;
+                    n = 50;
                 otherwise
                     n = 20;
             end
@@ -33,6 +34,7 @@ classdef BlackboardMonitor < handle
     methods
         function obj = BlackboardMonitor(bb)
             obj.eventRegister = containers.Map;
+            obj.listeners = {};
             obj.blackboard = bb;
         end
         
@@ -45,9 +47,29 @@ classdef BlackboardMonitor < handle
             end
         end
         
-        function addKSI(obj, ks)
-            ksi = KSInstantiation(ks);
+        function bind( obj, sources, sinks )
+            for src = sources
+                for snk = sinks
+                    obj.listeners{end+1} = addlistener( src{1}, 'KsFiredEvent', ...
+                        @(evntSrc, evnt)(obj.handleBinding( evntSrc, evnt, snk{1} ) ) );
+                end
+            end
+        end
+        
+        function addKSI( obj, ks, currentSoundTimeIdx, triggerSource )
+            if nargin < 3
+                currentSoundTimeIdx = 0;
+                triggerSource = [];
+            end
+            ksi = KSInstantiation( ks, currentSoundTimeIdx, triggerSource );
             obj.agenda = [obj.agenda ksi];
+        end
+        
+        function handleBinding(obj, evntSource, evnt, evntSink )
+            if obj.blackboard.verbosity > 0
+                fprintf('\n-------- [New Event] %s\n', evnt.EventName);
+            end
+            obj.addKSI( evntSink, obj.blackboard.currentSoundTimeIdx, evntSource );
         end
         
         function handleEvent(obj, src, evnt)

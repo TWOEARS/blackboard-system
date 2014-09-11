@@ -68,7 +68,7 @@ classdef IdentityKS < Wp2DepKS
             end
             identHyp = IdentityHypothesis( obj.modelname, probs(1), obj.blocksize_s );
             obj.blackboard.addData( 'identityHypotheses', identHyp, true );
-            notify( obj.blackboard, 'NewIdentityHypothesis', BlackboardEventData(0) );
+            notify( obj, 'KsFiredEvent' );
         end
     end
 end

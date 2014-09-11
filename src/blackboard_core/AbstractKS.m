@@ -1,8 +1,13 @@
-
 classdef AbstractKS < handle
+
     properties (SetAccess = private)
         blackboard;
     end
+    
+    events
+        KsFiredEvent
+    end
+    
     methods (Abstract)
         % find out if the precondition for the expert is met
         % returns a boolean
@@ -12,6 +17,7 @@ classdef AbstractKS < handle
         % may be modified
         execute(obj)
     end
+    
     methods
         function obj = AbstractKS(blackboard)
             if nargin > 0
@@ -21,4 +27,5 @@ classdef AbstractKS < handle
         function setActiveArgument(obj, arg)
         end
     end
+    
 end
