@@ -18,9 +18,7 @@ classdef Blackboard < handle
     events
         NextSoundUpdate
         NewWp2Signal
-        NewEnergeticBlock
         NewLocationHypothesis
-        NewIdentityHypothesis
         NewIdentityDecision
         NewConfusionHypothesis
         NewPerceivedLocation

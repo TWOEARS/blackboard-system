@@ -27,7 +27,7 @@ classdef EnergyKS < Wp2DepKS
             rEnergy = std( wp2reqSignal{2}.getSignalBlock( obj.blocksize_s ) );
             
             if lEnergy + rEnergy >= 0.01
-                notify( obj.blackboard, 'NewEnergeticBlock', BlackboardEventData(0) );
+                notify( obj, 'KsFiredEvent' );
             end
         end
     end
