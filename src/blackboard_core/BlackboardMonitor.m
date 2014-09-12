@@ -24,15 +24,25 @@ classdef BlackboardMonitor < handle
             obj.agenda = KSInstantiation.empty;
         end
         
-        %%
-        function bind( obj, sources, sinks, eventName )
-            if nargin < 4, eventName = 'KsFiredEvent'; end;
+        %% function bind( obj, sources, sinks, allowDoubleTriggerings, eventName )
+        %   binds each source KSs to each sink KSs by means of events.
+        %   default behavior -> src event 'KsFiredEvent' triggers the sink KS.
+        %
+        %   sources:    cell array of source KSs
+        %   sinks:      cell array of sink KSs
+        %   [allowDoubleTriggerings]:	if 0, a KS will only be triggered if 
+        %                               not already in the agenda. Default: 1
+        %   [eventName]:    the name of the event of the src KSs that 
+        %                   triggers the sink KSs. Default: 'KsFiredEvent'                               
+        function bind( obj, sources, sinks, allowDoubleTriggerings, eventName )
+            if nargin < 4, allowDoubleTriggerings = 1; end;
+            if nargin < 5, eventName = 'KsFiredEvent'; end;
             for src = sources
                 src = src{1};
                 for snk = sinks
                     snk = snk{1};
                     obj.listeners{end+1} = addlistener( src, eventName, ...
-                        @(evntSrc, evnt)(obj.handleBinding( evntSrc, evnt, snk ) ) );
+                        @(evntSrc, evnt)(obj.handleBinding( evntSrc, evnt, snk, allowDoubleTriggerings ) ) );
                     if ~isempty(obj.boundFromRegister)
                         snkIdxInBindRegister = cellfun(@(a)(eq(a,snk)),obj.boundFromRegister(:,1));
                     else
@@ -55,11 +65,13 @@ classdef BlackboardMonitor < handle
             obj.agenda(end+1) = ksi;
         end
         
-        function handleBinding(obj, evntSource, evnt, evntSink )
+        function handleBinding(obj, evntSource, evnt, evntSink, allowDoubleTriggerings )
             if obj.blackboard.verbosity > 0
                 fprintf('\n-------- [New Event] %s\n', evnt.EventName);
             end
-            obj.addKSI( evntSink, obj.blackboard.currentSoundTimeIdx, evntSource );
+            if allowDoubleTriggerings || sum( arrayfun( @(x)(x.ks == evntSink), obj.agenda ) ) == 0
+                obj.addKSI( evntSink, obj.blackboard.currentSoundTimeIdx, evntSource );
+            end
         end
         
         %%
