@@ -2,8 +2,11 @@ classdef BlackboardMonitor < handle
     %AgendaManager
     %   Detailed explanation goes here
     
+    properties (SetAccess = {?Scheduler})
+        pastAgenda;             % executed KSIs
+        agenda;                 % to be executed KSIs
+    end
     properties (SetAccess = private)
-        agenda;                % Agenda contains KSIs
         listeners;
         boundFromRegister;
         blackboard;
@@ -17,8 +20,11 @@ classdef BlackboardMonitor < handle
             obj.listeners = {};
             obj.boundFromRegister = {};
             obj.blackboard = bb;
+            obj.pastAgenda = KSInstantiation.empty;
+            obj.agenda = KSInstantiation.empty;
         end
         
+        %%
         function bind( obj, sources, sinks, eventName )
             if nargin < 4, eventName = 'KsFiredEvent'; end;
             for src = sources
@@ -43,12 +49,10 @@ classdef BlackboardMonitor < handle
             end
         end
         
+        %%
         function addKSI( obj, ks, currentSoundTimeIdx, triggerSource )
-            ks.setActiveArgument( currentSoundTimeIdx );
-            if ks.canExecute()
-                ksi = KSInstantiation( ks, currentSoundTimeIdx, triggerSource );
-                obj.agenda = [obj.agenda ksi];
-            end
+            ksi = KSInstantiation( ks, currentSoundTimeIdx, triggerSource );
+            obj.agenda(end+1) = ksi;
         end
         
         function handleBinding(obj, evntSource, evnt, evntSink )
@@ -58,6 +62,7 @@ classdef BlackboardMonitor < handle
             obj.addKSI( evntSink, obj.blackboard.currentSoundTimeIdx, evntSource );
         end
         
+        %%
         %   ks:     handle of KS that shall be focused on
         %   [propagateDown]:    if 1, KSs that ks depends on are also put
         %                       into focus
