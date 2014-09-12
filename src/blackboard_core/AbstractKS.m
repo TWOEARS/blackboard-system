@@ -5,6 +5,8 @@ classdef AbstractKS < handle
         attentionalPriority = 0;
         allowDoubleInvocation = 1;  % if 0, a KS will only be triggered 
                                     % if not already in the agenda.
+        invocationMaxFrequency_Hz = 2;
+        lastExecutionTime_s = -inf;
     end
     
     events
@@ -43,6 +45,17 @@ classdef AbstractKS < handle
         function resetFocus( obj )
             obj.attentionalPriority = 0;
         end
+        
+        function timeStamp( obj )
+            obj.lastExecutionTime_s = obj.blackboard.currentSoundTimeIdx;
+        end
+        
+        function executeYet = isMaxInvocationFreqMet( obj )
+            timeSinceLastExec = ...
+                obj.blackboard.currentSoundTimeIdx - obj.lastExecutionTime_s;
+            executeYet = timeSinceLastExec >= (1.0 / obj.invocationMaxFrequency_Hz);
+        end
+        
     end
     
 end

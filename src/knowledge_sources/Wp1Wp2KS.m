@@ -44,6 +44,7 @@ classdef Wp1Wp2KS < AbstractKS
             if nargin >= 5
                 obj.maxBlockSize = maxBlockSize;
             end
+            obj.invocationMaxFrequency_Hz = 1.01 / timeStep;
         end
 
         %% KS logic

@@ -27,6 +27,7 @@ classdef IdentityKS < Wp2DepKS
             obj.scale.factors = v.factors;
             [obj.scaleFunc, obj.tmpFuncs{1}, ~] = dynLoadMFun( [modelFileName '_scaleFunction.mat'] );
             [obj.featureFunc, obj.tmpFuncs{2}, obj.featureParam] = dynLoadMFun( [modelFileName '_featureFunction.mat'] );
+            obj.invocationMaxFrequency_Hz = 4;
        end
         
         function delete( obj )

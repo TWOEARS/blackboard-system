@@ -37,8 +37,9 @@ classdef Scheduler < handle
             for ai = agendaOrder
                 nextKsi = obj.monitor.agenda(ai);
                 nextKsi.ks.setActiveArgument( nextKsi.triggerSndTimeIdx );
-                if nextKsi.ks.canExecute()
-                    nextKsi.ks.execute;
+                if nextKsi.ks.isMaxInvocationFreqMet() && nextKsi.ks.canExecute()
+                    nextKsi.ks.timeStamp();
+                    nextKsi.ks.execute();
                     obj.monitor.pastAgenda(end+1) = nextKsi;
                     obj.monitor.agenda(ai) = [];
                     exctdKsi = true;
