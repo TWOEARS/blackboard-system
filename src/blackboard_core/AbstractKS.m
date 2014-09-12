@@ -1,8 +1,10 @@
 classdef AbstractKS < handle
 
-    properties (SetAccess = private)
+    properties (SetAccess = protected)
         blackboard;
         attentionalPriority = 0;
+        allowDoubleInvocation = 1;  % if 0, a KS will only be triggered 
+                                    % if not already in the agenda.
     end
     
     events
