@@ -25,8 +25,7 @@ classdef IdDecisionKS < AbstractKS
             end
             
             
-            sndTmIdx = max( cell2mat( keys( obj.blackboard.data ) ) ); % TODO: consider "history" case
-            idHyps = obj.blackboard.data(sndTmIdx).identityHypotheses;
+            idHyps = obj.blackboard.getLastData( 'identityHypotheses' ).data;
             [~,idx] = max( [idHyps.p] );
             maxProbHyp = idHyps(idx);
             
