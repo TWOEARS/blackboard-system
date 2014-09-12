@@ -2,6 +2,7 @@ classdef AbstractKS < handle
 
     properties (SetAccess = private)
         blackboard;
+        attentionalPriority = 0;
     end
     
     events
@@ -19,12 +20,26 @@ classdef AbstractKS < handle
     end
     
     methods
+
         function obj = AbstractKS(blackboard)
             if nargin > 0
                 obj.blackboard = blackboard;
             end
         end
+        
         function setActiveArgument(obj, arg)
+        end
+        
+        function focus( obj )
+            obj.attentionalPriority = obj.attentionalPriority + 1;
+        end
+        
+        function unfocus( obj )
+            obj.attentionalPriority = obj.attentionalPriority - 1;
+        end
+        
+        function resetFocus( obj )
+            obj.attentionalPriority = 0;
         end
     end
     
