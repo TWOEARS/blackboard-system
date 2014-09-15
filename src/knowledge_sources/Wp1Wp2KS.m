@@ -75,6 +75,12 @@ classdef Wp1Wp2KS < AbstractKS
         end
 
         %% KS utilities
+        function createProcsForDepKS( obj, wp2depKs )
+            for z = 1:length( wp2depKs.wp2requests.r )
+                obj.addProcessor( wp2depKs.wp2requests.r{z}, wp2depKs.wp2requests.p{z} );
+            end
+        end
+    
         function obj = addProcessor( obj, request, rParams )
             reqSignal = obj.managerObject.addProcessor( request, rParams );
             reqHash = Wp1Wp2KS.getRequestHash( request, rParams );

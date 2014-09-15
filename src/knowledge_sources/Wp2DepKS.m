@@ -5,14 +5,6 @@ classdef Wp2DepKS < AbstractKS
         blocksize_s;
     end
 
-    methods (Static)
-        function createProcessors( wp2ks, wp2depKs )
-            for z = 1:length( wp2depKs.wp2requests.r )
-                wp2ks.addProcessor( wp2depKs.wp2requests.r{z}, wp2depKs.wp2requests.p{z} );
-            end
-        end
-    end
-    
     methods
         function obj = Wp2DepKS( blackboard, wp2requests, blockSize_s )
             obj = obj@AbstractKS( blackboard );
