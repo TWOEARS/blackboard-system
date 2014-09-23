@@ -16,8 +16,9 @@ classdef IdDecisionKS < AbstractKS
         function delete( obj )
         end
         
-        function b = canExecute( obj )
+        function [b, wait] = canExecute( obj )
             b = true;
+            wait = false;
         end
         
         function execute( obj )
@@ -30,7 +31,7 @@ classdef IdDecisionKS < AbstractKS
             [~,idx] = max( [idHyps.p] );
             maxProbHyp = idHyps(idx);
             
-            if maxProbHyp.p > 0.44
+            if maxProbHyp.p > 0.5
                 if obj.blackboard.verbosity > 0
                     fprintf( 'Identity Decision: %s with %i%% probability.\n', ...
                         maxProbHyp.label, int16(maxProbHyp.p*100) );

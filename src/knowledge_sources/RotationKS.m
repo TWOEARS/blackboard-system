@@ -13,14 +13,10 @@ classdef RotationKS < AbstractKS
             obj.robot = robot;
         end
         
-        function b = canExecute(obj)
+        function [b, wait] = canExecute(obj)
             b = false;
-            if obj.trigger.tmIdx <= 0
-                return
-            end
-            if obj.rotationScheduled
-                b = false;
-            else
+            wait = false;
+            if ~obj.rotationScheduled
                 b = true;
                 obj.rotationScheduled = true;
             end

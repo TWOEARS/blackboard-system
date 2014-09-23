@@ -17,8 +17,10 @@ classdef AbstractKS < handle
     
     methods (Abstract)
         % find out if the precondition for the expert is met
-        % returns a boolean
-        b = canExecute(obj) 
+        % returns whether it can execute at this moment or not,
+        % and also, whether it shall remain in the agenda, if not yet
+        % executable
+        [b, wait] = canExecute(obj) 
         % the function through which an expert performs its action
         % no result is returned, but the contents of the blackboard
         % may be modified

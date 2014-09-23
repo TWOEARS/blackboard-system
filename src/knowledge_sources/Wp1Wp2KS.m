@@ -44,8 +44,9 @@ classdef Wp1Wp2KS < AbstractKS
         end
 
         %% KS logic
-        function b = canExecute(obj)
+        function [b, wait] = canExecute(obj)
             b = ~obj.wp1sim.isFinished();
+            wait = false;
         end
 
         function obj = execute(obj)

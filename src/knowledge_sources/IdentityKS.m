@@ -35,8 +35,9 @@ classdef IdentityKS < Wp2DepKS
             delete( obj.tmpFuncs{2} );
         end
         
-        function b = canExecute( obj )
+        function [b, wait] = canExecute( obj )
             b = true;
+            wait = false;
         end
         
         function execute( obj )

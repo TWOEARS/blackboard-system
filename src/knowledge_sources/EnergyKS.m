@@ -14,8 +14,9 @@ classdef EnergyKS < Wp2DepKS
             obj.invocationMaxFrequency_Hz = 10;
        end
         
-        function b = canExecute( obj )
+        function [b, wait] = canExecute( obj )
             b = true;
+            wait = false;
         end
         
         function execute( obj )

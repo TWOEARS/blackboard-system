@@ -35,8 +35,9 @@ classdef LocationKS < Wp2DepKS
             obj.invocationMaxFrequency_Hz = 2;
         end
         
-        function b = canExecute(obj)
+        function [b, wait] = canExecute(obj)
             b = true;
+            wait = false;
         end
         
         function execute(obj)

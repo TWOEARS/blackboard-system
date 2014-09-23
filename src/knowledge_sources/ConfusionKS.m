@@ -21,8 +21,9 @@ classdef ConfusionKS < AbstractKS
             obj.postThreshold = t;
         end
         
-        function b = canExecute(obj)
+        function [b, wait] = canExecute(obj)
             b = ~(obj.blackboard.getData( 'locationHypotheses', obj.trigger.tmIdx ).data.seenByConfusionKS);
+            wait = false;
         end
         
         function execute(obj)

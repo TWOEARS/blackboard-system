@@ -15,12 +15,11 @@ classdef Scheduler < handle
         function processAgenda(obj)
             while ~isempty( obj.monitor.agenda )
                 agendaOrder = obj.generateAgendaOrder();
-                exctdKsi = obj.executeFirstExecutableAgendaOrderItem( agendaOrder );
+                [exctdKsi,cantExctKsis,~] = ...
+                    obj.executeFirstExecutableAgendaOrderItem( agendaOrder );
                 if isempty(exctdKsi)
-                    obj.monitor.agenda(:) = []; % rm the non-executable KSIs
-                    % TODO: maybe the KSs should decide themselves whether
-                    % to be removed from the agenda or not in case of
-                    % canExecute returning false?
+                    % rm the non-executable and non-waiting KSIs
+                    obj.monitor.agenda(cantExctKsis) = []; 
                     break; 
                     % if no KSi was executable, leave this processing round
                 end;
@@ -35,19 +34,25 @@ classdef Scheduler < handle
         %   
         %   exctdKsi:   true if a KSi has been executed <=> false if no KSi
         %               was executable
-        function exctdKsi = executeFirstExecutableAgendaOrderItem( obj, agendaOrder )
+        function [exctdKsi,cantExctKsis,cantExctYetKsis] = executeFirstExecutableAgendaOrderItem( obj, agendaOrder )
             exctdKsi = [];
+            cantExctKsis = [];
+            cantExctYetKsis = [];
             for ai = agendaOrder
                 nextKsi = obj.monitor.agenda(ai);
                 if nextKsi.ks.isMaxInvocationFreqMet()
                     nextKsi.ks.setActiveArgument( nextKsi.triggerSrc, nextKsi.triggerSndTimeIdx, nextKsi.eventName );
-                    canExec = nextKsi.ks.canExecute();
+                    [canExec, waitForExec] = nextKsi.ks.canExecute();
                     if canExec
                         nextKsi.ks.timeStamp();
                         nextKsi.ks.execute();
                         exctdKsi = ai;
                         break;
+                    elseif ~waitForExec
+                        cantExctKsis(end+1) = ai;
                     end
+                else
+                    cantExctYetKsis(end+1) = ai;
                 end
             end
         end

@@ -11,8 +11,9 @@ classdef ConfusionSolvingKS < AbstractKS
             obj.invocationMaxFrequency_Hz = inf;
         end
         
-        function b = canExecute(obj)
+        function [b, wait] = canExecute(obj)
             b = false;
+            wait = false;
             % Fire only if there is an unseen confusion
             confHyp = obj.blackboard.getData( 'confusionHypotheses', obj.trigger.tmIdx ).data;
             if confHyp.seenByConfusionSolvingKS, return; end;
@@ -21,8 +22,11 @@ classdef ConfusionSolvingKS < AbstractKS
             % If no new LocationHypothesis has arrived, do nothing
             lastLocHyp = obj.blackboard.getLastData( 'locationHypotheses' );
             if lastLocHyp.sndTmIdx == obj.trigger.tmIdx
+                wait = true;
                 return; 
             end;
+            % If head has not been turned but there's already a new loc
+            % hypothesis, don't wait again
             if confHeadOrient == currentHeadOrientation.data, return; end;
             b = true;
         end
