@@ -60,7 +60,6 @@ classdef Wp1Wp2KS < AbstractKS
             obj.managerObject.processChunk( signalFrame, 1 );  % process new data, append
             obj.blackboard.advanceSoundTimeIdx( ...
                 size( signalFrame, 1 ) / obj.wp1sim.SampleRate );
-                / obj.wp1sim.SampleRate );
             obj.blackboard.addData( 'headOrientation', mod( obj.wp1sim.getCurrentHeadOrientation(), 360 ) );
             
             %TODO: this should be implemented in wp2.
