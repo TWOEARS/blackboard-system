@@ -58,10 +58,12 @@ classdef Blackboard < handle
         %% Add new data to blackboard
         % [append]: 	save more than one date per timestep,
         %                   for example several identity hypotheses
-        function addData( obj, dataLabel, data, append )
+        % [tmIdx]:      save at particular timeIdx instead of current one
+        function addData( obj, dataLabel, data, append, tmIdx )
             if nargin < 4, append = 0; end;
-            if obj.data.isKey( obj.currentSoundTimeIdx ) 
-                curData = obj.data(obj.currentSoundTimeIdx);
+            if nargin < 5, tmIdx = obj.currentSoundTimeIdx; end;
+            if obj.data.isKey( tmIdx ) 
+                curData = obj.data(tmIdx);
             else
                 curData = [];
             end
@@ -70,7 +72,7 @@ classdef Blackboard < handle
             else
                 curData.(dataLabel) = data;
             end
-            obj.data(obj.currentSoundTimeIdx) = curData;
+            obj.data(tmIdx) = curData;
         end
         
         %% get data from blackboard
@@ -94,10 +96,25 @@ classdef Blackboard < handle
         
         %% get last data from blackboard
         %   dataLabel:  the label of the data needed
-        function requestedData = getLastData( obj, dataLabel )
+        %   [tmIdx]:    a point in time from which on the last data is requested
+        %               default is end of recorded data
+        function requestedData = getLastData( obj, dataLabel, tmIdx )
             sndTimeIdxs = sort( cell2mat( keys( obj.data ) ), 'descend' );
+            if nargin < 3, tmIdx = sndTimeIdxs(1); end
             requestedData = [];
-            for sndTmIdx = sndTimeIdxs
+            for sndTmIdx = sndTimeIdxs(sndTimeIdxs<=tmIdx)
+                requestedData = obj.getData( dataLabel, sndTmIdx );
+                if ~isempty( requestedData ), break; end;
+            end
+        end
+        
+        %% get next data from blackboard
+        %   dataLabel:  the label of the data needed
+        %   tmIdx:      a point in time from which on the next data is requested
+        function requestedData = getNextData( obj, dataLabel, tmIdx )
+            sndTimeIdxs = sort( cell2mat( keys( obj.data ) ), 'ascend' );
+            requestedData = [];
+            for sndTmIdx = sndTimeIdxs(sndTimeIdxs>=tmIdx)
                 requestedData = obj.getData( dataLabel, sndTmIdx );
                 if ~isempty( requestedData ), break; end;
             end
