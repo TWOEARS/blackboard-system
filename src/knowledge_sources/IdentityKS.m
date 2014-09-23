@@ -48,8 +48,10 @@ classdef IdentityKS < Wp2DepKS
             for z = 1:length( obj.wp2requests.r )
                 wp2reqSignal = obj.getReqSignal( z );
                 convWp2ReqSignal = [];
-                convWp2ReqSignal.Data{1} = wp2reqSignal{1}.getSignalBlock( obj.blocksize_s );
-                convWp2ReqSignal.Data{2} = wp2reqSignal{2}.getSignalBlock( obj.blocksize_s );
+                convWp2ReqSignal.Data{1} = ...
+                    wp2reqSignal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );
+                convWp2ReqSignal.Data{2} = ...
+                    wp2reqSignal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );
                 convWp2ReqSignal.Name = wp2reqSignal{1}.Name;
                 convWp2ReqSignal.Dimensions = wp2reqSignal{1}.Dimensions;
                 convWp2ReqSignal.FsHz = wp2reqSignal{1}.FsHz;
@@ -68,8 +70,8 @@ classdef IdentityKS < Wp2DepKS
                     obj.modelname, int16(probs(1)*100) );
             end
             identHyp = IdentityHypothesis( obj.modelname, probs(1), obj.blocksize_s );
-            obj.blackboard.addData( 'identityHypotheses', identHyp, true );
-            notify( obj, 'KsFiredEvent' );
+            obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
+            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end
 end

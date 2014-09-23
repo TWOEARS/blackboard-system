@@ -46,9 +46,9 @@ classdef LocationKS < Wp2DepKS
             end
 
             ildsSObj = obj.getReqSignal( 1 );
-            ilds = ildsSObj.getSignalBlock( obj.blocksize_s )';
+            ilds = ildsSObj.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )';
             itdsSObj = obj.getReqSignal( 2 );
-            itds = itdsSObj.getSignalBlock( obj.blocksize_s )' .* 1000;
+            itds = itdsSObj.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )' .* 1000;
 
             % Generate a temporary feature flist for GMTK
             featureBlock = [itds; ilds];
@@ -77,10 +77,10 @@ classdef LocationKS < Wp2DepKS
             
             % We simply take the average of posteriors across all the
             % samples for this block
-            lastHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
-            locHyp = LocationHypothesis(lastHeadOrientation, obj.angles, mean(post,1));
-            obj.blackboard.addData( 'locationHypotheses', locHyp );
-            notify( obj, 'KsFiredEvent' );
+            currentHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
+            locHyp = LocationHypothesis(currentHeadOrientation, obj.angles, mean(post,1));
+            obj.blackboard.addData( 'locationHypotheses', locHyp, false, obj.trigger.tmIdx );
+            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end
 end

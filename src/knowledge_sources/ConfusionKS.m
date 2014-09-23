@@ -39,13 +39,13 @@ classdef ConfusionKS < AbstractKS
                 % Assume there is a confusion when there are more than 1
                 % valid location
                 % cf = ConfusionHypothesis(locHyp.blockNo, locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
-                obj.blackboard.addData( 'confusionHypotheses', locHyp );
-                notify(obj, 'ConfusedLocations');
+                obj.blackboard.addData( 'confusionHypotheses', locHyp, false, obj.trigger.tmIdx );
+                notify(obj, 'ConfusedLocations', BlackboardEventData(obj.trigger.tmIdx));
             elseif numLoc == 1
                 % No confusion, generate Perceived Location
                 ploc = PerceivedLocation(locHyp.headOrientation, locHyp.locations(locIdx), locHyp.posteriors(locIdx));
-                obj.blackboard.addData( 'perceivedLocations', ploc );
-                notify(obj, 'KsFiredEvent');
+                obj.blackboard.addData( 'perceivedLocations', ploc, false, obj.trigger.tmIdx );
+                notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
             end
             locHyp.setSeenByConfusionKS;
         end

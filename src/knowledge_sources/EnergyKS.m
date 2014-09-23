@@ -23,12 +23,16 @@ classdef EnergyKS < Wp2DepKS
                 fprintf('-------- EnergyKS has fired.\n');
             end
             
-            wp2reqSignal = obj.getReqSignal( 1 );
-            lEnergy = std( wp2reqSignal{1}.getSignalBlock( obj.blocksize_s ) );
-            rEnergy = std( wp2reqSignal{2}.getSignalBlock( obj.blocksize_s ) );
+            signal = obj.getReqSignal( 1 );
+            lEnergy = std( ...
+                signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
+                );
+            rEnergy = std( ...
+                signal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
+                );
             
             if lEnergy + rEnergy >= 0.01
-                notify( obj, 'KsFiredEvent' );
+                notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
             end
         end
     end

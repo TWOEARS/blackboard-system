@@ -66,8 +66,13 @@ classdef BlackboardMonitor < handle
             if obj.blackboard.verbosity > 0
                 fprintf('\n-------- [New Event] %s\n', evnt.EventName);
             end
+            if isa( evnt, 'BlackboardEventData' )
+                evntTmIdx = evnt.data;
+            else
+                evntTmIdx = obj.blackboard.currentSoundTimeIdx;
+            end
             if evntSink.allowDoubleInvocation || sum( arrayfun( @(x)(x.ks == evntSink), obj.agenda ) ) == 0
-                obj.addKSI( evntSink, obj.blackboard.currentSoundTimeIdx, evntSource, evnt.EventName );
+                obj.addKSI( evntSink, evntTmIdx, evntSource, evnt.EventName );
             end
         end
         

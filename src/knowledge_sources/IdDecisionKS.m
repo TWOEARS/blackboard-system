@@ -26,7 +26,7 @@ classdef IdDecisionKS < AbstractKS
             end
             
             
-            idHyps = obj.blackboard.getLastData( 'identityHypotheses' ).data;
+            idHyps = obj.blackboard.getData( 'identityHypotheses', obj.trigger.tmIdx ).data;
             [~,idx] = max( [idHyps.p] );
             maxProbHyp = idHyps(idx);
             
@@ -35,8 +35,8 @@ classdef IdDecisionKS < AbstractKS
                     fprintf( 'Identity Decision: %s with %i%% probability.\n', ...
                         maxProbHyp.label, int16(maxProbHyp.p*100) );
                 end
-                obj.blackboard.addData( 'identityDecision', maxProbHyp, false );
-                notify( obj, 'KsFiredEvent' );
+                obj.blackboard.addData( 'identityDecision', maxProbHyp, false, obj.trigger.tmIdx );
+                notify( obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx) );
             end
         end
     end
