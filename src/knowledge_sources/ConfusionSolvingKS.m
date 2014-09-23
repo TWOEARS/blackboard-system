@@ -10,6 +10,7 @@ classdef ConfusionSolvingKS < AbstractKS
     methods
         function obj = ConfusionSolvingKS(blackboard)
             obj = obj@AbstractKS(blackboard);
+            obj.invocationMaxFrequency_Hz = inf;
         end
         function setActiveArgument(obj, arg)
             obj.activeIndex = arg;

@@ -11,7 +11,7 @@ classdef EnergyKS < Wp2DepKS
             wp2requests.r{1} = 'time';
             wp2requests.p{1} = '';
             obj = obj@Wp2DepKS( blackboard, wp2requests, blockSize_s );
-            obj.invocationMaxFrequency_Hz = 1.01 / blockSize_s;
+            obj.invocationMaxFrequency_Hz = 10;
        end
         
         function b = canExecute( obj )

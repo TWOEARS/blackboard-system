@@ -32,6 +32,7 @@ classdef LocationKS < Wp2DepKS
             if ~exist(obj.tempPath, 'dir')
                 mkdir(obj.tempPath);
             end
+            obj.invocationMaxFrequency_Hz = 2;
         end
         
         function b = canExecute(obj)
