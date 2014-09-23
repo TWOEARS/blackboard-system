@@ -58,8 +58,8 @@ classdef Wp1Wp2KS < AbstractKS
             
             % WP2 Processing
             obj.managerObject.processChunk( signalFrame, 1 );  % process new data, append
-            obj.blackboard.setSoundTimeIdx( ...
-                obj.managerObject.Data.time{1,1}.LastChunk(2)...
+            obj.blackboard.advanceSoundTimeIdx( ...
+                size( signalFrame, 1 ) / obj.wp1sim.SampleRate );
                 / obj.wp1sim.SampleRate );
             obj.blackboard.addData( 'headOrientation', mod( obj.wp1sim.getCurrentHeadOrientation(), 360 ) );
             

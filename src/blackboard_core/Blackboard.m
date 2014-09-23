@@ -43,6 +43,10 @@ classdef Blackboard < handle
             obj.currentSoundTimeIdx = newSoundTimeIdx;
         end
 
+        function obj = advanceSoundTimeIdx( obj, addSoundTimeIdx )
+            obj.currentSoundTimeIdx = obj.currentSoundTimeIdx + addSoundTimeIdx;
+        end
+
         %% Add general wp2 signal
         function obj = addWp2Signal( obj, regHash, regSignal )
             if isempty( obj.wp2signals )
