@@ -35,7 +35,7 @@ classdef Wp1Wp2KS < AbstractKS
         %% constructor
         function obj = Wp1Wp2KS( blackboard, wp1sim, timeStep, maxBlockSize )
             obj = obj@AbstractKS(blackboard);
-            wp2dataObj = dataObject( [], wp1sim.SampleRate, 1 );  % Last input (1) indicates a stereo signal
+            wp2dataObj = dataObject( [], wp1sim.SampleRate, 4, 1 );  % Last input (1) indicates a stereo signal
             obj.managerObject = manager( wp2dataObj );
             obj.wp1sim = wp1sim;
             if nargin >= 4
@@ -62,9 +62,6 @@ classdef Wp1Wp2KS < AbstractKS
                 size( signalFrame, 1 ) / obj.wp1sim.SampleRate );
             obj.blackboard.addData( 'headOrientation', mod( obj.wp1sim.getCurrentHeadOrientation(), 360 ) );
             
-            %TODO: this should be implemented in wp2.
-            %obj.ltrimSignalBuffersToMaxBlocksize();
-            
             if obj.blackboard.verbosity > 0
                 fprintf('-------- Wp1Wp2KS has fired.\n');
             end
@@ -86,11 +83,6 @@ classdef Wp1Wp2KS < AbstractKS
             obj.blackboard.addWp2Signal( reqHash, reqSignal );
         end
         
-        function obj = ltrimSignalBuffersToMaxBlocksize( obj )
-            % cut obj.managerObject.InputList{1,:}
-            % cut obj.managerObject.OutputList{:,:}
-            disp( 'not implemented' );
-        end
-        
     end
+        
 end
