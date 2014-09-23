@@ -7,7 +7,6 @@ classdef Wp1Wp2KS < AbstractKS
         managerObject;           % WP2 manager object - holds the signal buffer (data obj)
         wp1sim;                  % Scene simulator object
         timeStep = 0.02;         % basic time step, i.e. update rate
-        maxBlockSize = 0.5;      % Default max block size 0.5 second
     end
     
     methods (Static)
@@ -33,16 +32,13 @@ classdef Wp1Wp2KS < AbstractKS
     
     methods
         %% constructor
-        function obj = Wp1Wp2KS( blackboard, wp1sim, timeStep, maxBlockSize )
+        function obj = Wp1Wp2KS( blackboard, wp1sim, timeStep )
             obj = obj@AbstractKS(blackboard);
             wp2dataObj = dataObject( [], wp1sim.SampleRate, 4, 1 );  % Last input (1) indicates a stereo signal
             obj.managerObject = manager( wp2dataObj );
             obj.wp1sim = wp1sim;
-            if nargin >= 4
+            if nargin >= 3
                 obj.timeStep = timeStep;
-            end
-            if nargin >= 5
-                obj.maxBlockSize = maxBlockSize;
             end
             obj.invocationMaxFrequency_Hz = 1.01 / timeStep;
         end
