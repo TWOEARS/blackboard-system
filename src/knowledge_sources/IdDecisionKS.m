@@ -8,7 +8,6 @@ classdef IdDecisionKS < AbstractKS
     methods
         function obj = IdDecisionKS( blackboard, minSources, maxSources )
             obj = obj@AbstractKS( blackboard );
-            obj.allowDoubleInvocation = 0;
             obj.invocationMaxFrequency_Hz = inf;
             obj.minSources = minSources;
             obj.maxSources = maxSources;

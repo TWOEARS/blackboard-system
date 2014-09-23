@@ -4,7 +4,6 @@ classdef ConfusionKS < AbstractKS
     % rotation will be triggered.
     
     properties (SetAccess = private)
-        activeIndex = 0;            % Index of the location hypothesis to be processed
         postThreshold = 0.1;       % Posterior probability threshold for a valid LocationHypothesis
     end
 
@@ -17,15 +16,13 @@ classdef ConfusionKS < AbstractKS
             obj = obj@AbstractKS(blackboard);
             obj.invocationMaxFrequency_Hz = inf;
         end
-        function setActiveArgument(obj, arg)
-            obj.activeIndex = arg;
-        end
+        
         function setPostThreshold(obj, t)
             obj.postThreshold = t;
         end
         
         function b = canExecute(obj)
-            b = ~(obj.blackboard.getData( 'locationHypotheses', obj.activeIndex ).data.seenByConfusionKS);
+            b = ~(obj.blackboard.getData( 'locationHypotheses', obj.trigger.tmIdx ).data.seenByConfusionKS);
         end
         
         function execute(obj)
@@ -33,7 +30,7 @@ classdef ConfusionKS < AbstractKS
                 fprintf('-------- ConfusionKS has fired\n');
             end
             
-            locHyp = obj.blackboard.getData( 'locationHypotheses', obj.activeIndex ).data;
+            locHyp = obj.blackboard.getData( 'locationHypotheses', obj.trigger.tmIdx ).data;
             
             % Generates location hypotheses if posterior > threshold
             locIdx = locHyp.posteriors > obj.postThreshold;
@@ -51,7 +48,6 @@ classdef ConfusionKS < AbstractKS
                 notify(obj, 'KsFiredEvent');
             end
             locHyp.setSeenByConfusionKS;
-            obj.activeIndex = 0;
         end
     end
 end

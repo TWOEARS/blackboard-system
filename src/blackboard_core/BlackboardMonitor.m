@@ -57,8 +57,8 @@ classdef BlackboardMonitor < handle
         end
         
         %%
-        function addKSI( obj, ks, currentSoundTimeIdx, triggerSource )
-            ksi = KSInstantiation( ks, currentSoundTimeIdx, triggerSource );
+        function addKSI( obj, ks, currentSoundTimeIdx, triggerSource, eventName )
+            ksi = KSInstantiation( ks, currentSoundTimeIdx, triggerSource, eventName );
             obj.agenda(end+1) = ksi;
         end
         
@@ -67,7 +67,7 @@ classdef BlackboardMonitor < handle
                 fprintf('\n-------- [New Event] %s\n', evnt.EventName);
             end
             if evntSink.allowDoubleInvocation || sum( arrayfun( @(x)(x.ks == evntSink), obj.agenda ) ) == 0
-                obj.addKSI( evntSink, obj.blackboard.currentSoundTimeIdx, evntSource );
+                obj.addKSI( evntSink, obj.blackboard.currentSoundTimeIdx, evntSource, evnt.EventName );
             end
         end
         

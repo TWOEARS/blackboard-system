@@ -3,10 +3,12 @@ classdef AbstractKS < handle
     properties (SetAccess = protected)
         blackboard;
         attentionalPriority = 0;
-        allowDoubleInvocation = 1;  % if 0, a KS will only be triggered 
+        allowDoubleInvocation = 0;  % if 0, a KS will only be triggered 
                                     % if not already in the agenda.
         invocationMaxFrequency_Hz = 2;
         lastExecutionTime_s = -inf;
+        trigger;                    % struct consisting of elements
+                                    % src,tmIdx,eventName
     end
     
     events
@@ -31,7 +33,10 @@ classdef AbstractKS < handle
             end
         end
         
-        function setActiveArgument(obj, arg)
+        function setActiveArgument(obj, triggerSrc, triggerTmIdx, eventName)
+            obj.trigger.src = triggerSrc;
+            obj.trigger.tmIdx = triggerTmIdx;
+            obj.trigger.eventName = eventName;
         end
         
         function focus( obj )
@@ -56,6 +61,9 @@ classdef AbstractKS < handle
             executeYet = timeSinceLastExec >= (1.0 / obj.invocationMaxFrequency_Hz);
         end
         
+        function tmOffset = timeSinceTrigger( obj )
+            tmOffset = (obj.blackboard.currentSoundTimeIdx - obj.trigger.tmIdx);
+        end
     end
     
 end

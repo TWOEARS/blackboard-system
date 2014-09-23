@@ -4,7 +4,6 @@ classdef RotationKS < AbstractKS
     properties (SetAccess = private)
         rotationScheduled = false;    % To avoid repetitive head rotations
         robot;                        % Reference to a robot object
-        activeIndex = 0;              % Index of the new confusion hypothesis
     end
     
     methods
@@ -13,12 +12,10 @@ classdef RotationKS < AbstractKS
             obj.invocationMaxFrequency_Hz = inf;
             obj.robot = robot;
         end
-        function setActiveArgument(obj, arg)
-            obj.activeIndex = arg;
-        end
+        
         function b = canExecute(obj)
             b = false;
-            if obj.activeIndex <= 0
+            if obj.trigger.tmIdx <= 0
                 return
             end
             if obj.rotationScheduled
@@ -28,6 +25,7 @@ classdef RotationKS < AbstractKS
                 obj.rotationScheduled = true;
             end
         end
+        
         function execute(obj)
             if obj.blackboard.verbosity > 0
                 fprintf('-------- RotationKS has fired. ');
@@ -35,7 +33,7 @@ classdef RotationKS < AbstractKS
             
             % Workout the head rotation angle so that the head will face
             % the most likely source location.
-            locHyp = obj.blackboard.getData( 'confusionHypotheses', obj.activeIndex ).data;
+            locHyp = obj.blackboard.getData( 'confusionHypotheses', obj.trigger.tmIdx ).data;
             [~,idx] = max(locHyp.posteriors);
             maxAngle = locHyp.locations(idx);
             if maxAngle <= 180

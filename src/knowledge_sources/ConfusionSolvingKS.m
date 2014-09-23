@@ -2,7 +2,6 @@ classdef ConfusionSolvingKS < AbstractKS
     % ConfusionSolvingKS solves a confusion given new features.
     
     properties (SetAccess = private)
-        activeIndex = 0;                    % Index of LocationHypothesis that has just arrived
         confusionHypothesis = [];           % Confusion
         postThreshold = 0.1;                % Posterior probability threshold for a valid LocationHypothesis
     end
@@ -12,13 +11,11 @@ classdef ConfusionSolvingKS < AbstractKS
             obj = obj@AbstractKS(blackboard);
             obj.invocationMaxFrequency_Hz = inf;
         end
-        function setActiveArgument(obj, arg)
-            obj.activeIndex = arg;
-        end
+        
         function b = canExecute(obj)
             b = false;
             % If no new LocationHypothesis has arrived, do nothing
-            if obj.activeIndex <= 0, return; end;
+            if obj.trigger.tmIdx <= 0, return; end;
             confusions = obj.blackboard.getData( 'confusionHypotheses' );
             numConfusions = length( confusions );
             for n=1:numConfusions
@@ -34,10 +31,6 @@ classdef ConfusionSolvingKS < AbstractKS
             end
         end
         function execute(obj)
-            if isempty(obj.confusionHypothesis) || obj.activeIndex <= 0
-                return
-            end
-            
             if obj.blackboard.verbosity > 0
                 fprintf('-------- ConfusionSolvingKS has fired\n');
             end
@@ -46,7 +39,7 @@ classdef ConfusionSolvingKS < AbstractKS
             headRotation = lastHeadOrientation - obj.confusionHypothesis.headOrientation;
             % predictedLocations = mod(obj.confusionHypothesis.locations - headRotation, 360);
 
-            newLocHyp = obj.blackboard.getData( 'locationHypotheses', obj.activeIndex ).data;
+            newLocHyp = obj.blackboard.getLastData( 'locationHypotheses' ).data;
             idxDelta = int16( headRotation / (newLocHyp.locations(2) - newLocHyp.locations(1)) );
             predictedPosteriors = circshift(newLocHyp.posteriors,[0 idxDelta]);
             % Take the average of the posterior distribution before head
@@ -71,7 +64,6 @@ classdef ConfusionSolvingKS < AbstractKS
                 notify(obj, 'KsFiredEvent');
             end
             obj.confusionHypothesis.setSeenByConfusionSolvingKS;
-            obj.activeIndex = 0;
             obj.confusionHypothesis = [];
         end
     end
