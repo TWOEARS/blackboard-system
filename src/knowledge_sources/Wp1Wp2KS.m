@@ -6,7 +6,7 @@ classdef Wp1Wp2KS < AbstractKS
     properties (Access = public)
         managerObject;           % WP2 manager object - holds the signal buffer (data obj)
         wp1sim;                  % Scene simulator object
-        timeStep = 0.02;         % basic time step, i.e. update rate
+        timeStep = (512.0 / 44100.0);         % basic time step, i.e. update rate
     end
     
     methods (Static)
@@ -40,7 +40,7 @@ classdef Wp1Wp2KS < AbstractKS
             if nargin >= 3
                 obj.timeStep = timeStep;
             end
-            obj.invocationMaxFrequency_Hz = 1.01 / timeStep;
+            obj.invocationMaxFrequency_Hz = 1.01 / obj.timeStep;
         end
 
         %% KS logic
@@ -80,5 +80,4 @@ classdef Wp1Wp2KS < AbstractKS
         end
         
     end
-        
 end
