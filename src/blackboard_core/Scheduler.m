@@ -16,13 +16,16 @@ classdef Scheduler < handle
             while ~isempty( obj.monitor.agenda )
                 agendaOrder = obj.generateAgendaOrder();
                 exctdKsi = obj.executeFirstExecutableAgendaOrderItem( agendaOrder );
-                if ~exctdKsi
+                if isempty(exctdKsi)
                     obj.monitor.agenda(:) = []; % rm the non-executable KSIs
                     % TODO: maybe the KSs should decide themselves whether
                     % to be removed from the agenda or not in case of
                     % canExecute returning false?
                     break; 
+                    % if no KSi was executable, leave this processing round
                 end;
+                obj.monitor.pastAgenda(end+1) = obj.monitor.agenda(exctdKsi);
+                obj.monitor.agenda(exctdKsi) = [];
             end
         end
 
@@ -33,7 +36,7 @@ classdef Scheduler < handle
         %   exctdKsi:   true if a KSi has been executed <=> false if no KSi
         %               was executable
         function exctdKsi = executeFirstExecutableAgendaOrderItem( obj, agendaOrder )
-            exctdKsi = false;
+            exctdKsi = [];
             for ai = agendaOrder
                 nextKsi = obj.monitor.agenda(ai);
                 if nextKsi.ks.isMaxInvocationFreqMet()
@@ -42,11 +45,10 @@ classdef Scheduler < handle
                     if canExec
                         nextKsi.ks.timeStamp();
                         nextKsi.ks.execute();
-                        obj.monitor.pastAgenda(end+1) = nextKsi;
-                        obj.monitor.agenda(ai) = [];
-                        exctdKsi = true;
+                        exctdKsi = ai;
                         break;
                     end
+                end
             end
         end
 
