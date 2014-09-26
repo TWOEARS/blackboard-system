@@ -23,8 +23,8 @@ classdef Scheduler < handle
                     break; 
                     % if no KSi was executable, leave this processing round
                 end;
-                obj.monitor.pastAgenda(end+1) = obj.monitor.agenda(exctdKsi);
-                obj.monitor.agenda(exctdKsi) = [];
+                obj.monitor.pastAgenda(end+1) = obj.monitor.executing;
+                obj.monitor.executing = [];
             end
         end
 
@@ -49,8 +49,10 @@ classdef Scheduler < handle
                                 char(nextKsi.ks) );
                         end
                         nextKsi.ks.timeStamp();
-                        nextKsi.ks.execute();
                         exctdKsi = ai;
+                        obj.monitor.executing = obj.monitor.agenda(exctdKsi);
+                        obj.monitor.agenda(exctdKsi) = []; % take out of agenda before executing
+                        nextKsi.ks.execute();
                         break;
                     elseif ~waitForExec
                         cantExctKsis(end+1) = ai;

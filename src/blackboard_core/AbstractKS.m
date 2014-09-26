@@ -3,8 +3,6 @@ classdef AbstractKS < handle
     properties (SetAccess = protected)
         blackboard;
         attentionalPriority = 0;
-        allowDoubleInvocation = 0;  % if 0, a KS will only be triggered 
-                                    % if not already in the agenda.
         invocationMaxFrequency_Hz = 2;
         lastExecutionTime_s = -inf;
         trigger;                    % struct consisting of elements
@@ -29,18 +27,21 @@ classdef AbstractKS < handle
     
     methods
 
+        %% Constructor
         function obj = AbstractKS(blackboard)
             if nargin > 0
                 obj.blackboard = blackboard;
             end
         end
-        
+
+        %% Set arguments for execution after triggering
         function setActiveArgument(obj, triggerSrc, triggerTmIdx, eventName)
             obj.trigger.src = triggerSrc;
             obj.trigger.tmIdx = triggerTmIdx;
             obj.trigger.eventName = eventName;
         end
         
+        %% Attentional modificators
         function focus( obj )
             obj.attentionalPriority = obj.attentionalPriority + 1;
         end
@@ -52,7 +53,8 @@ classdef AbstractKS < handle
         function resetFocus( obj )
             obj.attentionalPriority = 0;
         end
-        
+
+        %% timing methods
         function timeStamp( obj )
             obj.lastExecutionTime_s = obj.blackboard.currentSoundTimeIdx;
         end
