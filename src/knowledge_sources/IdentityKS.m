@@ -16,6 +16,8 @@ classdef IdentityKS < Wp2DepKS
             v = load( [modelFileName '_model.mat'] );
             wp2requests.r = v.esetup.wp2dataCreation.requests;
             wp2requests.p = v.esetup.wp2dataCreation.requestP;
+            wp2requests.r{end+1} = 'time';
+            wp2requests.p{end+1} = '';
             blocksize_s = v.esetup.blockCreation.blockSize;
             obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
             obj.modelname = modelName;
@@ -42,13 +44,21 @@ classdef IdentityKS < Wp2DepKS
         
         %% execute functionality
         function [b, wait] = canExecute( obj )
-            b = true;
+            signal = obj.getReqSignal( length( obj.wp2requests.r ) );
+            lEnergy = std( ...
+                signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
+                );
+            rEnergy = std( ...
+                signal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
+                );
+            
+            b = (lEnergy + rEnergy >= 0.01);
             wait = false;
         end
         
         function execute( obj )
             wp2data = [];
-            for z = 1:length( obj.wp2requests.r )
+            for z = 1:length( obj.wp2requests.r ) - 1
                 wp2reqSignal = obj.getReqSignal( z );
                 convWp2ReqSignal = [];
                 convWp2ReqSignal.Data{1} = ...

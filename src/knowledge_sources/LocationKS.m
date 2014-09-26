@@ -23,6 +23,8 @@ classdef LocationKS < Wp2DepKS
             wp2requests.p{1} = WP2_param;
             wp2requests.r{2} = 'itd_xcorr';
             wp2requests.p{2} = WP2_param;
+            wp2requests.r{3} = 'time';
+            wp2requests.p{3} = WP2_param;
             obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
             dimFeatures = WP2_param.nChannels * 2; % ITD + ILD
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures); %, '/Volumes/GMTK_ramdisk'
@@ -36,7 +38,15 @@ classdef LocationKS < Wp2DepKS
         end
         
         function [b, wait] = canExecute(obj)
-            b = true;
+            signal = obj.getReqSignal( 3 );
+            lEnergy = std( ...
+                signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
+                );
+            rEnergy = std( ...
+                signal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
+                );
+            
+            b = (lEnergy + rEnergy >= 0.01);
             wait = false;
         end
         
