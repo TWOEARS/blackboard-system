@@ -27,10 +27,6 @@ classdef ConfusionKS < AbstractKS
         end
         
         function execute(obj)
-            if obj.blackboard.verbosity > 0
-                fprintf('-------- ConfusionKS has fired\n');
-            end
-            
             locHyp = obj.blackboard.getData( 'locationHypotheses', obj.trigger.tmIdx ).data;
             
             % Generates location hypotheses if posterior > threshold

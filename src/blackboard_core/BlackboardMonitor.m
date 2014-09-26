@@ -59,7 +59,9 @@ classdef BlackboardMonitor < handle
         %%
         function handleBinding(obj, evntSource, evnt, evntSink )
             if obj.blackboard.verbosity > 0
-                fprintf('\n-------- [New Event] %s\n', evnt.EventName);
+                fprintf( ['-------- [Event Fired:] ',...
+                    '%s -> (%s) -> %s\n'],...
+                    char(evntSource), evnt.EventName, char(evntSink) );
             end
             if isa( evnt, 'BlackboardEventData' )
                 evntTmIdx = evnt.data;

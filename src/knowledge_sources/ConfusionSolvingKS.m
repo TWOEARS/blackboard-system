@@ -32,10 +32,6 @@ classdef ConfusionSolvingKS < AbstractKS
         end
         
         function execute(obj)
-            if obj.blackboard.verbosity > 0
-                fprintf('-------- ConfusionSolvingKS has fired\n');
-            end
-            
             confHyp = obj.blackboard.getData( 'confusionHypotheses', obj.trigger.tmIdx ).data;
             currentHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
             headRotation = currentHeadOrientation - confHyp.headOrientation;

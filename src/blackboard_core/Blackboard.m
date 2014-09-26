@@ -25,6 +25,12 @@ classdef Blackboard < handle
             obj.data = containers.Map( 'KeyType', 'double', 'ValueType', 'any' );
         end
         
+        %% utility function for printing the obj
+        function s = char( obj )
+            mcobj = metaclass ( obj );
+            s = mcobj.Name;
+        end
+        
         %% Add KS to the blackboard system
         function obj = addKS(obj, ks)
             obj.KSs = [obj.KSs {ks}];

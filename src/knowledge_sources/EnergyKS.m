@@ -20,10 +20,6 @@ classdef EnergyKS < Wp2DepKS
         end
         
         function execute( obj )
-            if obj.blackboard.verbosity > 0
-                fprintf('-------- EnergyKS has fired.\n');
-            end
-            
             signal = obj.getReqSignal( 1 );
             lEnergy = std( ...
                 signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...

@@ -44,6 +44,10 @@ classdef Scheduler < handle
                     nextKsi.ks.setActiveArgument( nextKsi.triggerSrc, nextKsi.triggerSndTimeIdx, nextKsi.eventName );
                     [canExec, waitForExec] = nextKsi.ks.canExecute();
                     if canExec
+                        if obj.monitor.blackboard.verbosity > 0
+                            fprintf( ['-------- [Executing KS:] %s\n'],...
+                                char(nextKsi.ks) );
+                        end
                         nextKsi.ks.timeStamp();
                         nextKsi.ks.execute();
                         exctdKsi = ai;

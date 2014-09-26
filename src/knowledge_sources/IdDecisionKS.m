@@ -22,11 +22,6 @@ classdef IdDecisionKS < AbstractKS
         end
         
         function execute( obj )
-            if obj.blackboard.verbosity > 0
-                fprintf('-------- IdDecisionKS has fired.\n');
-            end
-            
-            
             idHyps = obj.blackboard.getData( 'identityHypotheses', obj.trigger.tmIdx ).data;
             [~,idx] = max( [idHyps.p] );
             maxProbHyp = idHyps(idx);

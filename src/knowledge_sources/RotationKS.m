@@ -23,10 +23,6 @@ classdef RotationKS < AbstractKS
         end
         
         function execute(obj)
-            if obj.blackboard.verbosity > 0
-                fprintf('-------- RotationKS has fired. ');
-            end
-            
             % Workout the head rotation angle so that the head will face
             % the most likely source location.
             locHyp = obj.blackboard.getData( 'confusionHypotheses', obj.trigger.tmIdx ).data;

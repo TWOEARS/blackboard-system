@@ -35,16 +35,18 @@ classdef IdentityKS < Wp2DepKS
             delete( obj.tmpFuncs{2} );
         end
         
+        %% utility function for printing the obj
+        function s = char( obj )
+            s = [char@Wp2DepKS( obj ), '[', obj.modelname, ']'];
+        end
+        
+        %% execute functionality
         function [b, wait] = canExecute( obj )
             b = true;
             wait = false;
         end
         
         function execute( obj )
-            if obj.blackboard.verbosity > 0
-                fprintf('-------- IdentityKS has fired.\n');
-            end
-            
             wp2data = [];
             for z = 1:length( obj.wp2requests.r )
                 wp2reqSignal = obj.getReqSignal( z );

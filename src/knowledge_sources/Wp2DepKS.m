@@ -20,7 +20,7 @@ classdef Wp2DepKS < AbstractKS
     methods (Access = protected)
 
         function reqSignal = getReqSignal( obj, reqIdx )
-            wp2reqHash = Wp1Wp2KS.getRequestHash( obj.wp2requests.r{reqIdx}, obj.wp2requests.p{reqIdx} );
+            wp2reqHash = Wp2KS.getRequestHash( obj.wp2requests.r{reqIdx}, obj.wp2requests.p{reqIdx} );
             reqSignal = obj.blackboard.wp2signals(wp2reqHash);
         end
     end

@@ -66,6 +66,13 @@ classdef AbstractKS < handle
         function tmOffset = timeSinceTrigger( obj )
             tmOffset = (obj.blackboard.currentSoundTimeIdx - obj.trigger.tmIdx);
         end
+        
+        %% utility function for printing the obj
+        function s = char( obj )
+            mcobj = metaclass( obj );
+            s =  mcobj.Name;
+        end
+        
     end
     
 end

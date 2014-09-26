@@ -41,11 +41,6 @@ classdef LocationKS < Wp2DepKS
         end
         
         function execute(obj)
-            
-            if obj.blackboard.verbosity > 0
-                fprintf('-------- LocationKS has fired\n');
-            end
-
             ildsSObj = obj.getReqSignal( 1 );
             ilds = ildsSObj.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )';
             itdsSObj = obj.getReqSignal( 2 );
