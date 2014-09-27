@@ -4,9 +4,20 @@ classdef Scheduler < handle
         monitor;          % Blackboard monitor
     end
     
+    
+    events
+        AgendaEmpty
+    end
+    
     methods
         function obj = Scheduler(monitor)
             obj.monitor = monitor;
+        end
+        
+        %% utility function for printing the obj
+        function s = char( obj )
+            mcobj = metaclass ( obj );
+            s = mcobj.Name;
         end
         
         %% main scheduler loop

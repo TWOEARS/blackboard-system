@@ -12,10 +12,6 @@ classdef Blackboard < handle
                                         % chunk arrives
     end
     
-    events
-        NextSoundUpdate
-    end
-    
     methods
         %% Class constructor
         function obj = Blackboard(verbosity)
