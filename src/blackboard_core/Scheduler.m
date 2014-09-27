@@ -1,6 +1,6 @@
 classdef Scheduler < handle
     
-    properties (SetAccess = private)
+    properties (SetAccess = {?BlackboardSystem})
         monitor;          % Blackboard monitor
     end
     

@@ -2,7 +2,7 @@ classdef Blackboard < handle
     %Blackboard   A blackboard that solves the stage 1 task
     %   Detailed explanation goes here
     
-    properties (SetAccess = private)
+    properties (SetAccess = {?BlackboardSystem})
         KSs = {};                       % List of all KSs
         wp2signals = [];                % Layer 1a-2: _handles_ to  requested signals
         data = [];                      % general data storage Map, with currentSoundTimeIdx as key
@@ -29,16 +29,6 @@ classdef Blackboard < handle
         function s = char( obj )
             mcobj = metaclass ( obj );
             s = mcobj.Name;
-        end
-        
-        %% Add KS to the blackboard system
-        function obj = addKS(obj, ks)
-            obj.KSs = [obj.KSs {ks}];
-        end
-                   
-        %% Get number of KSs
-        function n = numKSs(obj)
-            n = length(obj.KSs);
         end
         
         %% Set currentSoundTimeIdx

@@ -2,7 +2,7 @@ classdef BlackboardMonitor < handle
     %AgendaManager
     %   Detailed explanation goes here
     
-    properties (SetAccess = {?Scheduler})
+    properties (SetAccess = {?Scheduler, ?BlackboardSystem})
         pastAgenda;             % executed KSIs
         agenda;                 % to be executed KSIs
         executing;              % currently executing KSI
