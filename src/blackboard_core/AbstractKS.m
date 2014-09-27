@@ -33,6 +33,10 @@ classdef AbstractKS < handle
                 obj.blackboard = blackboard;
             end
         end
+        
+        function setBlackboardAccess( obj, blackboard )
+            obj.blackboard = blackboard;
+        end
 
         %% Set arguments for execution after triggering
         function setActiveArgument(obj, triggerSrc, triggerTmIdx, eventName)

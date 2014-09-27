@@ -11,7 +11,7 @@ classdef IdentityKS < Wp2DepKS
     end
 
     methods
-        function obj = IdentityKS( blackboard, modelName, modelVersion )
+        function obj = IdentityKS( modelName, modelVersion )
             modelFileName = [modelName '_' modelVersion];
             v = load( [modelFileName '_model.mat'] );
             wp2requests.r = v.esetup.wp2dataCreation.requests;
@@ -19,7 +19,7 @@ classdef IdentityKS < Wp2DepKS
             wp2requests.r{end+1} = 'time';
             wp2requests.p{end+1} = '';
             blocksize_s = v.esetup.blockCreation.blockSize;
-            obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
+            obj = obj@Wp2DepKS( wp2requests, blocksize_s );
             obj.modelname = modelName;
             % TODO: model loading should include loading
             % a generic modelPredict function

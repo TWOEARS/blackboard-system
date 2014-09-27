@@ -7,8 +7,8 @@ classdef RotationKS < AbstractKS
     end
     
     methods
-        function obj = RotationKS(blackboard, robot)
-            obj = obj@AbstractKS(blackboard);
+        function obj = RotationKS(robot)
+            obj = obj@AbstractKS();
             obj.invocationMaxFrequency_Hz = inf;
             obj.robot = robot;
         end

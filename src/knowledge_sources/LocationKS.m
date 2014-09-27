@@ -10,7 +10,7 @@ classdef LocationKS < Wp2DepKS
     end
     
     methods
-        function obj = LocationKS(blackboard, gmName)
+        function obj = LocationKS(gmName)
             blocksize_s = 0.5;
             WP2_param = genParStruct('f_low',80,'f_high',8000,...
                 'nChannels',32,...
@@ -25,7 +25,7 @@ classdef LocationKS < Wp2DepKS
             wp2requests.p{2} = WP2_param;
             wp2requests.r{3} = 'time';
             wp2requests.p{3} = WP2_param;
-            obj = obj@Wp2DepKS( blackboard, wp2requests, blocksize_s );
+            obj = obj@Wp2DepKS( wp2requests, blocksize_s );
             dimFeatures = WP2_param.nChannels * 2; % ITD + ILD
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures); %, '/Volumes/GMTK_ramdisk'
             angularResolution = 5; % determined by trained net.

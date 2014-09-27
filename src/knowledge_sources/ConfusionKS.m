@@ -12,8 +12,8 @@ classdef ConfusionKS < AbstractKS
     end
     
     methods
-        function obj = ConfusionKS(blackboard)
-            obj = obj@AbstractKS(blackboard);
+        function obj = ConfusionKS()
+            obj = obj@AbstractKS();
             obj.invocationMaxFrequency_Hz = inf;
         end
         
