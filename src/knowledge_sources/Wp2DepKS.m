@@ -7,7 +7,7 @@ classdef Wp2DepKS < AbstractKS
 
     methods
         function obj = Wp2DepKS( wp2requests, blockSize_s )
-            obj = obj@AbstractKS( blackboard );
+            obj = obj@AbstractKS();
             obj.wp2requests = wp2requests;
             obj.blocksize_s = blockSize_s;
        end
