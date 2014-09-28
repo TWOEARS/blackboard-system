@@ -33,8 +33,8 @@ classdef Wp2KS < AbstractKS
     
     methods
         %% constructor
-        function obj = Wp2KS( blackboard, robotInterfaceObj )
-            obj = obj@AbstractKS(blackboard);
+        function obj = Wp2KS( robotInterfaceObj )
+            obj = obj@AbstractKS();
             wp2dataObj = dataObject( [], robotInterfaceObj.SampleRate, obj.wp2BufferSize_s, 1 );  % Last input (1) indicates a stereo signal
             obj.managerObject = manager( wp2dataObj );
             obj.robotInterfaceObj = robotInterfaceObj;
