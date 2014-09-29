@@ -114,7 +114,7 @@ classdef BlackboardSystem < handle
         
         %% Add KS to the blackboard system
         function ks = addKS( obj, ks )
-            ks.setBlackboardAccess( obj.blackboard );
+            ks.setBlackboardAccess( obj.blackboard, obj );
             if isa( ks, getfield( ?Wp2DepKS, 'Name' ) ) % using getfield to generate matlab error if class name changes.
                 obj.createWp2ProcsForKs( ks );
             end

@@ -2,6 +2,7 @@ classdef AbstractKS < handle
 
     properties (SetAccess = protected)
         blackboard;
+        blackboardSystem;
         attentionalPriority = 0;
         invocationMaxFrequency_Hz = 2;
         lastExecutionTime_s = -inf;
@@ -34,8 +35,9 @@ classdef AbstractKS < handle
             end
         end
         
-        function setBlackboardAccess( obj, blackboard )
+        function setBlackboardAccess( obj, blackboard, blackboardSystem )
             obj.blackboard = blackboard;
+            obj.blackboardSystem = blackboardSystem;
         end
 
         %% Set arguments for execution after triggering
