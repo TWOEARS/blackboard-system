@@ -58,6 +58,10 @@ classdef LocationKS < Wp2DepKS
 
             % Generate a temporary feature flist for GMTK
             featureBlock = [itds; ilds];
+            if sum(sum( isnan( featureBlock ) + isinf( featureBlock ) )) > 0
+                warning( 'LocKS: NaNs or Infs in feature block; aborting inference' );
+                return;
+            end
             [~,tmpfn] = fileparts(tempname);
             tmpfn = fullfile(obj.tempPath, tmpfn);
             htkfn = strcat(tmpfn, '.htk');
