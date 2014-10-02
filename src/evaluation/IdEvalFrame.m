@@ -19,6 +19,11 @@ classdef IdEvalFrame < handle
             obj.idTruth.onsetsOffsets(obj.idTruth.onsetsOffsets(:,1) == inf,:) = [];
             obj.idTruth.onsetsOffsets(obj.idTruth.onsetsOffsets(:,2) == inf,:) = [];
         end
+
+        function setIdTruth( obj, idTruth )
+            obj.idTruth.class = idTruth.class;
+            obj.idTruth.onsetsOffsets = idTruth.onsetsOffsets;
+        end
         
         function ide = calcIdError( obj )
             idDecs = obj.bb.getData( 'identityDecision' );
