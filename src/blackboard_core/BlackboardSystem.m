@@ -11,8 +11,9 @@ classdef BlackboardSystem < handle
     methods
 
         %% System Construction
-        function obj = BlackboardSystem()
-            obj.blackboard = Blackboard( 1 );
+        function obj = BlackboardSystem( verbosity )
+            if nargin<1, verbosity=0; end
+            obj.blackboard = Blackboard( verbosity );
             obj.blackboardMonitor = BlackboardMonitor( obj.blackboard );
             obj.scheduler = Scheduler( obj.blackboardMonitor );
         end
