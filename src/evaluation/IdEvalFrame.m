@@ -113,7 +113,7 @@ classdef IdEvalFrame < handle
                     onsetOffsets(end+1,:) = sscanf( annotLine, '%f' );
                 end
             else
-                warning( sprintf( 'label annotation file not found: %s. Assuming no events.', soundFileName ) );
+                warning( sprintf( 'label annotation file not found: %s.txt. Assuming no events.', soundFileName ) );
                 onsetOffsets = [ inf, inf ];
             end
         end
