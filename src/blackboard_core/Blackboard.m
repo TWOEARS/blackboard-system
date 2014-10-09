@@ -4,7 +4,7 @@ classdef Blackboard < handle
     
     properties (SetAccess = {?BlackboardSystem})
         KSs = {};                       % List of all KSs
-        wp2signals = [];                % Layer 1a-2: _handles_ to  requested signals
+        signals = [];                   % Layer 1a-2: _handles_ to  requested signals from Two!Ears Auditory Front-End
         data = [];                      % general data storage Map, with currentSoundTimeIdx as key
         verbosity = 0;                  % Verbosity of 0 switches off screen output
         currentSoundTimeIdx = 0;        % the current "sound time". 
@@ -39,12 +39,12 @@ classdef Blackboard < handle
             obj.currentSoundTimeIdx = obj.currentSoundTimeIdx + addSoundTimeIdx;
         end
 
-        %% Add general wp2 signal
-        function obj = addWp2Signal( obj, regHash, regSignal )
-            if isempty( obj.wp2signals )
-                obj.wp2signals = containers.Map();
+        %% Add general signal from Two!Ears Auditory Front-End
+        function obj = addSignal( obj, regHash, regSignal )
+            if isempty( obj.signals )
+                obj.signals = containers.Map();
             end
-            obj.wp2signals(regHash) = regSignal;
+            obj.signals(regHash) = regSignal;
         end
 
         %% Add new data to blackboard

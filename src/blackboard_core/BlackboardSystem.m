@@ -5,7 +5,7 @@ classdef BlackboardSystem < handle
         blackboardMonitor;
         scheduler;
         robotConnect;
-        wp2DataConnect;
+        dataConnect;
     end
         
     methods
@@ -22,29 +22,30 @@ classdef BlackboardSystem < handle
             obj.robotConnect = robotConnect;
         end
 
-        function setWp2DataConnect( obj, wp2ConnectorClassName )
-            obj.wp2DataConnect = obj.createKS( wp2ConnectorClassName, {obj.robotConnect} );
+        function setDataConnect( obj, connectorClassName )
+            % Connect to the Two!Ears Auditory Front-End module
+            obj.dataConnect = obj.createKS( connectorClassName, {obj.robotConnect} );
         end
         
-        function createWp2ProcsForKs( obj, ks )
-            obj.wp2DataConnect.createProcsForDepKS( ks );
+        function createProcsForKs( obj, ks )
+            % Create processes for the Two!Ears Auditory Front-End KS
+            obj.dataConnect.createProcsForDepKS( ks );
         end
         
         %% From xml
-        
         function buildFromXml( obj, xmlName )
             bbsXml = xmlread( xmlName);
             bbsXmlElements = bbsXml.getElementsByTagName( 'blackboardsystem' ).item(0);
 
-            buildWp2DatConnFromXml( obj, bbsXmlElements );
+            buildDataConnectFromXml( obj, bbsXmlElements );
             kss = buildKSsFromXml( obj, bbsXmlElements );
             buildConnectionsFromXml( obj, bbsXmlElements, kss );
         end
         
-        function buildWp2DatConnFromXml( obj, bbsXmlElements )
-            wp2Elements = bbsXmlElements.getElementsByTagName( 'Wp2DataConnection' );
-            ksType = char( wp2Elements.item(0).getAttribute('Type') );
-            obj.setWp2DataConnect( ksType );
+        function buildDataConnectFromXml( obj, bbsXmlElements )
+            elements = bbsXmlElements.getElementsByTagName( 'dataConnection' );
+            ksType = char( elements.item(0).getAttribute('Type') );
+            obj.setDataConnect( ksType );
         end
         
         function kss = buildKSsFromXml( obj, bbsXmlElements )
@@ -116,8 +117,8 @@ classdef BlackboardSystem < handle
         %% Add KS to the blackboard system
         function ks = addKS( obj, ks )
             ks.setBlackboardAccess( obj.blackboard, obj );
-            if isa( ks, getfield( ?Wp2DepKS, 'Name' ) ) % using getfield to generate matlab error if class name changes.
-                obj.createWp2ProcsForKs( ks );
+            if isa( ks, getfield( ?AuditoryFrontEndDepKS, 'Name' ) ) % using getfield to generate matlab error if class name changes.
+                obj.createProcsForKs( ks );
             end
             obj.blackboard.KSs = [obj.blackboard.KSs {ks}];
         end
