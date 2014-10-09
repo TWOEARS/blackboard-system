@@ -5,6 +5,8 @@
      startTwoEars('BlackboardSystem.xml'); -->
 
 <requirements>
+    <TwoEarsPart branch="scenario1" sub="src" startup="startBinauralSimulator">binaural-simulator</TwoEarsPart>
+    <TwoEarsPart branch="scenario1" sub="src" startup="startAuditoryFrontEnd">auditory-front-end</TwoEarsPart>
     <TwoEarsPart branch="scenario1" sub="src" startup="startBlackboardSystem">blackboard-system</TwoEarsPart>
     <TwoEarsPart branch="scenario1" sub="src" startup="startTools" >tools</TwoEarsPart>
 </requirements>
