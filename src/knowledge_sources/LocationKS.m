@@ -1,4 +1,4 @@
-classdef LocationKS < Wp2DepKS
+classdef LocationKS < AuditoryFrontEndDepKS
     % LocationKS calculates posterior probabilities for each azimuth angle
     % and generates LocationHypothesis when provided with spatial 
     % observation
@@ -12,21 +12,21 @@ classdef LocationKS < Wp2DepKS
     methods
         function obj = LocationKS(gmName)
             blocksize_s = 0.5;
-            WP2_param = genParStruct('f_low',80,'f_high',8000,...
+            param = genParStruct('f_low',80,'f_high',8000,...
                 'nChannels',32,...
                 'rm_decaySec',0,...
                 'ild_wSizeSec',20E-3,...
                 'ild_hSizeSec',10E-3,'rm_wSizeSec',20E-3,...
                 'rm_hSizeSec',10E-3,'cc_wSizeSec',20E-3,...
                 'cc_hSizeSec',10E-3);
-            wp2requests.r{1} = 'ild';
-            wp2requests.p{1} = WP2_param;
-            wp2requests.r{2} = 'itd_xcorr';
-            wp2requests.p{2} = WP2_param;
-            wp2requests.r{3} = 'time';
-            wp2requests.p{3} = WP2_param;
-            obj = obj@Wp2DepKS( wp2requests, blocksize_s );
-            dimFeatures = WP2_param.nChannels * 2; % ITD + ILD
+            requests.r{1} = 'ild';
+            requests.p{1} = param;
+            requests.r{2} = 'itd_xcorr';
+            requests.p{2} = param;
+            requests.r{3} = 'time';
+            requests.p{3} = param;
+            obj = obj@AuditoryFrontEndDepKS( requests, blocksize_s );
+            dimFeatures = param.nChannels * 2; % ITD + ILD
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures); %, '/Volumes/GMTK_ramdisk'
             angularResolution = 5; % determined by trained net.
             obj.angles = 0:angularResolution:(360-angularResolution);

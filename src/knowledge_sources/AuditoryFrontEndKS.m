@@ -1,13 +1,14 @@
-classdef Wp2KS < AbstractKS
-    % Wp2KS Aquires the current ear signals and puts them through
-    % wp2 processing. This is basically a simulator of functionality that
-    % may (partially) be outside the blackboard on the deployment system
+classdef AuditoryFrontEndKS < AbstractKS
+    % AuditoryFrontEndKS Aquires the current ear signals and puts them through
+    % Two!Ears Auditory Front-End processing. This is basically a simulator of
+    % functionality thatmay (partially) be outside the blackboard on the
+    % deployment system
     
     properties (SetAccess = private)
-        managerObject;           % WP2 manager object - holds the signal buffer (data obj)
-        robotInterfaceObj;                  % Scene simulator object
-        timeStep = (512.0 / 44100.0);         % basic time step, i.e. update rate
-        wp2BufferSize_s = 10;
+        managerObject;                  % Two!Ears Auditory Front-End manager object - holds the signal buffer (data obj)
+        robotInterfaceObj;              % Scene simulator object
+        timeStep = (512.0 / 44100.0);   % basic time step, i.e. update rate
+        bufferSize_s = 10;
     end
     
     methods (Static)
@@ -33,10 +34,10 @@ classdef Wp2KS < AbstractKS
     
     methods
         %% constructor
-        function obj = Wp2KS( robotInterfaceObj )
+        function obj = AuditoryFrontEndKS( robotInterfaceObj )
             obj = obj@AbstractKS();
-            wp2dataObj = dataObject( [], robotInterfaceObj.SampleRate, obj.wp2BufferSize_s, 1 );  % Last input (1) indicates a stereo signal
-            obj.managerObject = manager( wp2dataObj );
+            dataObj = dataObject( [], robotInterfaceObj.SampleRate, obj.bufferSize_s, 1 );  % Last input (1) indicates a stereo signal
+            obj.managerObject = manager( dataObj );
             obj.robotInterfaceObj = robotInterfaceObj;
             obj.timeStep = obj.robotInterfaceObj.BlockSize / obj.robotInterfaceObj.SampleRate;
             obj.invocationMaxFrequency_Hz = inf;
@@ -49,10 +50,10 @@ classdef Wp2KS < AbstractKS
         end
 
         function obj = execute(obj)
-            % WP1 processing
+            % Two!Ears Binaural Simulator processing
             [signalFrame, processedTime] = obj.robotInterfaceObj.getSignal( obj.timeStep );
             
-            % WP2 Processing
+            % Two!Ears Auditory Front-End Processing
             obj.managerObject.processChunk( double(signalFrame), 1 );  % process new data, append
             obj.blackboard.advanceSoundTimeIdx( processedTime );
             obj.blackboard.addData( ...
@@ -64,16 +65,17 @@ classdef Wp2KS < AbstractKS
         end
 
         %% KS utilities
-        function createProcsForDepKS( obj, wp2depKs )
-            for z = 1:length( wp2depKs.wp2requests.r )
-                obj.addProcessor( wp2depKs.wp2requests.r{z}, wp2depKs.wp2requests.p{z} );
+        function createProcsForDepKS( obj, auditoryFrontEndDepKs )
+            for z = 1:length( auditoryFrontEndDepKs.requests.r )
+                obj.addProcessor( auditoryFrontEndDepKs.requests.r{z}, ...
+                    auditoryFrontEndDepKs.requests.p{z} );
             end
         end
     
         function obj = addProcessor( obj, request, rParams )
             reqSignal = obj.managerObject.addProcessor( request, rParams );
-            reqHash = Wp2KS.getRequestHash( request, rParams );
-            obj.blackboard.addWp2Signal( reqHash, reqSignal );
+            reqHash = AuditoryFrontEndKS.getRequestHash( request, rParams );
+            obj.blackboard.addSignal( reqHash, reqSignal );
         end
         
     end
