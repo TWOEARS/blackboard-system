@@ -1,4 +1,4 @@
-classdef IdentityKS < Wp2DepKS
+classdef IdentityKS < AuditoryFrontEndDepKS
     
     properties (SetAccess = private)
         modelname;
@@ -14,12 +14,12 @@ classdef IdentityKS < Wp2DepKS
         function obj = IdentityKS( modelName, modelVersion )
             modelFileName = [modelName '_' modelVersion];
             v = load( [modelFileName '_model.mat'] );
-            wp2requests.r = v.esetup.wp2dataCreation.requests;
-            wp2requests.p = v.esetup.wp2dataCreation.requestP;
-            wp2requests.r{end+1} = 'time';
-            wp2requests.p{end+1} = '';
-            blocksize_s = v.esetup.blockCreation.blockSize;
-            obj = obj@Wp2DepKS( wp2requests, blocksize_s );
+            requests.r = v.setup.dataCreation.requests;
+            requests.p = v.setup.dataCreation.requestP;
+            requests.r{end+1} = 'time';
+            requests.p{end+1} = '';
+            blocksize_s = v.setup.blockCreation.blockSize;
+            obj = obj@AuditoryFrontEndDepKS( requests, blocksize_s );
             obj.modelname = modelName;
             % TODO: model loading should include loading
             % a generic modelPredict function
@@ -39,12 +39,12 @@ classdef IdentityKS < Wp2DepKS
         
         %% utility function for printing the obj
         function s = char( obj )
-            s = [char@Wp2DepKS( obj ), '[', obj.modelname, ']'];
+            s = [char@AuditoryFrontEndDepKS( obj ), '[', obj.modelname, ']'];
         end
         
         %% execute functionality
         function [b, wait] = canExecute( obj )
-%             signal = obj.getReqSignal( length( obj.wp2requests.r ) );
+%            signal = obj.getReqSignal( length( obj.requests.r ) );
 %             lEnergy = std( ...
 %                 signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
 %                 );
@@ -58,23 +58,23 @@ classdef IdentityKS < Wp2DepKS
         end
         
         function execute( obj )
-            wp2data = [];
-            for z = 1:length( obj.wp2requests.r ) - 1
-                wp2reqSignal = obj.getReqSignal( z );
-                convWp2ReqSignal = [];
-                convWp2ReqSignal.Data{1} = ...
-                    wp2reqSignal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );
-                convWp2ReqSignal.Data{2} = ...
-                    wp2reqSignal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );
-                convWp2ReqSignal.Name = wp2reqSignal{1}.Name;
-                convWp2ReqSignal.Dimensions = wp2reqSignal{1}.Dimensions;
-                convWp2ReqSignal.FsHz = wp2reqSignal{1}.FsHz;
-                convWp2ReqSignal.Canal{1} = wp2reqSignal{1}.Canal;
-                convWp2ReqSignal.Canal{2} = wp2reqSignal{2}.Canal;
-                wp2data = [wp2data; convWp2ReqSignal];
+            data = [];
+            for z = 1:length( obj.requests.r ) - 1
+                reqSignal = obj.getReqSignal( z );
+                convReqSignal = [];
+                convReqSignal.Data{1} = ...
+                    reqSignal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );
+                convReqSignal.Data{2} = ...
+                    reqSignal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );
+                convReqSignal.Name = reqSignal{1}.Name;
+                convReqSignal.Dimensions = reqSignal{1}.Dimensions;
+                convReqSignal.FsHz = reqSignal{1}.FsHz;
+                convReqSignal.Canal{1} = reqSignal{1}.Canal;
+                convReqSignal.Canal{2} = reqSignal{2}.Canal;
+                data = [data; convReqSignal];
             end
             
-            features = obj.featureFunc( obj.featureParam, wp2data(:) );
+            features = obj.featureFunc( obj.featureParam, data(:) );
             features = obj.scaleFunc( features, obj.scale.translators, obj.scale.factors );
             [~, ~, probs] = libsvmpredict( 0, features, obj.model, '-q -b 1' );
             %libsvmpredict is the renamed svmpredict of the LIBSVM package
