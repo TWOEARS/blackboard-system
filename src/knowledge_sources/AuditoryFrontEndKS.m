@@ -13,7 +13,7 @@ classdef AuditoryFrontEndKS < AbstractKS
     
     methods (Static)
         function regHash = getRequestHash( request, params )
-            regHash = DataHash( {request, params} );
+            regHash = calcDataHash( {request, params} );
         end
         
         function plotSignalBlocks( bb, evnt )
