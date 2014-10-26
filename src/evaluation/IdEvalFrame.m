@@ -99,7 +99,7 @@ classdef IdEvalFrame < handle
     methods (Static)
         
         function eventClass = readEventClass( soundFileName )
-            fileSepPositions = strfind( soundFileName, '/' );
+            fileSepPositions = strfind( soundFileName, filesep );
             if isempty( fileSepPositions )
                 error( 'Cannot infer sound event class - possibly because "%s" is not a path or using "\" instead of "/".', soundFileName );
             end
