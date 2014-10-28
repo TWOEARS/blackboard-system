@@ -128,7 +128,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 ild = data.ild{1}.Data';
                 fileName = fullfile(dataPath, ...
                                     sprintf('spatial_cues_angle%05.1f', angles(n)));
-                writehtk(strcat(fn, '.htk'), [itd; ild]);
+                writehtk(strcat(fileName, '.htk'), [itd; ild]);
                 fprintf('\n');
             end
             sim.ShutDown = true;
