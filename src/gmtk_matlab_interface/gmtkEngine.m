@@ -58,7 +58,7 @@ classdef gmtkEngine < handle
                     obj.dimFeatures = dimFeatures;
                     
                     % Create a working folder for GMTK
-                    obj.workPath = strcat('GM_', gmName);
+                    obj.workPath = strcat(gmName);
                     if ~isempty(workPath)
                         obj.workPath = fullfile(workPath, obj.workPath);
                     end
@@ -98,7 +98,7 @@ classdef gmtkEngine < handle
                     obj.dimFeatures = dimFeatures;
                     
                     % Create a working folder for GMTK
-                    obj.workPath = [pwd, strcat('\GM_', gmName)];
+                    obj.workPath = [pwd, strcat('\', gmName)];
                     if ~exist(obj.workPath, 'dir')
                         [success, message] = mkdir(obj.workPath);
                         if ~success
