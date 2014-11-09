@@ -12,8 +12,8 @@ classdef AuditoryFrontEndKS < AbstractKS
     end
     
     methods (Static)
-        function regHash = getRequestHash( request, params )
-            regHash = DataHash( {request, params} );
+        function regHash = getRequestHash( request )
+            regHash = DataHash( request );
         end
         
         function plotSignalBlocks( bb, evnt )
@@ -66,15 +66,14 @@ classdef AuditoryFrontEndKS < AbstractKS
 
         %% KS utilities
         function createProcsForDepKS( obj, auditoryFrontEndDepKs )
-            for z = 1:length( auditoryFrontEndDepKs.requests.r )
-                obj.addProcessor( auditoryFrontEndDepKs.requests.r{z}, ...
-                    auditoryFrontEndDepKs.requests.p{z} );
+            for z = 1:length( auditoryFrontEndDepKs.requests )
+                obj.addProcessor( auditoryFrontEndDepKs.requests{z} );
             end
         end
     
-        function obj = addProcessor( obj, request, rParams )
-            reqSignal = obj.managerObject.addProcessor( request, rParams );
-            reqHash = AuditoryFrontEndKS.getRequestHash( request, rParams );
+        function obj = addProcessor( obj, request )
+            reqSignal = obj.managerObject.addProcessor( request.name, request.params );
+            reqHash = AuditoryFrontEndKS.getRequestHash( request );
             obj.blackboard.addSignal( reqHash, reqSignal );
         end
         
