@@ -3,39 +3,22 @@ classdef IdentityKS < AuditoryFrontEndDepKS
     properties (SetAccess = private)
         modelname;
         model;                 % classifier model
-        featureFunc;
-        featureParam;
-        scaleFunc;
-        scale;
-        tmpFuncs;
+        featureCreator;
     end
 
     methods
         function obj = IdentityKS( modelName, modelVersion )
-            modelFileName = [modelName '_' modelVersion];
-            v = load( [modelFileName '_model.mat'] );
-            requests.r = v.setup.dataCreation.requests;
-            requests.p = v.setup.dataCreation.requestP;
-            requests.r{end+1} = 'time';
-            requests.p{end+1} = '';
-            blocksize_s = v.setup.blockCreation.blockSize;
-            obj = obj@AuditoryFrontEndDepKS( requests, blocksize_s );
-            obj.modelname = modelName;
-            % TODO: model loading should include loading
-            % a generic modelPredict function
+            modelFileName = [modelName '.' modelVersion];
+            v = load( [modelFileName '.model.mat'] );
+            if ~isa( v.featureCreator, 'FeatureProcInterface' )
+                error( 'Loaded model''s featureCreator must implement FeatureProcInterface.' );
+            end
+            obj = obj@AuditoryFrontEndDepKS( v.featureCreator.getAFErequests() );
+            obj.featureCreator = v.featureCreator;
             obj.model = v.model;
-            v = load( [modelFileName '_scale.mat'] );
-            obj.scale.translators = v.translators;
-            obj.scale.factors = v.factors;
-            [obj.scaleFunc, obj.tmpFuncs{1}, ~] = dynLoadMFun( [modelFileName '_scaleFunction.mat'] );
-            [obj.featureFunc, obj.tmpFuncs{2}, obj.featureParam] = dynLoadMFun( [modelFileName '_featureFunction.mat'] );
+            obj.modelname = modelName;
             obj.invocationMaxFrequency_Hz = 4;
        end
-        
-        function delete( obj )
-            delete( obj.tmpFuncs{1} );
-            delete( obj.tmpFuncs{2} );
-        end
         
         %% utility function for printing the obj
         function s = char( obj )
@@ -44,46 +27,22 @@ classdef IdentityKS < AuditoryFrontEndDepKS
         
         %% execute functionality
         function [b, wait] = canExecute( obj )
-%            signal = obj.getReqSignal( length( obj.requests.r ) );
-%             lEnergy = std( ...
-%                 signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
-%                 );
-%             rEnergy = std( ...
-%                 signal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
-%                 );
-%             
-%             b = (lEnergy + rEnergy >= 0.01);
             b = true;
             wait = false;
         end
         
         function execute( obj )
-            data = [];
-            for z = 1:length( obj.requests.r ) - 1
-                reqSignal = obj.getReqSignal( z );
-                convReqSignal = [];
-                convReqSignal.Data{1} = ...
-                    reqSignal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );
-                convReqSignal.Data{2} = ...
-                    reqSignal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );
-                convReqSignal.Name = reqSignal{1}.Name;
-                convReqSignal.Dimensions = reqSignal{1}.Dimensions;
-                convReqSignal.FsHz = reqSignal{1}.FsHz;
-                convReqSignal.Canal{1} = reqSignal{1}.Canal;
-                convReqSignal.Canal{2} = reqSignal{2}.Canal;
-                data = [data; convReqSignal];
-            end
+            afeData = obj.getAFEdata();
+            afeData = obj.featureCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
             
-            features = obj.featureFunc( obj.featureParam, data(:) );
-            features = obj.scaleFunc( features, obj.scale.translators, obj.scale.factors );
-            [~, ~, probs] = libsvmpredict( 0, features, obj.model, '-q -b 1' );
-            %libsvmpredict is the renamed svmpredict of the LIBSVM package
+            x = obj.featureCreator.makeDataPoint( afeData );
+            [~, score] = obj.model.applyModel( x );
             
             if obj.blackboard.verbosity > 0
                 fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
-                    obj.modelname, int16(probs(1)*100) );
+                    obj.modelname, int16(score(1)*100) );
             end
-            identHyp = IdentityHypothesis( obj.modelname, probs(1), obj.blocksize_s );
+            identHyp = IdentityHypothesis( obj.modelname, score(1), obj.blocksize_s );
             obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
             notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
