@@ -126,8 +126,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 % Save binaural cues
                 itd = data.itd_xcorr{1}.Data(:)' .* 1000; % convert to ms
                 ild = data.ild{1}.Data(:)';
-                fileName = fullfile(dataPath, ...
-                                    sprintf('spatial_cues_angle%05.1f', angles(n)));
+                fileName = fullfile(obj.dataPath, ...
+                                    sprintf('spatial_cues_angle%05.1f', obj.angles(n)));
                 writehtk(strcat(fileName, '.htk'), [itd; ild]);
                 fprintf('\n');
             end
