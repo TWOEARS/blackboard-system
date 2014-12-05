@@ -124,8 +124,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
                                            obj.auditoryFrontEndParameter);
                 auditoryFrontEnd.processSignal();
                 % Save binaural cues
-                itd = data.itd_xcorr{1}.Data' .* 1000; % convert to ms
-                ild = data.ild{1}.Data';
+                itd = data.itd_xcorr{1}.Data(:)' .* 1000; % convert to ms
+                ild = data.ild{1}.Data(:)';
                 fileName = fullfile(dataPath, ...
                                     sprintf('spatial_cues_angle%05.1f', angles(n)));
                 writehtk(strcat(fileName, '.htk'), [itd; ild]);
