@@ -99,11 +99,17 @@ classdef LocationKS < AuditoryFrontEndDepKS
         end
 
         function obj = generateTrainingData(obj)
-            % Generate data for training of the model
+            %generateTrainingData(obj) extracts ITDs and ILDs from using HRTF and the grid
+            %speech corpus. This data can then be used to train the GMTK localisation
+            %model
+            
+            % Start simulator with corresponding localisation scene
             sim = simulator.SimulatorConvexRoom(['learned_models/locationKS/' ...
                                                  obj.name '.xml'], true);
             % Create data path
             mkdir(obj.dataPath,obj.name);
+            mkdir([obj.dataPath filesep obj.name],'data');
+            dataFilesPath = [obj.dataPath filesep obj.name filesep 'data'];
             % Read training data
             trainSignal = readAudioFiles(['sound_databases/grid_subset/' ...
                                           'training/training.wav'], ...
@@ -126,12 +132,54 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 % Save binaural cues
                 itd = data.itd_xcorr{1}.Data(:)' .* 1000; % convert to ms
                 ild = data.ild{1}.Data(:)';
-                fileName = fullfile(obj.dataPath, ...
+                fileName = fullfile(dataFilesPath, ...
                                     sprintf('spatial_cues_angle%05.1f', obj.angles(n)));
                 writehtk(strcat(fileName, '.htk'), [itd; ild]);
                 fprintf('\n');
             end
             sim.ShutDown = true;
+        end
+
+        function obj = train(obj)
+            %train(obj) trains the locationKS using extracted ITDs and ILDs which are
+            %stored in the Two!Ears database under learned_models/locationKS/ and GMTK
+
+            % Configuration
+            % TODO: the number of festures is hardcoded at the moment, maybe we will
+            % change this in the future
+            dimFeatures = 64; % nchannels * 2, see above.
+            featureExt = 'htk';
+            labelExt = 'lab';
+            % Initialise GMTK engine
+            gmtkLoc = gmtkEngine(obj.name, dimFeatures);
+            % Generate GMTK parameters
+            % Now need to create GM structure files (.str) and generate relevant GMTK
+            % parameters, either manually or with generateGMTKParameters.
+            % Finally, perform model triangulation.
+            generate_GMTK_parameters(gmtkLoc, numAngles);
+            gmtkLoc.triangulate;
+            % Estimate GM parameters
+            mkdir(gmtkLoc.workPath, 'flists');
+            trainFeatureList = fullfile(flistPath, 'train_features.flist');
+            trainLabelList = fullfile(flistPath, 'train_labels.flist');
+            fidObsList = fopen(trainFeatureList, 'w');
+            fidLabList = fopen(trainLabelList, 'w');
+            for n = 1:numel(obj.angles)
+                baseFileName = fullfile(obj.dataPath, obj.name, 'data', ...
+                                        sprintf('spatial_cues_angle%d', obj.angles(n)));
+                featureFileName = sprintf('%s.%s', baseFileName, featureExt);
+                fprintf(fidObsList, '%s\n', featureFileName);
+                labelFileName = sprintf('%s.%s', baseFileName, labelExt);
+                fprintf(fidLabList, '%s\n', labelFileName);
+                % Generate and save feature labels for each angle
+                ftr = readhtk(featureFileName);
+                fid = fopen(labelFileName, 'w');
+                fprintf(fid, '%d\n', repmat(n-1,1,size(ftr,2)));
+                fclose(fid);
+            end
+            fclose(fidObsList);
+            fclose(fidLabList);
+            gmtkLoc.train(trainFeatureList, trainLabelList);
         end
     end
 end
