@@ -173,7 +173,8 @@ for i = 1:k
     logW(i) = -2*sum(log(diag(U)));      
     
     Xs = bsxfun(@times,bsxfun(@minus,X,xbar(:,i)),sqrtR(:,i)');
-    V = chol(Xs*Xs'/nk(i));
+    V = chol(nearestSPD(Xs*Xs'/nk(i)));
+%     V = chol(Xs*Xs'/nk(i));
     Q = V/U;
     trSW(i) = dot(Q(:),Q(:));  % equivalent to tr(SW)=trace(S/M)
     Q = U0/U;
