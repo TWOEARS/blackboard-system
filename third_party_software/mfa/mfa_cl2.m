@@ -15,7 +15,7 @@
 % If 0 or 1 output arguments requested, lik is returned. If 2 output
 % arguments requested, [lik likv] is returned.
 
-function [lik, likv]=mfa_cl(X,Lh,Ph,Mu,Pi);
+function [lik, likv]=mfa_cl2(X,Lh,Ph,Mu,Pi);
 
 N=length(X(:,1));
 D=length(X(1,:));
@@ -42,6 +42,8 @@ if M>1
         Lht=Lh((k-1)*D+1:k*D,:);
         LP=Phid*Lht;
         MM=Phid-LP*inv(I+Lht'*LP)*LP';
+        MM(isnan(MM)) = eps; 
+        MM =nearestSPD(MM);
         %  dM=sqrt(det(MM));
         ldM=sum(log(diag(chol(MM))));
         Xk=(X-ones(N,1)*Mu(k,:));

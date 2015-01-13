@@ -20,7 +20,7 @@
 function [Lh, Ph,  Mu, Pi, LL] = mfa(X,M,K,cyc,tol)
 
 if nargin<5   tol=0.0001; end;
-if nargin<4   cyc=200; end;
+if nargin<4   cyc=2; end;
 if nargin<3   K=2; end;
 if nargin<2   M=1; end;
 
@@ -72,13 +72,16 @@ else
       LP=Phid*Lht;
       MM=Phid-LP*inv(I+Lht'*LP)*LP';
       %  dM=sqrt(det(MM));
+      MM(isnan(MM)) = eps; 
+
       MM =nearestSPD(MM);
 
       ldM=sum(log(diag(chol(MM))));
       Xk=(X-ones(N,1)*Mu(k,:)); 
       XM=Xk*MM;
       % H(:,k)=const*Pi(k)*dM*exp(-0.5*rsum(XM.*Xk)); 	
-      H(:,k)=const*Pi(k)*exp(ldM-0.5*rsum(XM.*Xk)); 	
+%       H(:,k)=const*Pi(k)*exp(ldM-0.5*rsum(XM.*Xk)); 
+      H(:,k)=exp((-D/2)*log(2*pi)+log(Pi(k))+(ldM-0.5*rsum(XM.*Xk)));
       EZ((k-1)*N+1:k*N,:)=XM*Lht;
     end;
     
@@ -105,7 +108,7 @@ else
       beta=Lht'*MM;
       EZZ((k-1)*K+1:k*K,:)=I-beta*Lht +beta*XX(kD,:)*beta'; 
     end;
-
+    
     %%%% log likelihood %%%%
 
     LL=[LL lik];
