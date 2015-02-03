@@ -20,7 +20,7 @@
 function [Lh, Ph,  Mu, Pi, LL] = mfa(X,M,K,cyc,tol)
 
 if nargin<5   tol=0.0001; end;
-if nargin<4   cyc=2; end;
+if nargin<4   cyc=50; end;
 if nargin<3   K=2; end;
 if nargin<2   M=1; end;
 
