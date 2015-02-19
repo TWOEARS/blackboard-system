@@ -151,16 +151,16 @@ classdef LocationKS < AuditoryFrontEndDepKS
             featureExt = 'htk';
             labelExt = 'lab';
             % Initialise GMTK engine
-            gmtkLoc = gmtkEngine(obj.name, dimFeatures, obj.dataPath);
-            gmtkLoc.workPath
+            obj.gmtkLoc = gmtkEngine(obj.name, dimFeatures, obj.dataPath);
+            %gmtkLoc.workPath
             % Generate GMTK parameters
             % Now need to create GM structure files (.str) and generate relevant GMTK
             % parameters, either manually or with generateGMTKParameters.
             % Finally, perform model triangulation.
-            generateGmtkParameters(obj, gmtkLoc);
-            gmtkLoc.triangulate;
+            generateGmtkParameters(obj, obj.gmtkLoc);
+            obj.gmtkLoc.triangulate;
             % Estimate GM parameters
-            mkdir(gmtkLoc.workPath, 'flists');
+            mkdir(obj.gmtkLoc.workPath, 'flists');
             trainFeatureList = fullfile(flistPath, 'train_features.flist');
             trainLabelList = fullfile(flistPath, 'train_labels.flist');
             fidObsList = fopen(trainFeatureList, 'w');
@@ -180,7 +180,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             end
             fclose(fidObsList);
             fclose(fidLabList);
-            gmtkLoc.train(trainFeatureList, trainLabelList);
+            obj.gmtkLoc.train(trainFeatureList, trainLabelList);
         end
     end
 end
