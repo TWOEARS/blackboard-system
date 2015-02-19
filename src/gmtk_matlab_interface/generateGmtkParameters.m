@@ -1,5 +1,5 @@
-function generateGmtkParameters(LocationKS, gmtkEngine, featureRange)
-%generate_GMTK_parameters generates parameters needed by GMTK
+function generateGmtkParameters(gmtkEngine, numAzimuths)
+%generateGmtkParameters generates parameters needed by GMTK
 %   This script generates initial graphical model parameters needed by GMTK
 %   before the graphical model can be trained. Note this is a basic attempt
 %   to automate parameter generation which is often difficult to do because
@@ -9,56 +9,90 @@ function generateGmtkParameters(LocationKS, gmtkEngine, featureRange)
 %   Ning Ma, 11 August 2014
 %   n.ma@sheffield.ac.uk
 %
-%
 
-    if nargin < 3
-        % By default, use all the features
-        featureRange = [0 gmtkEngine.dimFeatures-1];
-    end
-    numAngles = numel(LocationKS.angles);
-    % Calculate the number of features that will be used
-    numUsedFeatures = featureRange(2) - featureRange(1) + 1;
-    % Generate common parameters used by other files
-    generateCommonParams(gmtkEngine.workPath, gmtkEngine.dimFeatures, featureRange, numAngles);
+    % Generate trainable graph structure
+    generateStructure(gmtkEngine.gmStruct, gmtkEngine.dimFeatures, numAzimuths);
+    
+    % Generate trainable graph structure
+    generateTrainableStructure(gmtkEngine.gmStructTrainable, gmtkEngine.dimFeatures, numAzimuths);
+    
     % Generate master file
-    generateMasterParams(gmtkEngine.inputMaster, numAngles);
-    % Generate trainable master file
-    generateTrainableMasterParams(gmtkEngine.inputMasterTrainable, numUsedFeatures, numAngles);
+    generateMasterParams(gmtkEngine.inputMaster, numAzimuths);
 
+    % Generate trainable master file
+    generateTrainableMasterParams(gmtkEngine.inputMasterTrainable, gmtkEngine.dimFeatures, numAzimuths);
 end
 
-function generateCommonParams(workPath, dimFeatures, featureRange, numAngles)
-% Generates common parameters used by all the other files
-    outfn = sprintf('%s/commonParams', workPath);
+function generateStructure(outfn, dimFeatures, numAzimuths)
+% Generate trainable paramerters
     fid = fopen(outfn, 'w');
     if fid < 0
         error('Cannot open %s', outfn);
     end
-    fprintf(fid, '%%\n%% Common definitions for both structural and parameter files\n\n');
-    fprintf(fid, '#ifndef COMMON_PARAMS\n');
-    fprintf(fid, '#define COMMON_PARAMS\n');
-    fprintf(fid, '\n');
-    fprintf(fid, '#define OBS_RANGE_FEATURE %d:%d\n', featureRange(1), featureRange(2));
-    fprintf(fid, '#define OBS_RANGE_LOCATION %d:%d\n', dimFeatures, dimFeatures);
-    fprintf(fid, '#define NUM_LOCATIONS %d\n', numAngles);
-    fprintf(fid, '\n');
-    fprintf(fid, '#endif\n\n');
+    fprintf(fid, 'GRAPHICAL_MODEL Localisation\n\n');
+    
+    for f = 0:1
+        fprintf(fid, 'frame: %d {\n\n', f);
+        fprintf(fid, '   variable: azimuth {\n');
+        fprintf(fid, '      type: discrete hidden cardinality %d;\n', numAzimuths);
+        fprintf(fid, '      switchingparents: nil;\n');
+        fprintf(fid, '      conditionalparents: nil using DenseCPT("azimuthCPT");\n');
+        fprintf(fid, '   }\n');
+
+        fprintf(fid, '   variable : obs {\n');
+        fprintf(fid, '      type: continuous observed 0:%d;\n', dimFeatures-1);
+        fprintf(fid, '        switchingparents: nil;\n');
+        fprintf(fid, '        conditionalparents: azimuth(0) using mixture\n');
+        fprintf(fid, '           collection("colObs")\n');
+        fprintf(fid, '           mapping("directMappingWithOneParent");\n');
+        fprintf(fid, '   }\n\n');
+        fprintf(fid, '}\n\n');
+    end
+    fprintf(fid, 'chunk 1:1\n\n');
     fclose(fid);
 end
 
-function generateMasterParams(outfn, numAngles)
+function generateTrainableStructure(outfn, dimFeatures, numAzimuths)
+% Generate trainable paramerters
+    fid = fopen(outfn, 'w');
+    if fid < 0
+        error('Cannot open %s', outfn);
+    end
+    fprintf(fid, 'GRAPHICAL_MODEL Localisation\n\n');
+    
+    for f = 0:1
+        fprintf(fid, 'frame: %d {\n\n', f);
+        fprintf(fid, '   variable: azimuth {\n');
+        fprintf(fid, '      type: discrete observed %d:%d cardinality %d;\n', dimFeatures, dimFeatures, numAzimuths);
+        fprintf(fid, '      switchingparents: nil;\n');
+        fprintf(fid, '      conditionalparents: nil using DenseCPT("azimuthCPT");\n');
+        fprintf(fid, '   }\n');
+
+        fprintf(fid, '   variable : obs {\n');
+        fprintf(fid, '      type: continuous observed 0:%d;\n', dimFeatures-1);
+        fprintf(fid, '        switchingparents: nil;\n');
+        fprintf(fid, '        conditionalparents: azimuth(0) using mixture\n');
+        fprintf(fid, '           collection("colObs")\n');
+        fprintf(fid, '           mapping("directMappingWithOneParent");\n');
+        fprintf(fid, '   }\n\n');
+        fprintf(fid, '}\n\n');
+    end
+    fprintf(fid, 'chunk 1:1\n\n');
+    fclose(fid);
+end
+
+function generateMasterParams(outfn, numAzimuths)
 % Generate non-trainable paramerters
     fid = fopen(outfn, 'w');
     if fid < 0
         error('Cannot open %s', outfn);
     end
     print_section_title(fid, 'Parameter file');
-    fprintf(fid, '\n#include "commonParams"\n\n');
-    print_non_trainable_params(fid, numAngles);
+    print_non_trainable_params(fid, numAzimuths);
     fclose(fid);
 end
 
-function generateTrainableMasterParams(outfn, numUsedFeatures, numAngles)
+function generateTrainableMasterParams(outfn, dimFeatures, numAzimuths)
 % Generate trainable paramerters
     fid = fopen(outfn, 'w');
     if fid < 0
@@ -66,69 +100,68 @@ function generateTrainableMasterParams(outfn, numUsedFeatures, numAngles)
     end
 
     print_section_title(fid, 'Parameter file');
-    fprintf(fid, '\n#include "commonParams"\n\n');
 
     % Print Dense CPTs
     print_section_title(fid, 'CPTs');
     fprintf(fid, 'DENSE_CPT_IN_FILE inline\n');
     fprintf(fid, '1 %% num DenseCPTs\n');
 
-    fprintf(fid, '0 locationCPT %% num, name\n');
-    fprintf(fid, '0 %d %% num parents, num values\n', numAngles);
-    for n=1:numAngles
-        fprintf(fid, '%.8f ', 1/numAngles);
+    fprintf(fid, '0 azimuthCPT %% num, name\n');
+    fprintf(fid, '0 %d %% num parents, num values\n', numAzimuths);
+    for n=1:numAzimuths
+        fprintf(fid, '%.8f ', 1/numAzimuths);
     end
     fprintf(fid, '\n');
 
     % Print Gaussians
     print_section_title(fid, 'Gaussians');
     fprintf(fid, '%% Discrete PMFs\n');
-    fprintf(fid, 'DPMF_IN_FILE inline %d\n', numAngles);
-    for n=0:numAngles-1
+    fprintf(fid, 'DPMF_IN_FILE inline %d\n', numAzimuths);
+    for n=0:numAzimuths-1
        fprintf(fid, '%d %% pmf %d\n', n, n);
        fprintf(fid, 'mx%d 1 %% name, cardinality\n', n);
        fprintf(fid, '1.0\n');
     end
     fprintf(fid, '\n');
     fprintf(fid, '%% Means\n');
-    fprintf(fid, 'MEAN_IN_FILE inline %d\n', numAngles);
-    for n=0:numAngles-1
+    fprintf(fid, 'MEAN_IN_FILE inline %d\n', numAzimuths);
+    for n=0:numAzimuths-1
        fprintf(fid, '%d mean%d %% num, name\n', n, n);
-       fprintf(fid, '%d %% dimensionality\n', numUsedFeatures);
-       for m=1:numUsedFeatures
+       fprintf(fid, '%d %% dimensionality\n', dimFeatures);
+       for m=1:dimFeatures
         fprintf(fid, '0.0 ');
        end
        fprintf(fid, '\n');
     end
     fprintf(fid, '\n');
     fprintf(fid, '%% Variances\n');
-    fprintf(fid, 'COVAR_IN_FILE inline %d\n', numAngles);
-    for n=0:numAngles-1
+    fprintf(fid, 'COVAR_IN_FILE inline %d\n', numAzimuths);
+    for n=0:numAzimuths-1
        fprintf(fid, '%d covar%d %% num, name\n', n, n);
-       fprintf(fid, '%d %% dimensionality\n', numUsedFeatures);
-       for m=1:numUsedFeatures
+       fprintf(fid, '%d %% dimensionality\n', dimFeatures);
+       for m=1:dimFeatures
         fprintf(fid, '0.1 ');
        end
        fprintf(fid, '\n');
     end
     fprintf(fid, '\n');
     fprintf(fid, '%% Gaussian components\n');
-    fprintf(fid, 'MC_IN_FILE inline %d\n', numAngles);
-    for n=0:numAngles-1
-       fprintf(fid, '%d %d 0 gc%d %% num, dim, type, name\n', n, numUsedFeatures, n);
+    fprintf(fid, 'MC_IN_FILE inline %d\n', numAzimuths);
+    for n=0:numAzimuths-1
+       fprintf(fid, '%d %d 0 gc%d %% num, dim, type, name\n', n, dimFeatures, n);
        fprintf(fid, 'mean%d covar%d\n', n, n);
     end
     fprintf(fid, '\n');
     fprintf(fid, '%% Gaussian mixtures\n');
-    fprintf(fid, 'MX_IN_FILE inline %d\n', numAngles);
-    for n=0:numAngles-1
-       fprintf(fid, '%d %d gm%d 1 %% num, dim, name, num comp\n', n, numUsedFeatures, n);
+    fprintf(fid, 'MX_IN_FILE inline %d\n', numAzimuths);
+    for n=0:numAzimuths-1
+       fprintf(fid, '%d %d gm%d 1 %% num, dim, name, num comp\n', n, dimFeatures, n);
        fprintf(fid, 'mx%d gc%d\n', n, n);
     end
     fprintf(fid, '\n');
 
     % Print non-trainable params
-    print_non_trainable_params(fid, numAngles);
+    print_non_trainable_params(fid, numAzimuths);
     fclose(fid);
     
 end
@@ -139,19 +172,13 @@ function print_section_title(fid, txt)
     fprintf(fid, '%%-----------------------------------------\n');
 end
 
-function print_non_trainable_params(fid, numAngles)
+function print_non_trainable_params(fid, numAzimuths)
     print_section_title(fid, 'Name collections');
-    fprintf(fid, 'NAME_COLLECTION_IN_FILE inline 2\n');
-    fprintf(fid, '0 locationTable %% num, name\n');
-    fprintf(fid, '%d\n', numAngles);
-    loc_step = ceil(360/numAngles);
-    for loc=0:loc_step:360-loc_step
-       fprintf(fid, '%d ', loc);
-    end
-    fprintf(fid, '\n');
-    fprintf(fid, '1 colObs %% num, name\n');
-    fprintf(fid, '%d\n', numAngles);
-    for n=0:numAngles-1
+    fprintf(fid, 'NAME_COLLECTION_IN_FILE inline 1\n');
+    
+    fprintf(fid, '0 colObs %% num, name\n');
+    fprintf(fid, '%d\n', numAzimuths);
+    for n=0:numAzimuths-1
        fprintf(fid, 'gm%d ', n);
     end
     fprintf(fid, '\n');
