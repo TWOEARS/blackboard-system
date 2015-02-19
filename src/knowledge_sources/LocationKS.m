@@ -147,27 +147,38 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % Configuration
             % TODO: the number of festures is hardcoded at the moment, maybe we will
             % change this in the future
-            dimFeatures = 64; % nchannels * 2, see above.
+            % NM: dimFeatures can be obtained from obj.gmtkLoc.dimFeatures
+            %dimFeatures = 64; % nchannels * 2, see above. 
+            
             featureExt = 'htk';
             labelExt = 'lab';
             % Initialise GMTK engine
-            obj.gmtkLoc = gmtkEngine(obj.name, dimFeatures, obj.dataPath);
+            % NM: you have already instantialised a gmtkLoc in the
+            % constructor
+            % gmtkLoc = gmtkEngine(obj.name, dimFeatures, obj.dataPath);
             %gmtkLoc.workPath
+            
             % Generate GMTK parameters
             % Now need to create GM structure files (.str) and generate relevant GMTK
             % parameters, either manually or with generateGMTKParameters.
             % Finally, perform model triangulation.
-            generateGmtkParameters(obj, obj.gmtkLoc);
+            generateGmtkParameters(obj.gmtkLoc, numel(obj.angles));
             obj.gmtkLoc.triangulate;
             % Estimate GM parameters
-            mkdir(obj.gmtkLoc.workPath, 'flists');
+            % NM: trying to fix a bug for you ;)
+            flistPath = fullfile(obj.gmtkLoc.workPath, 'flists');
+            if ~exist(flistPath, 'dir')
+                mkdir(flistPath);
+            end
             trainFeatureList = fullfile(flistPath, 'train_features.flist');
             trainLabelList = fullfile(flistPath, 'train_labels.flist');
             fidObsList = fopen(trainFeatureList, 'w');
             fidLabList = fopen(trainLabelList, 'w');
             for n = 1:numel(obj.angles)
+                % NM: had to change the file name to be consistent with
+                % data generation routine
                 baseFileName = fullfile(obj.dataPath, obj.name, 'data', ...
-                                        sprintf('spatial_cues_angle%d', obj.angles(n)));
+                      sprintf('spatial_cues_angle%05.1f', obj.angles(n)));
                 featureFileName = sprintf('%s.%s', baseFileName, featureExt);
                 fprintf(fidObsList, '%s\n', featureFileName);
                 labelFileName = sprintf('%s.%s', baseFileName, labelExt);

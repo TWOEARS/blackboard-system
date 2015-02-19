@@ -213,8 +213,8 @@ classdef gmtkEngine < handle
                     fprintf(fid, '        -strFile %s \\\n', obj.gmStructTrainable);
                     fprintf(fid, '        -inputMasterFile %s \\\n', obj.inputMasterTrainable);
                     fprintf(fid, '        -outputTrainableParameters %s@D.gmp \\\n', obj.learedParams);
-                    fprintf(fid, '        -maxE 1 \\\n');
-                    fprintf(fid, '        -random F\n');
+                    %fprintf(fid, '        -varFloor 1e-5 \\\n');
+                    fprintf(fid, '        -maxE 5 \n');
                     fprintf(fid, '\n');
                     fclose(fid);
                     unix(['chmod a+x ' cmdfn]);
@@ -232,7 +232,7 @@ classdef gmtkEngine < handle
                         ' -strFile ', makeUnixPath(obj.gmStructTrainable), ...
                         ' -inputMasterFile ', makeUnixPath(obj.inputMasterTrainable), ...
                         ' -outputTrainableParameters ', makeUnixPath(obj.learedParams), '@D.gmp', ...
-                        ' -maxE 1 -random F"'];
+                        ' -maxE 5 -random F"'];
                     s = system(cmdfn);
                     if s ~= 0
                         error('Failed to train GM %s', obj.gmStructTrainable);
