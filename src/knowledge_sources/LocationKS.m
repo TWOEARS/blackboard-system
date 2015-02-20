@@ -119,7 +119,6 @@ classdef LocationKS < AuditoryFrontEndDepKS
             for n = 1:length(obj.angles)
                 fprintf('----- Calculating ITDs and ILDs at %.1f degrees\n', ...
                         obj.angles(n));
-                %sim.Sources{1}.Azimuth = obj.angles(n);
                 sim.Sources{1}.set('Azimuth', obj.angles(n));
                 sim.ReInit = true;
                 sim.Sources{1}.setData(trainSignal);
@@ -140,23 +139,18 @@ classdef LocationKS < AuditoryFrontEndDepKS
             sim.ShutDown = true;
         end
 
+        function obj = removeTrainingData(obj)
+            %removeTrainingData(obj) deletes all the data that was locally created by
+            %generateTrainingData(obj).
+        end
+
         function obj = train(obj)
             %train(obj) trains the locationKS using extracted ITDs and ILDs which are
             %stored in the Two!Ears database under learned_models/locationKS/ and GMTK
 
             % Configuration
-            % TODO: the number of festures is hardcoded at the moment, maybe we will
-            % change this in the future
-            % NM: dimFeatures can be obtained from obj.gmtkLoc.dimFeatures
-            %dimFeatures = 64; % nchannels * 2, see above. 
-            
             featureExt = 'htk';
             labelExt = 'lab';
-            % Initialise GMTK engine
-            % NM: you have already instantialised a gmtkLoc in the
-            % constructor
-            % gmtkLoc = gmtkEngine(obj.name, dimFeatures, obj.dataPath);
-            %gmtkLoc.workPath
             
             % Generate GMTK parameters
             % Now need to create GM structure files (.str) and generate relevant GMTK
@@ -165,7 +159,6 @@ classdef LocationKS < AuditoryFrontEndDepKS
             generateGmtkParameters(obj.gmtkLoc, numel(obj.angles));
             obj.gmtkLoc.triangulate;
             % Estimate GM parameters
-            % NM: trying to fix a bug for you ;)
             flistPath = fullfile(obj.gmtkLoc.workPath, 'flists');
             if ~exist(flistPath, 'dir')
                 mkdir(flistPath);
@@ -175,8 +168,6 @@ classdef LocationKS < AuditoryFrontEndDepKS
             fidObsList = fopen(trainFeatureList, 'w');
             fidLabList = fopen(trainLabelList, 'w');
             for n = 1:numel(obj.angles)
-                % NM: had to change the file name to be consistent with
-                % data generation routine
                 baseFileName = fullfile(obj.dataPath, obj.name, 'data', ...
                       sprintf('spatial_cues_angle%05.1f', obj.angles(n)));
                 featureFileName = sprintf('%s.%s', baseFileName, featureExt);
