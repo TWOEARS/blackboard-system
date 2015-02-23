@@ -30,7 +30,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 'cc_hSizeSec', 10E-3);
             requests.r{1} = 'ild';
             requests.p{1} = param;
-            requests.r{2} = 'itd_xcorr';
+            requests.r{2} = 'itd';
             requests.p{2} = param;
             requests.r{3} = 'time';
             requests.p{3} = param;
@@ -134,7 +134,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
                                            obj.auditoryFrontEndParameter);
                 auditoryFrontEnd.processSignal();
                 % Save binaural cues
-                itd = data.itd_xcorr{1}.Data(:)' .* 1000; % convert to ms
+                itd = data.itd{1}.Data(:)' .* 1000; % convert to ms
                 ild = data.ild{1}.Data(:)';
                 fileName = fullfile(dataFilesPath, ...
                                     sprintf('spatial_cues_angle%05.1f', obj.angles(n)));
