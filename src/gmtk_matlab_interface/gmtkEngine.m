@@ -10,7 +10,7 @@ classdef gmtkEngine < handle
         gmStructTrainable       % GM structure file for training
         inputMaster             % Input master file
         inputMasterTrainable    % Trainable input master file
-        learedParams            % Learned parameter file
+        learnedParams           % Learned parameter file
         outputCliqueFile        % Clique posterior output file
         dimFeatures             % dimension of feature observations
     end
@@ -114,8 +114,9 @@ classdef gmtkEngine < handle
             obj.gmStructTrainable = fullfile(obj.workPath, strcat(gmName, '_train.str'));
             obj.inputMaster = fullfile(obj.workPath, strcat(gmName, '.master'));
             obj.inputMasterTrainable = fullfile(obj.workPath, strcat(gmName, '_train.master'));
-            obj.learedParams = fullfile(obj.workPath, strcat(gmName, '_learned_params'));
-            obj.outputCliqueFile = fullfile(obj.workPath, strcat(gmName, '.post'));
+            obj.learnedParams = fullfile(obj.workPath, strcat(gmName, '_learned_params'));
+            obj.outputCliqueFile = fullfile(obj.workPath, ...
+                strcat('tempdata', filesep, gmName, '.post'));
         end
         function setGMTKPath(obj, gmtkPath)
             obj.gmtkPath = gmtkPath;
@@ -212,7 +213,7 @@ classdef gmtkEngine < handle
                     fprintf(fid, '        -of2 %s -ni2 1 -fmt2 ascii \\\n', trainLabelList);
                     fprintf(fid, '        -strFile %s \\\n', obj.gmStructTrainable);
                     fprintf(fid, '        -inputMasterFile %s \\\n', obj.inputMasterTrainable);
-                    fprintf(fid, '        -outputTrainableParameters %s@D.gmp \\\n', obj.learedParams);
+                    fprintf(fid, '        -outputTrainableParameters %s@D.gmp \\\n', obj.learnedParams);
                     %fprintf(fid, '        -varFloor 1e-5 \\\n');
                     fprintf(fid, '        -maxE 5 \n');
                     fprintf(fid, '\n');
@@ -231,7 +232,7 @@ classdef gmtkEngine < handle
                         ' -ni2 1 -fmt2 ascii -of2 ', makeUnixPath(trainLabelList), ...
                         ' -strFile ', makeUnixPath(obj.gmStructTrainable), ...
                         ' -inputMasterFile ', makeUnixPath(obj.inputMasterTrainable), ...
-                        ' -outputTrainableParameters ', makeUnixPath(obj.learedParams), '@D.gmp', ...
+                        ' -outputTrainableParameters ', makeUnixPath(obj.learnedParams), '@D.gmp', ...
                         ' -maxE 5 -random F"'];
                     s = system(cmdfn);
                     if s ~= 0
@@ -251,7 +252,7 @@ classdef gmtkEngine < handle
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
                     % Write jtcommand
-                    cmdfn = fullfile(obj.workPath, 'jtcommand');
+                    cmdfn = fullfile(obj.workPath, 'tempdata', filesep, 'jtcommand');
                     fid = fopen(cmdfn, 'w');
                     if fid < 0
                         error('Cannot open %s', cmdfn);
@@ -260,7 +261,7 @@ classdef gmtkEngine < handle
                     fprintf(fid, '%s -iswp1 -of1 %s -nf1 %d -fmt1 htk \\\n', obj.gmtkJT, featureList, obj.dimFeatures);
                     fprintf(fid, '        -strFile %s \\\n', obj.gmStruct);
                     fprintf(fid, '        -inputMasterFile %s \\\n', obj.inputMaster);
-                    fprintf(fid, '        -inputTrainableParameters %s.gmp \\\n', obj.learedParams);
+                    fprintf(fid, '        -inputTrainableParameters %s.gmp \\\n', obj.learnedParams);
                     fprintf(fid, '        -pCliquePrintRange %d \\\n', cliqueNo);
                     fprintf(fid, '        -cCliquePrintRange %d \\\n', cliqueNo);
                     fprintf(fid, '        -eCliquePrintRange %d \\\n', cliqueNo);
@@ -283,7 +284,7 @@ classdef gmtkEngine < handle
                         ' -nf1 ', num2str(obj.dimFeatures), ...
                         ' -strFile ', makeUnixPath(obj.gmStruct), ...
                         ' -inputMasterFile ', makeUnixPath(obj.inputMaster), ...
-                        ' -inputTrainableParameters ', makeUnixPath(obj.learedParams), '.gmp', ...
+                        ' -inputTrainableParameters ', makeUnixPath(obj.learnedParams), '.gmp', ...
                         ' -pCliquePrintRange ', num2str(cliqueNo), ...
                         ' -cCliquePrintRange ', num2str(cliqueNo), ...
                         ' -eCliquePrintRange ', num2str(cliqueNo), ...

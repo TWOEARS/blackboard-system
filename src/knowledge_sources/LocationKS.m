@@ -84,10 +84,6 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % Calculate posteriors of clique 0 (which contains RV:location)
             obj.gmtkLoc.infer(flist, 0);
 
-            % Delete the temporary flist
-            delete(htkfn),
-            delete(flist);
-            
             % Now if successful, posteriors are written in output files 
             % with an appendix of _0 for the first utterance
             post = load(strcat(obj.gmtkLoc.outputCliqueFile, '_0'));
@@ -101,7 +97,19 @@ classdef LocationKS < AuditoryFrontEndDepKS
             locHyp = LocationHypothesis(currentHeadOrientation, obj.angles, mean(post,1));
             obj.blackboard.addData( 'locationHypotheses', locHyp, false, obj.trigger.tmIdx );
             notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
-        end
+
+            % Delete the all temporary data
+            delete(htkfn);
+            delete(flist);
+            delete(fullfile(obj.tempPath, strcat(obj.name, '.post')));
+            delete(fullfile(obj.tempPath, strcat(obj.name, '.post_0')));
+            delete(fullfile(obj.tempPath, 'jtcommand'));
+            % FIXME: we cannot remove the temp dir at this position, because execute()
+            % will be called several times and the tempdir is needed, but only initialized
+            % at the creation time of LocationKS(). Is there a way to shutdown the KS at
+            % the end of the Blackboard session and remove the tempdir then?
+            %rmdir(obj.tempPath);
+         end
 
         function obj = generateTrainingData(obj)
             %generateTrainingData(obj) extracts ITDs and ILDs from using HRTF and the grid
