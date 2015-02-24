@@ -8,6 +8,10 @@ function displayLocalisationResults(perceivedLocations, sourceAzimuth)
 %       perceivedLocations   - as returned by Blackboard.getData('perceivedLocations')
 %       sourceAzimuth        - actual physical position of sound source
 
+if nargin<2
+    sourceAzimuth = NaN;
+end
+
 fprintf('\n------------------------------------------------------------------------------------\n');
 fprintf('Reference target angle: %d degrees\n', sourceAzimuth);
 fprintf('------------------------------------------------------------------------------------\n');
