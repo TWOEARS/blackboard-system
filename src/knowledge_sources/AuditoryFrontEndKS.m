@@ -36,7 +36,7 @@ classdef AuditoryFrontEndKS < AbstractKS
         %% constructor
         function obj = AuditoryFrontEndKS( robotInterfaceObj )
             obj = obj@AbstractKS();
-            dataObj = dataObject( [], robotInterfaceObj.SampleRate, obj.bufferSize_s, 1 );  % Last input (1) indicates a stereo signal
+            dataObj = dataObject( [], robotInterfaceObj.SampleRate, obj.bufferSize_s, 2 );  % Last input (2) indicates a stereo signal
             obj.managerObject = manager( dataObj );
             obj.robotInterfaceObj = robotInterfaceObj;
             obj.timeStep = obj.robotInterfaceObj.BlockSize / obj.robotInterfaceObj.SampleRate;
@@ -54,7 +54,7 @@ classdef AuditoryFrontEndKS < AbstractKS
             [signalFrame, processedTime] = obj.robotInterfaceObj.getSignal( obj.timeStep );
             
             % Two!Ears Auditory Front-End Processing
-            obj.managerObject.processChunk( double(signalFrame), 1 );  % process new data, append
+            obj.managerObject.processChunk( double(signalFrame), 1 );  % process new data, append (as indicated by 1)
             obj.blackboard.advanceSoundTimeIdx( processedTime );
             obj.blackboard.addData( ...
                 'headOrientation', mod( obj.robotInterfaceObj.getCurrentHeadOrientation(), 360 )...
