@@ -9,12 +9,12 @@ classdef LocationKS < AuditoryFrontEndDepKS
         angles;                % All azimuth angles to be considered
         tempPath;              % A path for temporary files
         dataPath = [xml.dbPath 'learned_models/LocationKS/'];
-        angularResolution = 1;
+        angularResolution = 1; % Default angular resolution is 1deg
         auditoryFrontEndParameter;
     end
     
     methods
-        function obj = LocationKS(gmName)
+        function obj = LocationKS(gmName, angularResolution)
             blocksize_s = 0.5;
             param = genParStruct(...
                 'fb_type', 'gammatone', ...
@@ -35,8 +35,11 @@ classdef LocationKS < AuditoryFrontEndDepKS
             requests.r{3} = 'time';
             requests.p{3} = param;
             obj = obj@AuditoryFrontEndDepKS( requests, blocksize_s );
-            obj.name = gmName;
             obj.auditoryFrontEndParameter = param;
+            obj.name = gmName;
+            if nargin>1
+                obj.angularResolution = angularResolution;
+            end
             dimFeatures = param.fb_nChannels * 2; % ITD + ILD
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures, obj.dataPath);
             obj.angles = 0:obj.angularResolution:(360-obj.angularResolution);
@@ -66,6 +69,24 @@ classdef LocationKS < AuditoryFrontEndDepKS
             itdsSObj = obj.getReqSignal( 2 );
             itds = itdsSObj.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )' .* 1000;
 
+            % Check if the trained data has the correct angular resolution
+            % The angular resolution of the trained data can be found in the corresponding
+            % *.str file. We first extract it from that file and compare it then to the
+            % angular resolution of the running LocationKS
+            strFile = fullfile(obj.gmtkLoc.workPath, strcat(obj.name, '.str'));
+            fid = fopen(strFile,'r');
+            strText = fscanf(fid,'%s');
+            fclose(fid);
+            % Find the position of the stored angular resolution and return number of
+            % stored angular values
+            nAngles = str2double(regexpi(strText, ...
+                'discretehiddencardinality([0-9]+);', 'tokens', 'once'));
+            trainedAngularResolution = 360/nAngles;
+            if trainedAngularResolution~=obj.angularResolution
+                error(['Your current angular resolution (%.1f) mismatches the ', ...
+                       'learned resolution (%.1f).'], obj.angularResolution, ...
+                       trainedAngularResolution);
+            end
             % Generate a temporary feature flist for GMTK
             featureBlock = [itds; ilds];
             if sum(sum( isnan( featureBlock ) + isinf( featureBlock ) )) > 0
@@ -117,7 +138,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             %model
             
             % Start simulator with corresponding localisation scene
-            sim = simulator.SimulatorConvexRoom(['learned_models/locationKS/' ...
+            sim = simulator.SimulatorConvexRoom(['learned_models/LocationKS/' ...
                                                  obj.name '.xml'], true);
             % Create data path
             mkdir(obj.dataPath,obj.name);
@@ -155,6 +176,17 @@ classdef LocationKS < AuditoryFrontEndDepKS
         function obj = removeTrainingData(obj)
             %removeTrainingData(obj) deletes all the data that was locally created by
             %generateTrainingData(obj).
+            if exist(fullfile(obj.gmtkLoc.workPath, 'data'),'dir')
+                rmdir(fullfile(obj.gmtkLoc.workPath, 'data'), 's');
+            end
+            if exist(fullfile(obj.gmtkLoc.workPath, 'flists'),'dir')
+                rmdir(fullfile(obj.gmtkLoc.workPath, 'flists'), 's');
+            end
+            delete(fullfile(obj.gmtkLoc.workPath, '*command'));
+            delete(fullfile(obj.gmtkLoc.workPath, '*_train*'));
+            delete(fullfile(obj.gmtkLoc.workPath, '*0.gmp'));
+            delete(fullfile(obj.gmtkLoc.workPath, '*1.gmp'));
+            delete(fullfile(obj.gmtkLoc.workPath, '*2.gmp'));
         end
 
         function obj = train(obj)
