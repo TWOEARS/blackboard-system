@@ -2,7 +2,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
     % LocationKS calculates posterior probabilities for each azimuth angle
     % and generates LocationHypothesis when provided with spatial 
     % observation
-    
+
     properties (SetAccess = private)
         name;                  % Name of LocationKS
         gmtkLoc;               % GMTK engine
@@ -12,7 +12,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
         angularResolution = 1; % Default angular resolution is 1deg
         auditoryFrontEndParameter;
     end
-    
+
     methods
         function obj = LocationKS(gmName, angularResolution)
             blocksize_s = 0.5;
@@ -34,7 +34,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             requests.p{2} = param;
             requests.r{3} = 'time';
             requests.p{3} = param;
-            obj = obj@AuditoryFrontEndDepKS( requests, blocksize_s );
+            obj = obj@AuditoryFrontEndDepKS(requests, blocksize_s);
             obj.auditoryFrontEndParameter = param;
             obj.name = gmName;
             if nargin>1
@@ -51,12 +51,12 @@ classdef LocationKS < AuditoryFrontEndDepKS
         end
         
         function [b, wait] = canExecute(obj)
-            signal = obj.getReqSignal( 3 );
+            signal = obj.getReqSignal(3);
             lEnergy = std( ...
-                signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
+                signal{1}.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger) ...
                 );
             rEnergy = std( ...
-                signal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
+                signal{2}.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger) ...
                 );
             
             b = (lEnergy + rEnergy >= 0.01);
@@ -64,10 +64,10 @@ classdef LocationKS < AuditoryFrontEndDepKS
         end
         
         function execute(obj)
-            ildsSObj = obj.getReqSignal( 1 );
-            ilds = ildsSObj.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )';
-            itdsSObj = obj.getReqSignal( 2 );
-            itds = itdsSObj.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )' .* 1000;
+            ildsSObj = obj.getReqSignal(1);
+            ilds = ildsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)';
+            itdsSObj = obj.getReqSignal(2);
+            itds = itdsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)' .* 1000;
 
             % Check if the trained data has the correct angular resolution
             % The angular resolution of the trained data can be found in the corresponding
@@ -87,10 +87,11 @@ classdef LocationKS < AuditoryFrontEndDepKS
                        'learned resolution (%.1f).'], obj.angularResolution, ...
                        trainedAngularResolution);
             end
+
             % Generate a temporary feature flist for GMTK
             featureBlock = [itds; ilds];
-            if sum(sum( isnan( featureBlock ) + isinf( featureBlock ) )) > 0
-                warning( 'LocKS: NaNs or Infs in feature block; aborting inference' );
+            if sum(sum( isnan(featureBlock) + isinf(featureBlock) )) > 0
+                warning('LocationKS: NaNs or Infs in feature block; aborting inference');
                 return;
             end
             [~,tmpfn] = fileparts(tempname);
@@ -108,16 +109,13 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % Now if successful, posteriors are written in output files 
             % with an appendix of _0 for the first utterance
             post = load(strcat(obj.gmtkLoc.outputCliqueFile, '_0'));
-            
-            %bar(obj.angles, mean(post,1))
-            %bar(mod(obj.angles+headRotation,360), mean(post,1));
-            
+
             % We simply take the average of posteriors across all the
             % samples for this block
-            currentHeadOrientation = obj.blackboard.getLastData( 'headOrientation' ).data;
+            currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             locHyp = LocationHypothesis(currentHeadOrientation, obj.angles, mean(post,1));
-            obj.blackboard.addData( 'locationHypotheses', locHyp, false, obj.trigger.tmIdx );
-            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+            obj.blackboard.addData('locationHypotheses', locHyp, false, obj.trigger.tmIdx);
+            notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
 
             % Delete the all temporary data
             delete(htkfn);
@@ -136,7 +134,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             %generateTrainingData(obj) extracts ITDs and ILDs from using HRTF and the grid
             %speech corpus. This data can then be used to train the GMTK localisation
             %model
-            
+
             % Start simulator with corresponding localisation scene
             sim = simulator.SimulatorConvexRoom(['learned_models/LocationKS/' ...
                                                  obj.name '.xml'], true);
@@ -196,7 +194,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % Configuration
             featureExt = 'htk';
             labelExt = 'lab';
-            
+
             % Generate GMTK parameters
             % Now need to create GM structure files (.str) and generate relevant GMTK
             % parameters, either manually or with generateGMTKParameters.
