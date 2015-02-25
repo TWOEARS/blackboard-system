@@ -27,7 +27,6 @@ classdef AuditoryFrontEndDepKS < AbstractKS
 
         function bEnergy = hasSignalEnergy(obj, signal)
             bEnergy = false;
-            length(signal)
             energy = 0;
             for ii=1:length(signal)
                 energy = energy + std(signal{1}.getSignalBlock(obj.blocksize_s, ...
