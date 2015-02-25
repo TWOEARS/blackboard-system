@@ -43,23 +43,16 @@ classdef IdentityKS < AuditoryFrontEndDepKS
         end
         
         %% execute functionality
-        function [b, wait] = canExecute( obj )
-            signal = obj.getReqSignal( length( obj.requests.r ) );
-            lEnergy = std( ...
-                signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
-                );
-            rEnergy = std( ...
-                signal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
-                );
-            
-            b = (lEnergy + rEnergy >= 0.01);
-            wait = false;
+        function [bExecute, bWait] = canExecute( obj )
+            signal = obj.getAuditoryFrontEndRequest( length( obj.requests.r ) );
+            bExecute = hasSignalEnergy(signal);
+            bWait = false;
         end
         
         function execute( obj )
             data = [];
             for z = 1:length( obj.requests.r ) - 1
-                reqSignal = obj.getReqSignal( z );
+                reqSignal = obj.getAuditoryFrontEndRequest( z );
                 convReqSignal = [];
                 convReqSignal.Data{1} = ...
                     reqSignal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger );

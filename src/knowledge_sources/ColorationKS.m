@@ -18,6 +18,8 @@ classdef ColorationKS < AuditoryFrontEndDepKS
                 'fb_lowFreqHz', 80, ...
                 'fb_highFreqHz', 20000, ...
                 'fb_nERBs', 1, ...
+                'ihc_method', 'breebart', ...
+                'adpt_model', 'adt_dau', ...
                 'rm_decaySec', 0, ...
                 'ild_wSizeSec', 20E-3, ...
                 'ild_hSizeSec', 10E-3, ...
@@ -25,7 +27,7 @@ classdef ColorationKS < AuditoryFrontEndDepKS
                 'rm_hSizeSec', 10E-3, ...
                 'cc_wSizeSec', 20E-3, ...
                 'cc_hSizeSec', 10E-3);
-            requests.r{1} = 'ild';
+            requests.r{1} = 'adaptation';
             requests.p{1} = param;
             requests.r{2} = 'itd';
             requests.p{2} = param;
@@ -43,24 +45,17 @@ classdef ColorationKS < AuditoryFrontEndDepKS
             end
             obj.invocationMaxFrequency_Hz = 2;
         end
-        
-        function [b, wait] = canExecute(obj)
-            signal = obj.getReqSignal( 3 );
-            lEnergy = std( ...
-                signal{1}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
-                );
-            rEnergy = std( ...
-                signal{2}.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )...
-                );
-            
-            b = (lEnergy + rEnergy >= 0.01);
-            wait = false;
+
+        function [bExecute, bWait] = canExecute(obj)
+            signal = obj.getAuditoryFrontEndRequest(3); % get time signal
+            bExecute = hasSignalEnergy(signal);
+            bWait = false;
         end
-        
+
         function execute(obj)
-            ildsSObj = obj.getReqSignal( 1 );
+            ildsSObj = obj.getAuditoryFrontEndRequest(1);
             ilds = ildsSObj.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )';
-            itdsSObj = obj.getReqSignal( 2 );
+            itdsSObj = obj.getAuditoryFrontEndRequest(2);
             itds = itdsSObj.getSignalBlock( obj.blocksize_s, obj.timeSinceTrigger )' .* 1000;
 
             % Generate a temporary feature flist for GMTK

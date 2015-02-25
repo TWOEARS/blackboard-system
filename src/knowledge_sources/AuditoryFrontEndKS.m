@@ -77,6 +77,9 @@ classdef AuditoryFrontEndKS < AbstractKS
             reqHash = AuditoryFrontEndKS.getRequestHash( request, rParams );
             obj.blackboard.addSignal( reqHash, reqSignal );
         end
-        
+
+       
     end
 end
+
+% vim: set sw=4 ts=4 et tw=90:

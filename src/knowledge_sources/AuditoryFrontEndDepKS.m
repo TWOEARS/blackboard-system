@@ -17,12 +17,27 @@ classdef AuditoryFrontEndDepKS < AbstractKS
             %TODO: remove processors and handles in bb
         end
     end
-    
+
     methods (Access = protected)
 
-        function reqSignal = getReqSignal( obj, reqIdx )
+        function reqSignal = getAuditoryFrontEndRequest( obj, reqIdx )
             reqHash = AuditoryFrontEndKS.getRequestHash( obj.requests.r{reqIdx}, obj.requests.p{reqIdx} );
             reqSignal = obj.blackboard.signals(reqHash);
         end
+
+        function bEnergy = hasSignalEnergy(obj, signal)
+            bEnergy = false;
+            length(signal)
+            energy = 0;
+            for ii=1:length(signal)
+                energy = energy + std(signal{1}.getSignalBlock(obj.blocksize_s, ...
+                                                               obj.timeSinceTrigger));
+            end
+            % FIXME: why we have chosen 0.01 as threshold?
+            bEnergy = (energy >= 0.01);
+        end
+
     end
 end
+
+% vim: set sw=4 ts=4 et tw=90:

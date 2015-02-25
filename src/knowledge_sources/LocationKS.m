@@ -49,24 +49,17 @@ classdef LocationKS < AuditoryFrontEndDepKS
             end
             obj.invocationMaxFrequency_Hz = 2;
         end
-        
-        function [b, wait] = canExecute(obj)
-            signal = obj.getReqSignal(3);
-            lEnergy = std( ...
-                signal{1}.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger) ...
-                );
-            rEnergy = std( ...
-                signal{2}.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger) ...
-                );
-            
-            b = (lEnergy + rEnergy >= 0.01);
-            wait = false;
+
+        function [bExecute, bWait] = canExecute(obj)
+            signal = obj.getAuditoryFrontEndRequest(3); % time signal
+            bExecute = obj.hasSignalEnergy(signal);
+            bWait = false;
         end
-        
+
         function execute(obj)
-            ildsSObj = obj.getReqSignal(1);
+            ildsSObj = obj.getAuditoryFrontEndRequest(1);
             ilds = ildsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)';
-            itdsSObj = obj.getReqSignal(2);
+            itdsSObj = obj.getAuditoryFrontEndRequest(2);
             itds = itdsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)' .* 1000;
 
             % Check if the trained data has the correct angular resolution
