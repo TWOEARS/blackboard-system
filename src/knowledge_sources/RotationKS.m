@@ -46,4 +46,4 @@ classdef RotationKS < AbstractKS
     end
 end
 
-% vim: set sw=4 ts=4 et tw=90 cc=+0:
+% vim: set sw=4 ts=4 et tw=90 cc=+1:
