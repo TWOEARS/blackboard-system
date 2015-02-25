@@ -60,7 +60,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
             ildsSObj = obj.getAuditoryFrontEndRequest(1);
             ilds = ildsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)';
             itdsSObj = obj.getAuditoryFrontEndRequest(2);
-            itds = itdsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)' .* 1000;
+            itds = itdsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)' .* ...
+                1000;
 
             % Check if the trained data has the correct angular resolution
             % The angular resolution of the trained data can be found in the corresponding
@@ -83,7 +84,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
 
             % Generate a temporary feature flist for GMTK
             featureBlock = [itds; ilds];
-            if sum(sum( isnan(featureBlock) + isinf(featureBlock) )) > 0
+            if sum(sum(isnan(featureBlock) + isinf(featureBlock))) > 0
                 warning('LocationKS: NaNs or Infs in feature block; aborting inference');
                 return;
             end
@@ -107,7 +108,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % samples for this block
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             locHyp = LocationHypothesis(currentHeadOrientation, obj.angles, mean(post,1));
-            obj.blackboard.addData('locationHypotheses', locHyp, false, obj.trigger.tmIdx);
+            obj.blackboard.addData('locationHypotheses', ...
+                locHyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
 
             % Delete the all temporary data
@@ -223,4 +225,4 @@ classdef LocationKS < AuditoryFrontEndDepKS
     end
 end
 
-% vim: set sw=4 ts=4 et tw=90:
+% vim: set sw=4 ts=4 et tw=90 cc=+0:

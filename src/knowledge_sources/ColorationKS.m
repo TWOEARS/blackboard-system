@@ -40,11 +40,12 @@ classdef ColorationKS < AuditoryFrontEndDepKS
             %   parallel
             % * both of them have to get the same commands for turning their head etc.
             error('ColorationKS functionality has to be implemented.');
-            obj.blackboard.addData( 'colorationHypotheses', colorationValue, false, obj.trigger.tmIdx );
-            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+            obj.blackboard.addData('colorationHypotheses', colorationValue, false, ...
+                obj.trigger.tmIdx);
+            notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
         end
 
     end
 end
 
-% vim: set sw=4 ts=4 et tw=90:
+% vim: set sw=4 ts=4 et tw=90 cc=+0:
