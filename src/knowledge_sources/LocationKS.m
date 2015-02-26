@@ -138,9 +138,10 @@ classdef LocationKS < AuditoryFrontEndDepKS
             mkdir([obj.dataPath filesep obj.name],'data');
             dataFilesPath = [obj.dataPath filesep obj.name filesep 'data'];
             % Read training data
-            trainSignal = readAudioFiles(['sound_databases/grid_subset/' ...
-                                          'training/training.wav'], ...
-                                         'Length', 5*44100);
+            trainSignal = normalise(randn(10*sim.SampleRate,1));
+            %trainSignal = readAudioFiles(['sound_databases/grid_subset/' ...
+            %                              'training/training.wav'], ...
+            %                             'Length', 5*44100);
             % Generate binaural cues
             obj.angles = 0:obj.angularResolution:(360-obj.angularResolution);
             for n = 1:length(obj.angles)
@@ -149,7 +150,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 sim.Sources{1}.set('Azimuth', obj.angles(n));
                 sim.ReInit = true;
                 sim.Sources{1}.setData(trainSignal);
-                sig = sim.getSignal(5*44100);
+                sig = sim.getSignal(10*sim.SampleRate);
                 % Compute binaural cues using the Auditory Front End
                 data = dataObject(sig, sim.SampleRate);
                 auditoryFrontEnd = manager(data, obj.requests.r, ...
