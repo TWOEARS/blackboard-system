@@ -34,6 +34,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
             requests.p{2} = param;
             requests.r{3} = 'time';
             requests.p{3} = param;
+            requests.r{4} = 'ic';
+            requests.p{4} = param;
             obj = obj@AuditoryFrontEndDepKS(requests, blocksize_s);
             obj.auditoryFrontEndParameter = param;
             obj.name = gmName;
@@ -62,6 +64,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
             itdsSObj = obj.getAuditoryFrontEndRequest(2);
             itds = itdsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)' .* ...
                 1000;
+            icsSObj = obj.getAuditoryFrontEndRequest(4);
+            ics = icsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)';
 
             % Check if the trained data has the correct angular resolution
             % The angular resolution of the trained data can be found in the corresponding
