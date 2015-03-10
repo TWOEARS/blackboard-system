@@ -49,7 +49,9 @@ for i=1:cyc;
   LP=Phd*L;
   MM=Phd-LP*inv(I+L'*LP)*LP';
 %  dM=sqrt(det(MM));
-  ldM=sum(log(diag(chol(MM))));
+  MM=nearestSPD(cov(MM));
+
+ldM=sum(log(diag(chol(MM))));
   beta=L'*MM;
   XXbeta=XX*beta';
   EZZ=I-beta*L +beta*XXbeta;
