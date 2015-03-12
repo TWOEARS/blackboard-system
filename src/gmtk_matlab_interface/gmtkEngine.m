@@ -4,6 +4,7 @@ classdef gmtkEngine < handle
     
     properties (GetAccess = public, SetAccess = private)
         workPath                % GMTK working path
+        tempPath                % GMTK temporary files path
         cygwinPath              % Path to CYGWIN binaries (Windows only)
         gmName                  % Name of current GM
         gmStruct                % GM structure file
@@ -109,14 +110,25 @@ classdef gmtkEngine < handle
                     error('Current OS is not supportet.');
             end
             
+            % Temporary path
+            % FIXME: in the long run it would be maybe better to only use Matlabs
+            % tempdir() function for creating a tmp dir. The problem is that at the moment 
+            % the directory will not be removed after finishing the Blackboard session and 
+            % it is maybe also of interest to easily find the tmp file corresponding to a  
+            % used GMTK learned data dir.
+            [~, randomString] = fileparts(tempname);
+            obj.tempPath = fullfile(obj.workPath, randomString);
+            if ~exist(obj.tempPath, 'dir')
+                mkdir(obj.tempPath);
+            end
+
             % Set a few file names
             obj.gmStruct = fullfile(obj.workPath, strcat(gmName, '.str'));
             obj.gmStructTrainable = fullfile(obj.workPath, strcat(gmName, '_train.str'));
             obj.inputMaster = fullfile(obj.workPath, strcat(gmName, '.master'));
             obj.inputMasterTrainable = fullfile(obj.workPath, strcat(gmName, '_train.master'));
             obj.learnedParams = fullfile(obj.workPath, strcat(gmName, '_learned_params'));
-            obj.outputCliqueFile = fullfile(obj.workPath, ...
-                strcat('tempdata', filesep, gmName, '.post'));
+            obj.outputCliqueFile = fullfile(obj.tempPath, strcat(gmName, '.post'));
         end
         function setGMTKPath(obj, gmtkPath)
             obj.gmtkPath = gmtkPath;
@@ -252,7 +264,7 @@ classdef gmtkEngine < handle
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
                     % Write jtcommand
-                    cmdfn = fullfile(obj.workPath, 'tempdata', filesep, 'jtcommand');
+                    cmdfn = fullfile(obj.tempPath, 'jtcommand');
                     fid = fopen(cmdfn, 'w');
                     if fid < 0
                         error('Cannot open %s', cmdfn);
