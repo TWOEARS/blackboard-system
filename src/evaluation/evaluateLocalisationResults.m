@@ -22,7 +22,7 @@ end
 % Use three time blocks
 nBlocks = min(length(perceivedLocations)-1, 3);
 if nBlocks == 0
-    idx = 1;
+    idx = 0;
 else
     % Sort, starting with the highest score
     [~, idx] = sort(score(2:end), 'descend');
