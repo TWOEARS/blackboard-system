@@ -45,10 +45,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             dimFeatures = param.fb_nChannels * 2; % ITD + ILD
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures, obj.dataPath);
             obj.angles = 0:obj.angularResolution:(360-obj.angularResolution);
-            obj.tempPath = fullfile(obj.gmtkLoc.workPath, 'tempdata');
-            if ~exist(obj.tempPath, 'dir')
-                mkdir(obj.tempPath);
-            end
+            obj.tempPath = obj.gmtkLoc.tempPath;
             obj.invocationMaxFrequency_Hz = 2;
         end
 
@@ -92,6 +89,14 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 warning('LocationKS: NaNs or Infs in feature block; aborting inference');
                 return;
             end
+            % FIXME: the following is a workaround, as the tmp dir is deleted at the
+            % moment after every execution of LocationKS, but only created once at the
+            % instanciation of the gmtkEngine. In the long run it should only
+            % be deleted at the end of the Blackboard execution, when the agenda of the
+            % Blackboard is empty.
+            if ~exist(obj.tempPath, 'dir')
+                mkdir(obj.tempPath);
+            end
             [~,tmpfn] = fileparts(tempname);
             tmpfn = fullfile(obj.tempPath, tmpfn);
             htkfn = strcat(tmpfn, '.htk');
@@ -126,8 +131,14 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % will be called several times and the tempdir is needed, but only initialized
             % at the creation time of LocationKS(). Is there a way to shutdown the KS at
             % the end of the Blackboard session and remove the tempdir then?
-            %rmdir(obj.tempPath);
-         end
+            % See also the FIXME entry above
+            rmdir(obj.tempPath);
+        end
+
+        function cleanup(obj)
+            % Clean up after the last execution of the KS and remove temporary directory
+            rmdir(obj.tempPath);
+        end
 
         function obj = generateTrainingData(obj)
             %generateTrainingData(obj) extracts ITDs and ILDs from using HRTF and the grid
