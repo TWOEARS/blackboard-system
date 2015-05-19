@@ -151,7 +151,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
             %model
 
             % Start simulator with corresponding localisation scene
-            sim = simulator.SimulatorConvexRoom(['learned_models/LocationKS/' ...
+            sim = simulator.SimulatorConvexRoom(['learned_models' filesep ...
+                                                 'LocationKS' filesep ...
                                                  obj.name '.xml'], true);
             % Create data path
             mkdir(obj.dataPath,obj.name);
