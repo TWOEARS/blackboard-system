@@ -8,7 +8,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
         gmtkLoc;               % GMTK engine
         angles;                % All azimuth angles to be considered
         tempPath;              % A path for temporary files
-        dataPath = [xml.dbPath 'learned_models/LocationKS/'];
+        dataPath = [xml.dbPath 'learned_models' filesep 'LocationKS' filesep];
         angularResolution = 1; % Default angular resolution is 1deg
         auditoryFrontEndParameter;
     end

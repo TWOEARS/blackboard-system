@@ -55,29 +55,20 @@ classdef gmtkEngine < handle
                         error('Cannot find %s', obj.gmtkJT);
                     end
                     
-                    obj.gmName = gmName;
-                    obj.dimFeatures = dimFeatures;
-                    
-                    % Create a working folder for GMTK
-                    obj.workPath = strcat(gmName);
-                    if ~isempty(workPath)
-                        obj.workPath = fullfile(workPath, obj.workPath);
-                    end
-                    if ~exist(obj.workPath, 'dir')
-                        [success, message] = mkdir(obj.workPath);
-                        if ~success
-                            error(message);
-                        end
-                    end
-                    
                 case 'PCWIN64'
                     % Specify path to Cygwin environment
-                    if nargin < 4
+                    if nargin < 3
+                        workPath = [];
+                    end
+                    if ~isempty(workPath) && ~exist(workPath, 'dir')
+                        error('workPath %s does not exist!', workPath);
+                    end
+                    if nargin < 5
                         cygwinPath = 'c:\cygwin64\bin\';
                     end
                     obj.cygwinPath = cygwinPath;
                     
-                    if nargin < 3
+                    if nargin < 4
                         gmtkPath = 'c:\cygwin64\usr\local\bin\';
                     end
                     obj.gmtkPath = gmtkPath;
@@ -95,19 +86,23 @@ classdef gmtkEngine < handle
                         error('Cannot find %s', obj.gmtkJT);
                     end
                     
-                    obj.gmName = gmName;
-                    obj.dimFeatures = dimFeatures;
-                    
-                    % Create a working folder for GMTK
-                    obj.workPath = [pwd, strcat('\', gmName)];
-                    if ~exist(obj.workPath, 'dir')
-                        [success, message] = mkdir(obj.workPath);
-                        if ~success
-                            error(message);
-                        end
-                    end
                 otherwise
                     error('Current OS is not supportet.');
+            end
+            
+            obj.gmName = gmName;
+            obj.dimFeatures = dimFeatures;
+            
+            % Create a working folder for GMTK
+            obj.workPath = gmName;
+            if ~isempty(workPath)
+                obj.workPath = fullfile(workPath, obj.workPath);
+            end
+            if ~exist(obj.workPath, 'dir')
+                [success, message] = mkdir(obj.workPath);
+                if ~success
+                    error(message);
+                end
             end
             
             % Temporary path
