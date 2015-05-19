@@ -48,6 +48,10 @@ classdef LocationKS < AuditoryFrontEndDepKS
             obj.tempPath = obj.gmtkLoc.tempPath;
             obj.invocationMaxFrequency_Hz = 2;
         end
+        
+        function delete(obj)
+            disp( 'LocationKS delete' );
+        end
 
         function [bExecute, bWait] = canExecute(obj)
             signal = obj.getAuditoryFrontEndRequest(3); % time signal
@@ -132,6 +136,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % at the creation time of LocationKS(). Is there a way to shutdown the KS at
             % the end of the Blackboard session and remove the tempdir then?
             % See also the FIXME entry above
+            % TODO: put into deconstructor.
             rmdir(obj.tempPath);
         end
 
