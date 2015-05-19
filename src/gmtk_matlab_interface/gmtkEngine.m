@@ -106,13 +106,6 @@ classdef gmtkEngine < handle
             end
 
             % Temporary path
-            % FIXME: in the long run it would be maybe better to only use Matlabs
-            % tempdir() function for creating a tmp dir. The problem is that at the moment 
-            % the directory will not be removed after finishing the Blackboard session and 
-            % it is maybe also of interest to easily find the tmp file corresponding to a  
-            % used GMTK learned data dir.
-            %[~, randomString] = fileparts(tempname);
-            %obj.tempPath = fullfile(obj.workPath, randomString);
             obj.tempPath = tempname;
             if ~exist(obj.tempPath, 'dir')
                 mkdir(obj.tempPath);
