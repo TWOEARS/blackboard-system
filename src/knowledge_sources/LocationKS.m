@@ -15,7 +15,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
 
     methods
         function obj = LocationKS(gmName, angularResolution)
-            param = genParStruct( ...
+            param = genParStruct(...
                 'fb_type', 'gammatone', ...
                 'fb_lowFreqHz', 80, ...
                 'fb_highFreqHz', 8000, ...
@@ -42,14 +42,22 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 obj.angularResolution = angularResolution;
             end
             dimFeatures = param.fb_nChannels * 2; % ITD + ILD
+            % The following creates an GMTK object that is used for localization
+            % For GMTK (Graphical Models Toolkit) see:
+            % http://melodi.ee.washington.edu/gmtk/
             obj.gmtkLoc = gmtkEngine(gmName, dimFeatures, obj.dataPath);
             obj.angles = 0:obj.angularResolution:(360-obj.angularResolution);
+            % The GMTK construction also creates a tmp dir under your system temporary
+            % folder which will contain tmp files GMTK needs for its processing. Those
+            % files will be deleted when this knowledge source is deconstructed (see
+            % delete() method).
             obj.tempPath = obj.gmtkLoc.tempPath;
             obj.invocationMaxFrequency_Hz = 2;
         end
-        
+
         function delete(obj)
-            %disp( 'LocationKS delete' );
+            % Clean up after ending this knowledge source
+            rmdir(obj.tempPath, 's');
         end
 
         function [bExecute, bWait] = canExecute(obj)
@@ -125,25 +133,6 @@ classdef LocationKS < AuditoryFrontEndDepKS
             obj.blackboard.addData('locationHypotheses', ...
                 locHyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
-
-            % Delete the all temporary data
-            delete(htkfn);
-            delete(flist);
-            delete(fullfile(obj.tempPath, strcat(obj.name, '.post')));
-            delete(fullfile(obj.tempPath, strcat(obj.name, '.post_0')));
-            delete(fullfile(obj.tempPath, 'jtcommand'));
-            % FIXME: we cannot remove the temp dir at this position, because execute()
-            % will be called several times and the tempdir is needed, but only initialized
-            % at the creation time of LocationKS(). Is there a way to shutdown the KS at
-            % the end of the Blackboard session and remove the tempdir then?
-            % See also the FIXME entry above
-            % TODO: put into deconstructor.
-            rmdir(obj.tempPath);
-        end
-
-        function cleanup(obj)
-            % Clean up after the last execution of the KS and remove temporary directory
-            rmdir(obj.tempPath);
         end
 
         function obj = generateTrainingData(obj)
@@ -152,7 +141,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
             %model
 
             % Start simulator with corresponding localisation scene
-            sim = simulator.SimulatorConvexRoom(['learned_models/LocationKS/' ...
+            sim = simulator.SimulatorConvexRoom(['learned_models' filesep ...
+                                                 'LocationKS' filesep ...
                                                  obj.name '.xml'], true);
             % Create data path
             mkdir(obj.dataPath,obj.name);
