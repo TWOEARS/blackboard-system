@@ -10,14 +10,12 @@ classdef LocationKS < AuditoryFrontEndDepKS
         tempPath;              % A path for temporary files
         dataPath = [xml.dbPath 'learned_models' filesep 'LocationKS' filesep];
         angularResolution = 1; % Default angular resolution is 1deg
-        auditoryFrontEndParameter;
         blocksize_s;
     end
 
     methods
         function obj = LocationKS(gmName, angularResolution)
-            obj.blocksize_s = 0.5;
-            param = genParStruct(...
+            param = genParStruct( ...
                 'fb_type', 'gammatone', ...
                 'fb_lowFreqHz', 80, ...
                 'fb_highFreqHz', 8000, ...
@@ -29,16 +27,16 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 'rm_hSizeSec', 10E-3, ...
                 'cc_wSizeSec', 20E-3, ...
                 'cc_hSizeSec', 10E-3);
-            requests.r{1} = 'ild';
-            requests.p{1} = param;
-            requests.r{2} = 'itd';
-            requests.p{2} = param;
-            requests.r{3} = 'time';
-            requests.p{3} = param;
-            requests.r{4} = 'ic';
-            requests.p{4} = param;
+            requests{1}.name = 'ild';
+            requests{1}.params = param;
+            requests{2}.name = 'itd';
+            requests{2}.params = param;
+            requests{3}.name = 'time';
+            requests{3}.params = param;
+            requests{4}.name = 'ic';
+            requests{4}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
-            obj.auditoryFrontEndParameter = param;
+            obj.blocksize_s = 0.5;
             obj.name = gmName;
             if nargin>1
                 obj.angularResolution = angularResolution;
@@ -51,12 +49,13 @@ classdef LocationKS < AuditoryFrontEndDepKS
         end
         
         function delete(obj)
-            disp( 'LocationKS delete' );
+            %disp( 'LocationKS delete' );
         end
 
         function [bExecute, bWait] = canExecute(obj)
-            signal = obj.getAuditoryFrontEndRequest(3); % time signal
-            bExecute = obj.hasSignalEnergy(signal, obj.blocksize_s, obj.timeSinceTrigger);
+            afeData = obj.getAFEdata();
+            timeSObj = afeData('time');
+            bExecute = hasSignalEnergy(timeSObj, obj.blocksize_s, obj.timeSinceTrigger);
             bWait = false;
         end
 
@@ -67,7 +66,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             itdsSObj = afeData('itd');
             itds = itdsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)' .* ...
                 1000;
-            icsSObj = obj.getAuditoryFrontEndRequest(4);
+            icsSObj = afeData('ic');
             ics = icsSObj.getSignalBlock(obj.blocksize_s, obj.timeSinceTrigger)';
 
             % Check if the trained data has the correct angular resolution
@@ -175,8 +174,10 @@ classdef LocationKS < AuditoryFrontEndDepKS
                 sig = sim.getSignal(10*sim.SampleRate);
                 % Compute binaural cues using the Auditory Front End
                 data = dataObject(sig, sim.SampleRate);
-                auditoryFrontEnd = manager(data, obj.requests.r, ...
-                                           obj.auditoryFrontEndParameter);
+                auditoryFrontEnd = manager(data);
+                for z = 1:length( obj.requests )
+                    auditoryFrontEnd.addProcessor( obj.requests{z}.name, obj.requests{z}.params );
+                end
                 auditoryFrontEnd.processSignal();
                 % Save binaural cues
                 itd = data.itd{1}.Data(:)' .* 1000; % convert to ms
