@@ -136,14 +136,10 @@ classdef BlackboardSystem < handle
         end
         
         %% Plot AFE cues
-        function plotAFEdata(name)
+        function plotAFEdata(obj, name)
             data = obj.dataConnect.managerObject.Data;
             cue = getfield(data,name);
-            if length(cue)==1
-                cue.plot;
-            else
-                cue{1}.plot;
-            end
+            cue{1}.plot;
         end
 
         %% System Execution
