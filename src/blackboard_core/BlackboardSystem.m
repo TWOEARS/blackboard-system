@@ -135,9 +135,18 @@ classdef BlackboardSystem < handle
             n = length( obj.blackboard.KSs );
         end
         
+        %% Plot AFE cues
+        function plotAFEdata(name)
+            data = obj.dataConnect.managerObject.Data;
+            cue = getfield(data,name);
+            if length(cue)==1
+                cue.plot;
+            else
+                cue{1}.plot;
+            end
+        end
 
         %% System Execution
-        
         function run( obj )
             while ~obj.robotConnect.isFinished()
                 obj.scheduler.processAgenda();
