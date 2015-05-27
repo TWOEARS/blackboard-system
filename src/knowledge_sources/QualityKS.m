@@ -8,30 +8,30 @@ classdef QualityKS < AuditoryFrontEndDepKS
 
     properties (SetAccess = private)
         auditoryFrontEndParameter;
+        blocksize_s;
     end
 
     methods
         function obj = QualityKS()
             % TODO: check what a meaningful block size looks like for quality
-            blocksize_s = 0.5;
+            obj.blocksize_s = 0.5;
             param = genParStruct( ...
                 'fb_type', 'gammatone', ...
                 'fb_lowFreqHz', 80, ...
                 'fb_highFreqHz', 20000, ...
-                'fb_nERBs', 1, ...
-                'ihc_method', 'breebart', ...
-                'adpt_model', 'adt_dau');
-            requests.r{1} = 'filterbank';
-            requests.p{1} = param;
-            requests.r{2} = 'time';
-            requests.p{2} = param;
-            obj = obj@AuditoryFrontEndDepKS(requests, blocksize_s);
+                'fb_nERBs', 1);
+            requests{1}.name = 'filterbank';
+            requests{1}.params = param;
+            requests{2}.name = 'time';
+            requests{2}.params = param;
+            obj = obj@AuditoryFrontEndDepKS(requests);
             obj.auditoryFrontEndParameter = param;
         end
 
         function [bExecute, bWait] = canExecute(obj)
-            signal = obj.getAuditoryFrontEndRequest(2); % get time signal
-            bExecute = hasSignalEnergy(signal);
+            afeData = obj.getAFEdata();
+            timeSObj = afeData('time');
+            bExecute = hasSignalEnergy(timeSObj, obj.blocksize_s, obj.timeSinceTrigger);
             bWait = false;
         end
 
