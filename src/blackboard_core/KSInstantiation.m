@@ -2,19 +2,17 @@ classdef KSInstantiation < handle
     
     properties (SetAccess = private)
         ks;            % Triggered knowledge source
-        rank;          % Importance rank of KSs between [0 100]
+        triggerSndTimeIdx;
+        triggerSrc;
+        eventName;
     end
     
     methods
-        function obj = KSInstantiation(ks, rank)
+        function obj = KSInstantiation( ks, triggerSoundTimeIdx, triggerSource, eventName )
             obj.ks = ks;
-            if nargin < 2
-                rank = 0;
-            end
-            obj.rank = rank;
-        end
-        function setRank(obj, rank)
-            obj.rank = rank;
+            obj.triggerSndTimeIdx = triggerSoundTimeIdx;
+            obj.triggerSrc = triggerSource;
+            obj.eventName = eventName;
         end
     end
     

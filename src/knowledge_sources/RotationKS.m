@@ -1,40 +1,32 @@
 classdef RotationKS < AbstractKS
     % RotationKS decides how much to rotate the robot head
-    
+
     properties (SetAccess = private)
         rotationScheduled = false;    % To avoid repetitive head rotations
         robot;                        % Reference to a robot object
-        activeIndex = 0;              % Index of the new confusion hypothesis
     end
-    
+
     methods
-        function obj = RotationKS(blackboard, robot)
-            obj = obj@AbstractKS(blackboard);
+        function obj = RotationKS(robot)
+            obj = obj@AbstractKS();
+            obj.invocationMaxFrequency_Hz = inf;
             obj.robot = robot;
         end
-        function setActiveArgument(obj, arg)
-            obj.activeIndex = arg;
-        end
-        function b = canExecute(obj)
+
+        function [b, wait] = canExecute(obj)
             b = false;
-            if obj.activeIndex < 1
-                return
-            end
-            if obj.rotationScheduled
-                b = false;
-            else
+            wait = false;
+            if ~obj.rotationScheduled
                 b = true;
                 obj.rotationScheduled = true;
             end
         end
+
         function execute(obj)
-            if obj.blackboard.verbosity > 0
-                fprintf('-------- RotationKS has fired. ');
-            end
-            
             % Workout the head rotation angle so that the head will face
             % the most likely source location.
-            locHyp = obj.blackboard.confusionHypotheses(obj.activeIndex);
+            locHyp = obj.blackboard.getData('confusionHypotheses', ...
+                obj.trigger.tmIdx).data;
             [~,idx] = max(locHyp.posteriors);
             maxAngle = locHyp.locations(idx);
             if maxAngle <= 180
@@ -42,17 +34,16 @@ classdef RotationKS < AbstractKS
             else
                 headRotateAngle = maxAngle - 360;
             end
-            
-            obj.blackboard.adjustHeadOrientation(headRotateAngle);
-            
+
             % Rotate head with a relative angle
             obj.robot.rotateHead(headRotateAngle);
-            
+
             if obj.blackboard.verbosity > 0
-                fprintf('New head orientation is %d degrees\n', obj.blackboard.headOrientation);
+                fprintf('Commanded head to rotate about %d degrees\n', headRotateAngle);
             end
             obj.rotationScheduled = false;
-            obj.blackboard.setReadyForNextBlock(true);
         end
     end
 end
+
+% vim: set sw=4 ts=4 et tw=90 cc=+1:

@@ -1,91 +1,138 @@
 classdef BlackboardMonitor < handle
-    %AgendaManager   
+    %AgendaManager
     %   Detailed explanation goes here
-
+    
+    properties (SetAccess = {?Scheduler, ?BlackboardSystem})
+        pastAgenda;             % executed KSIs
+        agenda;                 % to be executed KSIs
+        executing;              % currently executing KSI
+    end
     properties (SetAccess = private)
-        agenda;                % Agenda contains KSIs
-        eventRegister;         % A register mapping an event to one or more KSs
+        listeners;
+        boundFromRegister;
         blackboard;
     end
     
     methods(Static)
-        function n = rankKS(ks)
-            mc = metaclass(ks);
-            switch mc.Name;
-                case 'SignalBlockKS'
-                    n = 10;
-                case 'PeripheryKS'
-                    n = 10;
-                case 'AcousticCuesKS'
-                    n = 10;
-                case 'LocationKS'
-                	n = 20;
-                case 'IdentityKS'
-                	n = 15;
-                case 'ConfusionKS'
-                	n = 30;
-                case 'RotationKS'
-                	n = 40;
-                case 'ConfusionSolvingKS'
-                	n = 50;
-                otherwise
-                    n = 20;
-            end
-        end
     end
     
     methods
         function obj = BlackboardMonitor(bb)
-            obj.eventRegister = containers.Map;
+            obj.listeners = {};
+            obj.boundFromRegister = {};
             obj.blackboard = bb;
+            obj.pastAgenda = KSInstantiation.empty;
+            obj.agenda = KSInstantiation.empty;
         end
         
-        function registerEvent(obj, eventName, varargin)
-            if ~obj.eventRegister.isKey(eventName)
-                addlistener(obj.blackboard, eventName, @obj.handleEvent);
-                obj.eventRegister(eventName) = varargin;
-            else
-                obj.eventRegister(eventName) = [obj.eventRegister(eventName) varargin];
+        
+        %% function bind( obj, sources, sinks, allowDoubleTriggerings, eventName )
+        %   binds each source KSs to each sink KSs by means of events.
+        %   default behavior -> src event 'KsFiredEvent' triggers the sink KS.
+        %
+        %   sources:    cell array of source KSs
+        %   sinks:      cell array of sink KSs
+        %   [addMode]:      how to behave in case of a triggering already
+        %                   being in the agenda.
+        %                   'add': (default) add the triggering to anyways
+        %                   'replaceOld': replace an older triggering
+        %                   'replaceParallel': replace an triggering of a
+        %                       "parallel" trigger KS at the same time
+        %                   'replaceParallelOld': replace an triggering of a
+        %                       "parallel" trigger KS at the same or earlier time
+        %   [eventName]:    the name of the event of the src KSs that 
+        %                   triggers the sink KSs. Default: 'KsFiredEvent'                               
+        function bind( obj, sources, sinks, addMode, eventName )
+            if nargin < 4, addMode = 'add'; end;
+            if nargin < 5, eventName = 'KsFiredEvent'; end;
+            for src = sources
+                src = src{1};
+                for snk = sinks
+                    snk = snk{1};
+                    switch addMode
+                        case 'add'
+                            triggerDuplicate = @(ksi,t)(false);
+                        case 'replaceOld'
+                            triggerDuplicate = @(ksi,t)(...
+                                ksi.ks == snk  && ...
+                                ksi.triggerSrc == src  && ...
+                                strcmp( ksi.eventName, eventName ) );
+                        case 'replaceParallel'
+                            triggerDuplicate = @(ksi,t)(...
+                                ksi.ks == snk  && ...
+                                ismember(ksi.triggerSrc, [sources{:}])  && ...
+                                strcmp( ksi.eventName, eventName )  && ...
+                                ksi.triggerSndTimeIdx == t);
+                        case 'replaceParallelOld'
+                            triggerDuplicate = @(ksi,t)(...
+                                ksi.ks == snk  && ...
+                                ismember(ksi.triggerSrc, [sources{:}])  && ...
+                                strcmp( ksi.eventName, eventName ) );
+                    end
+                    obj.listeners{end+1} = addlistener( src, eventName, ...
+                        @(evntSrc, evnt)(obj.handleBinding( evntSrc, evnt, snk, triggerDuplicate ) ) );
+                    if ~isempty(obj.boundFromRegister)
+                        snkIdxInBindRegister = cellfun(@(a)(eq(a,snk)),obj.boundFromRegister(:,1));
+                    else
+                        snkIdxInBindRegister = 0;
+                    end
+                    if sum( snkIdxInBindRegister ) == 0
+                        obj.boundFromRegister{end+1,1} = snk;
+                        obj.boundFromRegister{end,2} = src;
+                    else
+                        obj.boundFromRegister{snkIdxInBindRegister,2} = ...
+                            [obj.boundFromRegister{snkIdxInBindRegister,2}, src];
+                    end
+                end
             end
         end
         
-        function addKSI(obj, ks)
-            ksi = KSInstantiation(ks);
-            obj.agenda = [obj.agenda ksi];
-        end
-        
-        function handleEvent(obj, src, evnt)
-            
+        %% handleBinding -- used internally to handle triggerings.
+        function handleBinding(obj, evntSource, evnt, evntSink, triggerDuplicate )
             if obj.blackboard.verbosity > 0
-                fprintf('\n-------- [New Event] %s\n', evnt.EventName);
+                fprintf( ['-------- [Event Fired:] ',...
+                    '%s -> (%s) -> %s\n'],...
+                    char(evntSource), evnt.EventName, char(evntSink) );
             end
-            
-            if ~obj.eventRegister.isKey(evnt.EventName)
-                error('Unknown event in handleBlackboardEvent: %s', evnt.EventName);
+            if isa( evnt, 'BlackboardEventData' )
+                evntTmIdx = evnt.data;
+            else
+                evntTmIdx = obj.blackboard.currentSoundTimeIdx;
             end
-            ksList = obj.eventRegister(evnt.EventName);
-            if length(ksList) < 1
-                return;
+            newKsi = KSInstantiation( evntSink, evntTmIdx, evntSource, evnt.EventName );
+            ksiAlreadyTriggered = arrayfun( ...
+                @(ksi)( triggerDuplicate( ksi, evntTmIdx ) ),...
+                obj.agenda );
+            if sum( ksiAlreadyTriggered ) > 0
+                obj.agenda(ksiAlreadyTriggered) = newKsi;
+            else
+                obj.agenda(end+1) = newKsi;
             end
-            % When several KSs should be triggered for an event, we sort
-            % them based on importance ranking
-            ranks = zeros(length(ksList));
-            for n = 1:length(ksList)
-                ks = ksList{n};
-                ranks(n) = obj.rankKS(ks);
-            end
-            [~,idx] = sort(ranks, 'descend');
-            sortedList = ksList(idx);
-            for n = 1:length(sortedList)
-                ks = sortedList{n};
-                if isa(evnt,'BlackboardEventData')
-                    ks.setActiveArgument(evnt.data);
-                end
-                if ks.canExecute
-                    obj.addKSI(ks);
+        end
+        
+        %%
+        %   ks:     handle of KS that shall be focused on
+        %   [propagateDown]:    if 1, KSs that ks depends on are also put
+        %                       into focus
+        function focusOn( obj, ks, propagateDown )
+            if nargin < 3, propagateDown = 0; end;
+            ks.focus();
+            if propagateDown
+                snkIdxInBindRegister = cellfun(@(a)(eq(a,ks)),obj.boundFromRegister(:,1));
+                if sum( snkIdxInBindRegister ) >= 1
+                    for boundFromKs = obj.boundFromRegister{snkIdxInBindRegister,2}
+                        if isa( boundFromKs, 'AbstractKS' ), obj.focusOn( boundFromKs, 1 ); end;
+                    end
                 end
             end
         end
+
+        function resetFocus( obj )
+            for ks = obj.blackboard.KSs
+                ks{1}.resetFocus();
+            end
+        end
+        
     end
     
 end

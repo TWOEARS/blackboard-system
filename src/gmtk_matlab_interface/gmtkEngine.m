@@ -4,13 +4,14 @@ classdef gmtkEngine < handle
     
     properties (GetAccess = public, SetAccess = private)
         workPath                % GMTK working path
+        tempPath                % GMTK temporary files path
         cygwinPath              % Path to CYGWIN binaries (Windows only)
         gmName                  % Name of current GM
         gmStruct                % GM structure file
         gmStructTrainable       % GM structure file for training
         inputMaster             % Input master file
         inputMasterTrainable    % Trainable input master file
-        learedParams            % Learned parameter file
+        learnedParams           % Learned parameter file
         outputCliqueFile        % Clique posterior output file
         dimFeatures             % dimension of feature observations
     end
@@ -23,13 +24,19 @@ classdef gmtkEngine < handle
     end
     
     methods (Access = public)
-        function obj = gmtkEngine(gmName, dimFeatures, gmtkPath, cygwinPath)
+        function obj = gmtkEngine(gmName, dimFeatures, workPath, gmtkPath, cygwinPath)
             % gmtkEngine Class constructor
             
             % Check operating system
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
                     if nargin < 3
+                        workPath = [];
+                    end
+                    if ~isempty(workPath) && ~exist(workPath, 'dir')
+                        error('workPath %s does not exist!', workPath);
+                    end
+                    if nargin < 4
                         gmtkPath = '/usr/local/bin';
                     end
                     obj.gmtkPath = gmtkPath;
@@ -48,26 +55,20 @@ classdef gmtkEngine < handle
                         error('Cannot find %s', obj.gmtkJT);
                     end
                     
-                    obj.gmName = gmName;
-                    obj.dimFeatures = dimFeatures;
-                    
-                    % Create a working folder for GMTK
-                    obj.workPath = strcat('GM_', gmName);
-                    if ~exist(obj.workPath, 'dir')
-                        [success, message] = mkdir(obj.workPath);
-                        if ~success
-                            error(message);
-                        end
-                    end
-                    
                 case 'PCWIN64'
                     % Specify path to Cygwin environment
-                    if nargin < 4
+                    if nargin < 3
+                        workPath = [];
+                    end
+                    if ~isempty(workPath) && ~exist(workPath, 'dir')
+                        error('workPath %s does not exist!', workPath);
+                    end
+                    if nargin < 5
                         cygwinPath = 'c:\cygwin64\bin\';
                     end
                     obj.cygwinPath = cygwinPath;
                     
-                    if nargin < 3
+                    if nargin < 4
                         gmtkPath = 'c:\cygwin64\usr\local\bin\';
                     end
                     obj.gmtkPath = gmtkPath;
@@ -84,29 +85,39 @@ classdef gmtkEngine < handle
                     if ~exist(obj.gmtkJT, 'file')
                         error('Cannot find %s', obj.gmtkJT);
                     end
-                    
-                    obj.gmName = gmName;
-                    obj.dimFeatures = dimFeatures;
-                    
-                    % Create a working folder for GMTK
-                    obj.workPath = [pwd, strcat('\GM_', gmName)];
-                    if ~exist(obj.workPath, 'dir')
-                        [success, message] = mkdir(obj.workPath);
-                        if ~success
-                            error(message);
-                        end
-                    end
+
                 otherwise
                     error('Current OS is not supportet.');
             end
-            
+
+            obj.gmName = gmName;
+            obj.dimFeatures = dimFeatures;
+
+            % Create a working folder for GMTK
+            obj.workPath = gmName;
+            if ~isempty(workPath)
+                obj.workPath = fullfile(workPath, obj.workPath);
+            end
+            if ~exist(obj.workPath, 'dir')
+                [success, message] = mkdir(obj.workPath);
+                if ~success
+                    error(message);
+                end
+            end
+
+            % Temporary path
+            obj.tempPath = tempname;
+            if ~exist(obj.tempPath, 'dir')
+                mkdir(obj.tempPath);
+            end
+
             % Set a few file names
             obj.gmStruct = fullfile(obj.workPath, strcat(gmName, '.str'));
             obj.gmStructTrainable = fullfile(obj.workPath, strcat(gmName, '_train.str'));
             obj.inputMaster = fullfile(obj.workPath, strcat(gmName, '.master'));
             obj.inputMasterTrainable = fullfile(obj.workPath, strcat(gmName, '_train.master'));
-            obj.learedParams = fullfile(obj.workPath, strcat(gmName, '_learned_params'));
-            obj.outputCliqueFile = fullfile(obj.workPath, strcat(gmName, '.post'));
+            obj.learnedParams = fullfile(obj.workPath, strcat(gmName, '_learned_params'));
+            obj.outputCliqueFile = fullfile(obj.tempPath, strcat(gmName, '.post'));
         end
         function setGMTKPath(obj, gmtkPath)
             obj.gmtkPath = gmtkPath;
@@ -203,9 +214,9 @@ classdef gmtkEngine < handle
                     fprintf(fid, '        -of2 %s -ni2 1 -fmt2 ascii \\\n', trainLabelList);
                     fprintf(fid, '        -strFile %s \\\n', obj.gmStructTrainable);
                     fprintf(fid, '        -inputMasterFile %s \\\n', obj.inputMasterTrainable);
-                    fprintf(fid, '        -outputTrainableParameters %s@D.gmp \\\n', obj.learedParams);
-                    fprintf(fid, '        -maxE 1 \\\n');
-                    fprintf(fid, '        -random F\n');
+                    fprintf(fid, '        -outputTrainableParameters %s@D.gmp \\\n', obj.learnedParams);
+                    %fprintf(fid, '        -varFloor 1e-5 \\\n');
+                    fprintf(fid, '        -maxE 5 \n');
                     fprintf(fid, '\n');
                     fclose(fid);
                     unix(['chmod a+x ' cmdfn]);
@@ -222,8 +233,8 @@ classdef gmtkEngine < handle
                         ' -ni2 1 -fmt2 ascii -of2 ', makeUnixPath(trainLabelList), ...
                         ' -strFile ', makeUnixPath(obj.gmStructTrainable), ...
                         ' -inputMasterFile ', makeUnixPath(obj.inputMasterTrainable), ...
-                        ' -outputTrainableParameters ', makeUnixPath(obj.learedParams), '@D.gmp', ...
-                        ' -maxE 1 -random F"'];
+                        ' -outputTrainableParameters ', makeUnixPath(obj.learnedParams), '@D.gmp', ...
+                        ' -maxE 5 -random F"'];
                     s = system(cmdfn);
                     if s ~= 0
                         error('Failed to train GM %s', obj.gmStructTrainable);
@@ -242,7 +253,7 @@ classdef gmtkEngine < handle
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
                     % Write jtcommand
-                    cmdfn = fullfile(obj.workPath, 'jtcommand');
+                    cmdfn = fullfile(obj.tempPath, 'jtcommand');
                     fid = fopen(cmdfn, 'w');
                     if fid < 0
                         error('Cannot open %s', cmdfn);
@@ -251,7 +262,7 @@ classdef gmtkEngine < handle
                     fprintf(fid, '%s -iswp1 -of1 %s -nf1 %d -fmt1 htk \\\n', obj.gmtkJT, featureList, obj.dimFeatures);
                     fprintf(fid, '        -strFile %s \\\n', obj.gmStruct);
                     fprintf(fid, '        -inputMasterFile %s \\\n', obj.inputMaster);
-                    fprintf(fid, '        -inputTrainableParameters %s.gmp \\\n', obj.learedParams);
+                    fprintf(fid, '        -inputTrainableParameters %s.gmp \\\n', obj.learnedParams);
                     fprintf(fid, '        -pCliquePrintRange %d \\\n', cliqueNo);
                     fprintf(fid, '        -cCliquePrintRange %d \\\n', cliqueNo);
                     fprintf(fid, '        -eCliquePrintRange %d \\\n', cliqueNo);
@@ -274,7 +285,7 @@ classdef gmtkEngine < handle
                         ' -nf1 ', num2str(obj.dimFeatures), ...
                         ' -strFile ', makeUnixPath(obj.gmStruct), ...
                         ' -inputMasterFile ', makeUnixPath(obj.inputMaster), ...
-                        ' -inputTrainableParameters ', makeUnixPath(obj.learedParams), '.gmp', ...
+                        ' -inputTrainableParameters ', makeUnixPath(obj.learnedParams), '.gmp', ...
                         ' -pCliquePrintRange ', num2str(cliqueNo), ...
                         ' -cCliquePrintRange ', num2str(cliqueNo), ...
                         ' -eCliquePrintRange ', num2str(cliqueNo), ...

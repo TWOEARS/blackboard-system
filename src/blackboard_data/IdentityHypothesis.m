@@ -1,16 +1,17 @@
 classdef IdentityHypothesis < Hypothesis
     
     properties (SetAccess = private)
-        blockNo;                           % Block number
         label;
-        decVal;
+        p;
+        concernsBlocksize_s;
     end
     
     methods
-        function obj = IdentityHypothesis( blockNo, label, decVal )
-            obj.blockNo = blockNo;
+        function obj = IdentityHypothesis( label, p, blocksize_s )
+            obj = obj@Hypothesis();
             obj.label = label;
-            obj.decVal = decVal;
+            obj.p = p;
+            obj.concernsBlocksize_s = blocksize_s;
         end
         
         function idText = getIdentityText( obj )

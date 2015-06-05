@@ -1,64 +1,50 @@
-classdef IdentityKS < AbstractKS
+classdef IdentityKS < AuditoryFrontEndDepKS
     
     properties (SetAccess = private)
         modelname;
         model;                 % classifier model
-        featureFunc;
-        featureParam;
-        scaleFunc;
-        scale;
-        tmpFuncs;
-        activeIndex = 0;       % The index of AcousticCues to be processed
+        featureCreator;
     end
-    
+
     methods
-        function obj = IdentityKS( blackboard, modelName, modelVersion )
-            obj = obj@AbstractKS( blackboard );
-            obj.modelname = modelName;
-            modelFileName = ['../dataGit/identificationModels/' modelName '_' modelVersion];
-            v = load( [modelFileName '_model.mat'] );
+        function obj = IdentityKS( modelName, modelVersion )
+            modelFileName = [modelName '.' modelVersion];
+            v = load( [modelFileName '.model.mat'] );
+            if ~isa( v.featureCreator, 'FeatureProcInterface' )
+                error( 'Loaded model''s featureCreator must implement FeatureProcInterface.' );
+            end
+            obj = obj@AuditoryFrontEndDepKS( v.featureCreator.getAFErequests() );
+            obj.featureCreator = v.featureCreator;
             obj.model = v.model;
-            v = load( [modelFileName '_scale.mat'] );
-            obj.scale.translators = v.translators;
-            obj.scale.factors = v.factors;
-            [obj.scaleFunc, obj.tmpFuncs{1}, ~] = dynLoadMFun( [modelFileName '_scaleFunction.mat'] );
-            [obj.featureFunc, obj.tmpFuncs{2}, obj.featureParam] = dynLoadMFun( [modelFileName '_featureFunction.mat'] );
-            %dynLoadMFun can be found at software/tools
+            obj.modelname = modelName;
+            obj.invocationMaxFrequency_Hz = 4;
+       end
+        
+        %% utility function for printing the obj
+        function s = char( obj )
+            s = [char@AuditoryFrontEndDepKS( obj ), '[', obj.modelname, ']'];
         end
         
-        function delete( obj )
-            delete( obj.tmpFuncs{1} );
-            delete( obj.tmpFuncs{2} );
-        end
-        
-        function setActiveArgument( obj, arg )
-            obj.activeIndex = arg;
-        end
-        
-        function b = canExecute( obj )
-            %TODO: senseless?? 
-            b = obj.activeIndex == 1;
+        %% execute functionality
+        function [b, wait] = canExecute( obj )
+            b = true;
+            wait = false;
         end
         
         function execute( obj )
-            acousticCues = obj.blackboard.acousticCues{obj.activeIndex};
+            afeData = obj.getAFEdata();
+            afeData = obj.featureCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
             
-            fprintf( '-------- IdentityKS (%s) has fired\n', obj.modelname );
+            x = obj.featureCreator.makeDataPoint( afeData );
+            [~, score] = obj.model.applyModel( x );
             
-            rmWp2.data = acousticCues.ratemap;
-            rmWp2.name = 'ratemap_magnitude';
-            features = obj.featureFunc( obj.featureParam, rmWp2 );
-            features = obj.scaleFunc( features', obj.scale.translators, obj.scale.factors );
-            [label, ~, decVal] = libsvmpredict( [0], features, obj.model, '-q' );
-            %libsvmpredict is the renamed svmpredict of the LIBSVM package
-            
-            if label == +1
-                identHyp = IdentityHypothesis( acousticCues.blockNo, obj.modelname, decVal );
-                idx = obj.blackboard.addIdentityHypothesis( identHyp );
-                notify( obj.blackboard, 'NewIdentityHypothesis', BlackboardEventData(idx) );
+            if obj.blackboard.verbosity > 0
+                fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
+                    obj.modelname, int16(score(1)*100) );
             end
-            
-            obj.activeIndex = 0; %TODO: does this have any effect??
+            identHyp = IdentityHypothesis( obj.modelname, score(1), obj.blocksize_s );
+            obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
+            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end
 end
