@@ -135,9 +135,35 @@ classdef BlackboardSystem < handle
             n = length( obj.blackboard.KSs );
         end
         
+        %% List available AFE cues
+        function listAFEdata(obj)
+            data = obj.dataConnect.managerObject.Data;
+            fprintf(1, '\nAvailable AFE data:\n\n');
+            fields = fieldnames(data);
+            for ii = 1:length(fields)
+                if iscell(getfield(data, fields{ii}))
+                    fprintf(1, '  ''%s\''\n', fields{ii})
+                end
+            end
+            fprintf(1, '\n');
+        end
+
+        %% Plot AFE cues
+        function plotAFEdata(obj, name)
+            data = obj.dataConnect.managerObject.Data;
+            cue = getfield(data, name);
+            if size(cue,2)==1
+                cue{1}.plot;
+            elseif size(cue,2)==2
+                cue{1}.plot;
+                cue{2}.plot;
+            else
+                error(['Your picked data has %i channels, only 1 or 2 ', ...
+                       'are supported.']);
+            end
+        end
 
         %% System Execution
-        
         function run( obj )
             while ~obj.robotConnect.isFinished()
                 obj.scheduler.processAgenda();
