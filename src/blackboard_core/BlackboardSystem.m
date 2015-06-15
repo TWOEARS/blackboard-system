@@ -135,10 +135,23 @@ classdef BlackboardSystem < handle
             n = length( obj.blackboard.KSs );
         end
         
+        %% List available AFE cues
+        function listAFEdata(obj)
+            data = obj.dataConnect.managerObject.Data;
+            fprintf(1, '\nAvailable AFE data:\n\n');
+            fields = fieldnames(data);
+            for ii = 1:length(fields)
+                if iscell(getfield(data, fields{ii}))
+                    fprintf(1, '  ''%s\''\n', fields{ii})
+                end
+            end
+            fprintf(1, '\n');
+        end
+
         %% Plot AFE cues
         function plotAFEdata(obj, name)
             data = obj.dataConnect.managerObject.Data;
-            cue = getfield(data,name);
+            cue = getfield(data, name);
             cue{1}.plot;
         end
 
