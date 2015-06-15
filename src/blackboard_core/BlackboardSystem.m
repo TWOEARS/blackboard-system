@@ -136,7 +136,7 @@ classdef BlackboardSystem < handle
         end
         
         %% List available AFE cues
-        function listAFEdata(obj)
+        function listAfeData(obj)
             data = obj.dataConnect.managerObject.Data;
             fprintf(1, '\nAvailable AFE data:\n\n');
             fields = fieldnames(data);
@@ -149,7 +149,7 @@ classdef BlackboardSystem < handle
         end
 
         %% Plot AFE cues
-        function plotAFEdata(obj, name)
+        function plotAfeData(obj, name)
             data = obj.dataConnect.managerObject.Data;
             cue = getfield(data, name);
             if size(cue,2)==1
