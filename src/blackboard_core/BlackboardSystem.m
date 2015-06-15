@@ -152,7 +152,15 @@ classdef BlackboardSystem < handle
         function plotAFEdata(obj, name)
             data = obj.dataConnect.managerObject.Data;
             cue = getfield(data, name);
-            cue{1}.plot;
+            if size(cue,2)==1
+                cue{1}.plot;
+            elseif size(cue,2)==2
+                cue{1}.plot;
+                cue{2}.plot;
+            else
+                error(['Your picked data has %i channels, only 1 or 2 ', ...
+                       'are supported.']);
+            end
         end
 
         %% System Execution
