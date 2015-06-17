@@ -111,6 +111,10 @@ classdef gmtkEngine < handle
                 mkdir(obj.tempPath);
             end
 
+            % Get learned model files
+            obj.gmStruct = xml.dbGetFile(strcat(obj.workPath, gmName, '.str'));
+            obj.inputMaster = xml.dbGetFile(strcat(obj.workPath, gmName, '.master'));
+
             % Set a few file names
             obj.gmStruct = fullfile(obj.workPath, strcat(gmName, '.str'));
             obj.gmStructTrainable = fullfile(obj.workPath, strcat(gmName, '_train.str'));
@@ -128,7 +132,7 @@ classdef gmtkEngine < handle
         function triangulate(obj, triArgs)
             % Triangulate GM structures. Needed every time the structure is
             % changed
-            
+
             if nargin < 2
                 triArgs = '-reSect -M 1 -S 1 -tri R -seed T';
             end
@@ -176,19 +180,19 @@ classdef gmtkEngine < handle
                         makeUnixPath(obj.gmtkTri), ' -str ', ...
                         makeUnixPath(obj.gmStruct), ' ', ...
                         triArgs, '"'];
-                    
+
                     s = system(cmdfn);
                     if s ~= 0
                         error('Failed to infer GM %s', obj.gmStruct);
                     end
-                    
+
                     % Also triangulate training structure if exists
                     if exist(obj.gmStructTrainable, 'file')
                         cmdfn = [obj.cygwinPath, 'bash -c -l "', ...
                             makeUnixPath(obj.gmtkTri), ' -str ', ...
                             makeUnixPath(obj.gmStructTrainable), ' ', ...
                             triArgs, '"'];
-                        
+
                         s = system(cmdfn);
                         if s ~= 0
                             error('Failed to infer GM %s', obj.gmStruct);
@@ -199,7 +203,7 @@ classdef gmtkEngine < handle
             end
         end
         function train(obj, trainFeatureList, trainLabelList)
-            
+
             % Write OS specific inference commands
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
@@ -242,13 +246,13 @@ classdef gmtkEngine < handle
                 otherwise
                     error('Current OS is not supported.');
             end
-            
+
         end
         function infer(obj, featureList, cliqueNo)
             if nargin < 3
                 cliqueNo = 0; % Posteriors of which clique to be output
             end
-            
+
             % Write OS specific inference commands
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
@@ -293,7 +297,7 @@ classdef gmtkEngine < handle
                         ' -cliqueListFileName ', makeUnixPath(obj.outputCliqueFile), ...
                         ' -verbosity 0', ...
                         ' -cliquePrintFormat ascii"'];
-                    
+
                     s = system(cmdfn);
                     if s ~= 0
                         error('Failed to infer GM %s', obj.gmStruct);
@@ -306,3 +310,4 @@ classdef gmtkEngine < handle
     
 end
 
+% vim: set sw=4 ts=4 et tw=90:
