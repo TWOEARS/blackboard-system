@@ -8,7 +8,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
         gmtkLoc;               % GMTK engine
         angles;                % All azimuth angles to be considered
         tempPath;              % A path for temporary files
-        dataPath = [xml.dbPath 'learned_models' filesep 'LocationKS' filesep];
+        dataPath = ['learned_models' filesep 'LocationKS' filesep];
         angularResolution = 1; % Default angular resolution is 1deg
         blocksize_s;
     end
@@ -81,7 +81,8 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % The angular resolution of the trained data can be found in the corresponding
             % *.str file. We first extract it from that file and compare it then to the
             % angular resolution of the running LocationKS
-            strFile = fullfile(obj.gmtkLoc.workPath, strcat(obj.name, '.str'));
+            strFile = xml.dbGetFile(fullfile( ...
+                obj.gmtkLoc.workPath, strcat(obj.name, '.str')))
             fid = fopen(strFile,'r');
             strText = fscanf(fid,'%s');
             fclose(fid);
