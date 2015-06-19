@@ -1,7 +1,7 @@
 classdef gmtkEngine < handle
     %gmtkEngine A Matlab interface for GMTK (graphical model toolkit)
     %   Detailed explanation goes here
-    
+
     properties (GetAccess = public, SetAccess = private)
         workPath                % GMTK working path
         tempPath                % GMTK temporary files path
@@ -15,83 +15,56 @@ classdef gmtkEngine < handle
         outputCliqueFile        % Clique posterior output file
         dimFeatures             % dimension of feature observations
     end
-    
+
     properties (Access = public)
         gmtkPath                % Path that contains GMTK binaries
         gmtkTri
         gmtkTrain
         gmtkJT
     end
-    
+
     methods (Access = public)
         function obj = gmtkEngine(gmName, dimFeatures, workPath, gmtkPath, cygwinPath)
             % gmtkEngine Class constructor
-            
-            % Check operating system
+
+            % Checking of input parameters
+            if nargin < 3
+                workPath = [];
+            end
             switch(computer)
-                case {'GLNXA64', 'MACI64'}
-                    if nargin < 3
-                        workPath = [];
-                    end
-                    %if ~isempty(workPath) && ~exist(workPath, 'dir')
-                    %    error('workPath %s does not exist!', workPath);
-                    %end
+                case {'GLNXA64', 'MACI64'}              % --- Linux, Mac
                     if nargin < 4
                         gmtkPath = '/usr/local/bin';
                     end
-                    obj.gmtkPath = gmtkPath;
-                    
-                    % Check if gmtk binaries can be found
+                    % gmtk binaries
                     obj.gmtkTri = fullfile(gmtkPath, 'gmtkTriangulate');
-                    if ~exist(obj.gmtkTri, 'file')
-                        error('Cannot find %s', obj.gmtkTri);
-                    end
                     obj.gmtkTrain = fullfile(gmtkPath, 'gmtkEMtrain');
-                    if ~exist(obj.gmtkTrain, 'file')
-                        error('Cannot find %s', obj.gmtkTrain);
-                    end
                     obj.gmtkJT = fullfile(gmtkPath, 'gmtkJT');
-                    if ~exist(obj.gmtkJT, 'file')
-                        error('Cannot find %s', obj.gmtkJT);
-                    end
-                    
-                case 'PCWIN64'
+
+                case 'PCWIN64'                           % --- Windows
                     % Specify path to Cygwin environment
-                    if nargin < 3
-                        workPath = [];
-                    end
-                    %if ~isempty(workPath) && ~exist(workPath, 'dir')
-                    %    error('workPath %s does not exist!', workPath);
-                    %end
                     if nargin < 5
                         cygwinPath = 'c:\cygwin64\bin\';
                     end
                     obj.cygwinPath = cygwinPath;
-                    
                     if nargin < 4
                         gmtkPath = 'c:\cygwin64\usr\local\bin\';
                     end
-                    obj.gmtkPath = gmtkPath;
-                    % Check if gmtk binaries can be found
+                    % gmtk binaries
                     obj.gmtkTri = fullfile(gmtkPath, 'gmtkTriangulate.exe');
-                    if ~exist(obj.gmtkTri, 'file')
-                        error('Cannot find %s', obj.gmtkTri);
-                    end
                     obj.gmtkTrain = fullfile(gmtkPath, 'gmtkEMtrain.exe');
-                    if ~exist(obj.gmtkTrain, 'file')
-                        error('Cannot find %s', obj.gmtkTrain);
-                    end
                     obj.gmtkJT = fullfile(gmtkPath, 'gmtkJT.exe');
-                    if ~exist(obj.gmtkJT, 'file')
-                        error('Cannot find %s', obj.gmtkJT);
-                    end
 
                 otherwise
                     error('Current OS is not supportet.');
             end
 
+            % Check if gmtk binaries can be found
+            isargfile(obj.gmtkTri, obj.gmtkTrain, obj.gmtkJT);
             obj.gmName = gmName;
             obj.dimFeatures = dimFeatures;
+            obj.gmtkPath = gmtkPath;
+            obj.workPath = workPath;
 
             % Create a working folder for GMTK
             obj.workPath = gmName;
@@ -106,7 +79,7 @@ classdef gmtkEngine < handle
             end
 
             % Temporary path
-            obj.tempPath = tempname;
+            obj.tempPath = strcat(tempname, '_gmtk');
             if ~exist(obj.tempPath, 'dir')
                 mkdir(obj.tempPath);
             end
@@ -115,15 +88,15 @@ classdef gmtkEngine < handle
             obj.gmStruct = xml.dbGetFile(strcat(obj.workPath, filesep, gmName, '.str'));
             obj.inputMaster = xml.dbGetFile( ...
                 strcat(obj.workPath, filesep, gmName, '.master'));
-
-            % Set a few file names
-            %obj.gmStruct = fullfile(obj.workPath, strcat(gmName, '.str'));
-            obj.gmStructTrainable = fullfile(obj.workPath, strcat(gmName, '_train.str'));
-            %obj.inputMaster = fullfile(obj.workPath, strcat(gmName, '.master'));
-            obj.inputMasterTrainable = fullfile(obj.workPath, strcat(gmName, '_train.master'));
             obj.learnedParams = xml.dbGetFile( ...
                 fullfile(obj.workPath, strcat(gmName, '_learned_params.gmp')));
+            % Set temporary files
             obj.outputCliqueFile = fullfile(obj.tempPath, strcat(gmName, '.post'));
+            obj.gmStructTrainable = fullfile(obj.tempPath, strcat(gmName, '_train.str'));
+            obj.inputMasterTrainable = fullfile(obj.tempPath, strcat(gmName, '_train.master'));
+            % The following file is needed by GMTK, but not used by Matlab. The next line
+            % ensures that it will be downloaded if not present locally.
+            xml.dbGetFile(strcat(obj.workPath, filesep, gmName, '.str.trifile'));
         end
         function setGMTKPath(obj, gmtkPath)
             obj.gmtkPath = gmtkPath;
@@ -138,7 +111,7 @@ classdef gmtkEngine < handle
             if nargin < 2
                 triArgs = '-reSect -M 1 -S 1 -tri R -seed T';
             end
-            
+
             % Write OS specific inference commands
             switch(computer)
                 case {'GLNXA64', 'MACI64'}
@@ -309,7 +282,7 @@ classdef gmtkEngine < handle
             end
         end
     end
-    
+
 end
 
 % vim: set sw=4 ts=4 et tw=90:

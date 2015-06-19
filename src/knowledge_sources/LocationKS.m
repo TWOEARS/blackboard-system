@@ -82,7 +82,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             % *.str file. We first extract it from that file and compare it then to the
             % angular resolution of the running LocationKS
             strFile = xml.dbGetFile(fullfile( ...
-                obj.gmtkLoc.workPath, strcat(obj.name, '.str')))
+                obj.gmtkLoc.workPath, strcat(obj.name, '.str')));
             fid = fopen(strFile,'r');
             strText = fscanf(fid,'%s');
             fclose(fid);
