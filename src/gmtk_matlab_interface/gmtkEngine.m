@@ -3,7 +3,7 @@ classdef gmtkEngine < handle
     %   Detailed explanation goes here
 
     properties (GetAccess = public, SetAccess = private)
-        workPath                % GMTK working path
+        workPath = [];          % GMTK working path
         tempPath                % GMTK temporary files path
         cygwinPath              % Path to CYGWIN binaries (Windows only)
         gmName                  % Name of current GM
@@ -14,6 +14,7 @@ classdef gmtkEngine < handle
         learnedParams           % Learned parameter file
         outputCliqueFile        % Clique posterior output file
         dimFeatures             % dimension of feature observations
+        bTrain = false;         % Start in training mode
     end
 
     properties (Access = public)
@@ -24,16 +25,21 @@ classdef gmtkEngine < handle
     end
 
     methods (Access = public)
-        function obj = gmtkEngine(gmName, dimFeatures, workPath, gmtkPath, cygwinPath)
+        function obj = gmtkEngine(gmName, dimFeatures, workPath, bTrain, gmtkPath, cygwinPath)
             % gmtkEngine Class constructor
 
             % Checking of input parameters
-            if nargin < 3
-                workPath = [];
+            if nargin > 2
+                obj.workPath = fullfile(workPath, gmName);
+            else
+                obj.workPath = gmName;
+            end
+            if nargin > 3
+                obj.bTrain = bTrain;
             end
             switch(computer)
                 case {'GLNXA64', 'MACI64'}              % --- Linux, Mac
-                    if nargin < 4
+                    if nargin < 5
                         gmtkPath = '/usr/local/bin';
                     end
                     % gmtk binaries
@@ -43,11 +49,11 @@ classdef gmtkEngine < handle
 
                 case 'PCWIN64'                           % --- Windows
                     % Specify path to Cygwin environment
-                    if nargin < 5
+                    if nargin < 6
                         cygwinPath = 'c:\cygwin64\bin\';
                     end
                     obj.cygwinPath = cygwinPath;
-                    if nargin < 4
+                    if nargin < 5
                         gmtkPath = 'c:\cygwin64\usr\local\bin\';
                     end
                     % gmtk binaries
@@ -64,19 +70,7 @@ classdef gmtkEngine < handle
             obj.gmName = gmName;
             obj.dimFeatures = dimFeatures;
             obj.gmtkPath = gmtkPath;
-            obj.workPath = workPath;
 
-            % Create a working folder for GMTK
-            obj.workPath = gmName;
-            if ~isempty(workPath)
-                obj.workPath = fullfile(workPath, obj.workPath);
-            end
-            if ~exist(obj.workPath, 'dir')
-                [success, message] = mkdir(obj.workPath);
-                if ~success
-                    error(message);
-                end
-            end
 
             % Temporary path
             obj.tempPath = strcat(tempname, '_gmtk');
@@ -84,19 +78,41 @@ classdef gmtkEngine < handle
                 mkdir(obj.tempPath);
             end
 
-            % Get learned model files
-            obj.gmStruct = xml.dbGetFile(strcat(obj.workPath, filesep, gmName, '.str'));
-            obj.inputMaster = xml.dbGetFile( ...
-                strcat(obj.workPath, filesep, gmName, '.master'));
-            obj.learnedParams = xml.dbGetFile( ...
-                fullfile(obj.workPath, strcat(gmName, '_learned_params.gmp')));
+            % Files for gmtk model. If in training modus we would like to create the
+            % files, otherwise we look them up in the data base.
+            if obj.bTrain                                          % --- Training
+                % Create a new folder to store training results
+                if ~exist(obj.workPath, 'dir')
+                    [success, message] = mkdir(obj.workPath);
+                    if ~success
+                        error(message);
+                    end
+                end
+                obj.gmStruct = ...
+                    fullfile(obj.workPath, [gmName '.str']);
+                obj.inputMaster = ...
+                    fullfile(obj.workPath, [gmName '.master']);
+                obj.learnedParams = ...
+                    fullfile(obj.workPath, [gmName '_learned_params.gmp']);
+                obj.gmStructTrainable = ...
+                    fullfile(obj.workPath, [gmName '_train.str']);
+                obj.inputMasterTrainable = ...
+                    fullfile(obj.workPath, [gmName '_train.master']);
+
+            else                                                   % --- Localisation
+                % Get learned model files
+                obj.gmStruct = ...
+                    xml.dbGetFile(fullfile(obj.workPath, [gmName '.str']));
+                obj.inputMaster = ...
+                    xml.dbGetFile(fullfile(obj.workPath, [gmName '.master']));
+                obj.learnedParams = ...
+                    xml.dbGetFile(fullfile(obj.workPath, [gmName, '_learned_params.gmp']));
+                % The following file is needed by GMTK, but not used by Matlab. The next line
+                % ensures that it will be downloaded if not present locally.
+                xml.dbGetFile(fullfile(obj.workPath, [gmName '.str.trifile']));
+            end
             % Set temporary files
             obj.outputCliqueFile = fullfile(obj.tempPath, strcat(gmName, '.post'));
-            obj.gmStructTrainable = fullfile(obj.tempPath, strcat(gmName, '_train.str'));
-            obj.inputMasterTrainable = fullfile(obj.tempPath, strcat(gmName, '_train.master'));
-            % The following file is needed by GMTK, but not used by Matlab. The next line
-            % ensures that it will be downloaded if not present locally.
-            xml.dbGetFile(strcat(obj.workPath, filesep, gmName, '.str.trifile'));
         end
         function setGMTKPath(obj, gmtkPath)
             obj.gmtkPath = gmtkPath;
