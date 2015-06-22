@@ -129,15 +129,18 @@ classdef BlackboardSystem < handle
             ks = feval( ksClassName, ksConstructArgs{:} );
             ks = obj.addKS( ks );
         end
-                   
+
         %% Get number of KSs
         function n = numKSs( obj )
             n = length( obj.blackboard.KSs );
         end
-        
+
         %% List available AFE cues
         function listAfeData(obj)
+            % Get AFE cues
             data = obj.dataConnect.managerObject.Data;
+            % Get head rotations
+            headOrientations = obj.blackboard.getData('headOrientation');
             fprintf(1, '\nAvailable AFE data:\n\n');
             fields = fieldnames(data);
             for ii = 1:length(fields)
@@ -145,21 +148,38 @@ classdef BlackboardSystem < handle
                     fprintf(1, '  ''%s\''\n', fields{ii})
                 end
             end
+            if length(headOrientations)>0
+                fprintf(1, '  ''head_orientation''\n')
+            end
             fprintf(1, '\n');
         end
 
         %% Plot AFE cues
         function plotAfeData(obj, name)
-            data = obj.dataConnect.managerObject.Data;
-            cue = getfield(data, name);
-            if size(cue,2)==1
-                cue{1}.plot;
-            elseif size(cue,2)==2
-                cue{1}.plot;
-                cue{2}.plot;
-            else
-                error(['Your picked data has %i channels, only 1 or 2 ', ...
-                       'are supported.']);
+            if strcmp('head_orientation', name)
+                headOrientations = obj.blackboard.getData('headOrientation');
+                % Get default plotting parameter from AFE
+                p = getDefaultParameters([],'plotting');
+                figure;
+                plot([headOrientations.sndTmIdx], [headOrientations.data]);
+                xlabel('Time (s)', 'fontsize', p.fsize_label, 'fontname', p.ftype);
+                ylabel('Head orientation (deg)', 'fontsize', p.fsize_label, ...
+                       'fontname',p.ftype);
+                title('Head rotations', 'fontsize', p.fsize_title, 'fontname', p.ftype);
+                axis([headOrientations(1).sndTmIdx headOrientations(end).sndTmIdx ...
+                      0 360]);
+            else % AFE cues
+                data = obj.dataConnect.managerObject.Data;
+                cue = getfield(data, name);
+                if size(cue,2)==1
+                    cue{1}.plot;
+                elseif size(cue,2)==2
+                    cue{1}.plot;
+                    cue{2}.plot;
+                else
+                    error(['Your picked data has %i channels, only 1 or 2 ', ...
+                           'are supported.']);
+                end
             end
         end
 
