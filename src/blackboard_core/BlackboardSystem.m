@@ -7,7 +7,7 @@ classdef BlackboardSystem < handle
         robotConnect;
         dataConnect;
     end
-        
+
     methods
 
         %% System Construction
@@ -26,12 +26,12 @@ classdef BlackboardSystem < handle
             % Connect to the Two!Ears Auditory Front-End module
             obj.dataConnect = obj.createKS( connectorClassName, {obj.robotConnect} );
         end
-        
+
         function createProcsForKs( obj, ks )
             % Create processes for the Two!Ears Auditory Front-End KS
             obj.dataConnect.createProcsForDepKS( ks );
         end
-        
+
         %% From xml
         function buildFromXml( obj, xmlName )
             bbsXml = xmlread( xmlName);
@@ -41,13 +41,13 @@ classdef BlackboardSystem < handle
             kss = buildKSsFromXml( obj, bbsXmlElements );
             buildConnectionsFromXml( obj, bbsXmlElements, kss );
         end
-        
+
         function buildDataConnectFromXml( obj, bbsXmlElements )
             elements = bbsXmlElements.getElementsByTagName( 'dataConnection' );
             ksType = char( elements.item(0).getAttribute('Type') );
             obj.setDataConnect( ksType );
         end
-        
+
         function kss = buildKSsFromXml( obj, bbsXmlElements )
             kss = containers.Map( 'KeyType', 'char', 'ValueType', 'any' );
             ksElements = bbsXmlElements.getElementsByTagName( 'KS' );
@@ -57,11 +57,12 @@ classdef BlackboardSystem < handle
                     error( '%s used twice as KS name!', ksName );
                 end
                 ksType = char( ksElements.item(k-1).getAttribute('Type') );
-                ksParamElements = ksElements.item(k-1).getChildNodes.getElementsByTagName('Param');
+                ksParamElements = ...
+                    ksElements.item(k-1).getChildNodes.getElementsByTagName('Param');
                 ksParams = {};
-                for j = 1:ksParamElements.getLength()
-                    ksParamType = char( ksParamElements.item(j-1).getAttribute('Type') );
-                    ksParamStr = char( ksParamElements.item(j-1).getFirstChild.getData );
+                for jj = 1:ksParamElements.getLength()
+                    ksParamType = char( ksParamElements.item(jj-1).getAttribute('Type') );
+                    ksParamStr = char( ksParamElements.item(jj-1).getFirstChild.getData );
                     switch ksParamType
                         case 'char'
                             ksParams{end+1} = ksParamStr;
@@ -76,33 +77,37 @@ classdef BlackboardSystem < handle
                 kss(ksName) = obj.createKS( ksType, ksParams );
             end
         end
-        
+
         function buildConnectionsFromXml( obj, bbsXmlElements, kss )
             connElements = bbsXmlElements.getElementsByTagName( 'Connection' );
             for k = 1:connElements.getLength()
                 mode = char( connElements.item(k-1).getAttribute('Mode') );
-                srcElements = connElements.item(k-1).getChildNodes.getElementsByTagName('source');
+                srcElements = ...
+                    connElements.item(k-1).getChildNodes.getElementsByTagName('source');
                 srcs = {};
-                for j = 1:srcElements.getLength()
-                    srcName = char( srcElements.item(j-1).getFirstChild.getData );
+                for jj = 1:srcElements.getLength()
+                    srcName = char( srcElements.item(jj-1).getFirstChild.getData );
                     if kss.isKey( srcName )
                         srcs{end+1} = kss(srcName);
                     elseif isprop( obj, srcName )
                         srcs{end+1} = obj.(srcName);
                     else
-                        error( 'Building connection: %s is not an existing source KS name!', srcName );
+                        error( ['Building connection: %s is not an existing ', ...
+                                'source KS name!'], srcName );
                     end
                 end
                 snks = {};
-                snkElements = connElements.item(k-1).getChildNodes.getElementsByTagName('sink');
-                for j = 1:snkElements.getLength()
-                    snkName = char( snkElements.item(j-1).getFirstChild.getData );
+                snkElements = ...
+                    connElements.item(k-1).getChildNodes.getElementsByTagName('sink');
+                for jj = 1:snkElements.getLength()
+                    snkName = char( snkElements.item(jj-1).getFirstChild.getData );
                     if kss.isKey( snkName )
                         snks{end+1} = kss(snkName);
                     elseif isprop( obj, snkName )
                         snks{end+1} = obj.(snkName);
                     else
-                        error( 'Building connection: %s is not an existing sink KS name!', snkName );
+                        error( ['Building connection: %s is not an existing ', ...
+                                'sink KS name!'], snkName );
                     end
                 end
                 bindParams = {srcs, snks, mode};
@@ -113,16 +118,17 @@ classdef BlackboardSystem < handle
                 obj.blackboardMonitor.bind( bindParams{:} );
             end
         end
-        
+
         %% Add KS to the blackboard system
         function ks = addKS( obj, ks )
             ks.setBlackboardAccess( obj.blackboard, obj );
-            if isa( ks, getfield( ?AuditoryFrontEndDepKS, 'Name' ) ) % using getfield to generate matlab error if class name changes.
+            % using getfield to generate matlab error if class name changes.
+            if isa( ks, getfield( ?AuditoryFrontEndDepKS, 'Name' ) )
                 obj.createProcsForKs( ks );
             end
             obj.blackboard.KSs = [obj.blackboard.KSs {ks}];
         end
-                   
+
         %% Create and add KS to the blackboard system
         function ks = createKS( obj, ksClassName, ksConstructArgs )
             if nargin < 3, ksConstructArgs = {}; end;
@@ -190,7 +196,9 @@ classdef BlackboardSystem < handle
                 notify( obj.scheduler, 'AgendaEmpty' );
             end
         end
-        
+
     end
-    
+
 end
+
+% vim: set sw=4 ts=4 et tw=90 cc=+1:
