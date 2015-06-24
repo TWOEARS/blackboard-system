@@ -149,14 +149,14 @@ classdef BlackboardSystem < handle
                 end
             end
             if length(headOrientations)>0
-                fprintf(1, '  ''head_orientation''\n')
+                fprintf(1, '  ''head_rotation''\n')
             end
             fprintf(1, '\n');
         end
 
         %% Plot AFE cues
         function plotAfeData(obj, name)
-            if strcmp('head_orientation', name)
+            if strcmp('head_rotation', name)
                 headOrientations = obj.blackboard.getData('headOrientation');
                 % Get default plotting parameter from AFE
                 p = getDefaultParameters([],'plotting');
@@ -165,7 +165,7 @@ classdef BlackboardSystem < handle
                 xlabel('Time (s)', 'fontsize', p.fsize_label, 'fontname', p.ftype);
                 ylabel('Head orientation (deg)', 'fontsize', p.fsize_label, ...
                        'fontname',p.ftype);
-                title('Head rotations', 'fontsize', p.fsize_title, 'fontname', p.ftype);
+                title('Head rotation', 'fontsize', p.fsize_title, 'fontname', p.ftype);
                 axis([headOrientations(1).sndTmIdx headOrientations(end).sndTmIdx ...
                       0 360]);
             else % AFE cues
