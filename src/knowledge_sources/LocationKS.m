@@ -144,6 +144,10 @@ classdef LocationKS < AuditoryFrontEndDepKS
             %signals created by the HRTFs and source material specified in sceneFile.
             %This data can then be used to train the GMTK localisation model with train().
             %
+            if ~obj.bTrain
+                error(['LocationKS has to be initiated in training mode to allow ', ...
+                       'for this functionality.']);
+            end
             if nargin<2
                 sceneDescription = [obj.name '.xml'];
             end
@@ -186,6 +190,10 @@ classdef LocationKS < AuditoryFrontEndDepKS
         function obj = removeTrainingData(obj)
             %removeTrainingData(obj) deletes all the data that was locally created by
             %generateTrainingData(obj).
+            if ~obj.bTrain
+                error(['LocationKS has to be initiated in training mode to allow ', ...
+                       'for this functionality.']);
+            end
             if exist(fullfile(obj.gmtkLoc.workPath, 'data'),'dir')
                 rmdir(fullfile(obj.gmtkLoc.workPath, 'data'), 's');
             end
@@ -202,6 +210,11 @@ classdef LocationKS < AuditoryFrontEndDepKS
         function obj = train(obj)
             %train(obj) trains the locationKS using extracted ITDs and ILDs which are
             %stored in the Two!Ears database under learned_models/locationKS/ and GMTK
+
+            if ~obj.bTrain
+                error(['LocationKS has to be initiated in training mode to allow ', ...
+                       'for this functionality.']);
+            end
 
             % Configuration
             featureExt = 'htk';
