@@ -75,6 +75,10 @@ classdef AuditoryFrontEndKS < AbstractKS
 
         function obj = addProcessor( obj, request )
             reqSignal = obj.managerObject.addProcessor( request.name, request.params );
+            % Provide compability between old and new AFE version
+            if iscell(reqSignal) && length(reqSignal)==1
+                reqSignal = reqSignal{1};
+            end
             reqHash = AuditoryFrontEndKS.getRequestHash( request );
             obj.blackboard.addSignal(reqHash, reqSignal);
         end
