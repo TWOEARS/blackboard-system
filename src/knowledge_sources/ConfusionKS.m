@@ -6,7 +6,7 @@ classdef ConfusionKS < AbstractKS
     properties (SetAccess = private)
         postThreshold = 0.1;       % Posterior probability threshold for a valid
                                    % LocationHypothesis
-        bSolveConfusion = true;     % Invoke ConfusionSolvingKS
+        bSolveConfusion = true;    % Invoke ConfusionSolvingKS
     end
 
     events
