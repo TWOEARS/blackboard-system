@@ -1,9 +1,9 @@
 classdef AuditoryFrontEndDepKS < AbstractKS
     % TODO: add description
-    
+
     %% -----------------------------------------------------------------------------------
     properties (SetAccess = private)
-        requests;       % requests.r{1..k}: Auditory Front-End requests; requests.p{1..k}: according params
+        requests;       
     end
     
     %% -----------------------------------------------------------------------------------
@@ -44,6 +44,9 @@ classdef AuditoryFrontEndDepKS < AbstractKS
             end
         end
         %% -------------------------------------------------------------------------------
+
     end
-    
+
 end
+
+% vim: set sw=4 ts=4 et tw=90 cc=+1:
