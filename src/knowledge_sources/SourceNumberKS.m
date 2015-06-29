@@ -1,5 +1,10 @@
-classdef ColorationKS < AuditoryFrontEndDepKS
-    % ColorationKS predicts the coloration of a signal compared ...
+classdef SourceNumberKS < AuditoryFrontEndDepKS
+    % SourceNumberKS predicts the number of perceived sources.
+    %
+    % At the moment this is only a dummy implementation that will always return 5.
+    %
+    % In the long run most probably this function will compare two signals and judge which
+    % of the two has higher audio quality
 
     properties (SetAccess = private)
         auditoryFrontEndParameter;
@@ -7,21 +12,19 @@ classdef ColorationKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = ColorationKS()
-            obj.blocksize_s = 0.5;
+        function obj = SourceNumberKS()
             param = genParStruct( ...
                 'fb_type', 'gammatone', ...
                 'fb_lowFreqHz', 80, ...
                 'fb_highFreqHz', 20000, ...
-                'fb_nERBs', 1)
+                'fb_nERBs', 1);
             requests{1}.name = 'filterbank';
             requests{1}.params = param;
-            requests{2}.name = 'adaptation';
+            requests{2}.name = 'time';
             requests{2}.params = param;
-            requests{3}.name = 'time';
-            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.auditoryFrontEndParameter = param;
+            obj.blocksize_s = 0.5;
         end
 
         function [bExecute, bWait] = canExecute(obj)
@@ -32,15 +35,9 @@ classdef ColorationKS < AuditoryFrontEndDepKS
         end
 
         function execute(obj)
-            %TODO:
-            % In order to implement this KS the following prolbem has to be solved in
-            % order to allow a comparison between the actual test signal and a reference
-            % signal:
-            % * two instances of the Binaural Simulator and the AFE has to be running in
-            %   parallel
-            % * both of them have to get the same commands for turning their head etc.
-            error('ColorationKS functionality has to be implemented.');
-            obj.blackboard.addData('colorationHypotheses', colorationValue, false, ...
+            numberOfSources = 1;
+            warning('SourceNumberKS functionality has to be implemented.');
+            obj.blackboard.addData('sourceNumberHypotheses', numberOfSources, false, ...
                 obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
         end

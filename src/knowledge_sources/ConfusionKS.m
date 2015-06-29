@@ -6,6 +6,7 @@ classdef ConfusionKS < AbstractKS
     properties (SetAccess = private)
         postThreshold = 0.1;       % Posterior probability threshold for a valid
                                    % LocationHypothesis
+        bSolveConfusion = true;    % Invoke ConfusionSolvingKS
     end
 
     events
@@ -13,9 +14,12 @@ classdef ConfusionKS < AbstractKS
     end
 
     methods
-        function obj = ConfusionKS()
+        function obj = ConfusionKS(bSolveConfusion)
             obj = obj@AbstractKS();
             obj.invocationMaxFrequency_Hz = inf;
+            if nargin > 0
+                obj.bSolveConfusion = bSolveConfusion;
+            end
         end
 
         function setPostThreshold(obj, t)
@@ -34,7 +38,7 @@ classdef ConfusionKS < AbstractKS
             % Generates location hypotheses if posterior > threshold
             locIdx = locHyp.posteriors > obj.postThreshold;
             numLoc = sum(locIdx);
-            if numLoc > 1
+            if numLoc > 1 & obj.bSolveConfusion
                 % Assume there is a confusion when there are more than 1
                 % valid location
                 % cf = ConfusionHypothesis(locHyp.blockNo, locHyp.headOrientation, ...
@@ -42,7 +46,9 @@ classdef ConfusionKS < AbstractKS
                 obj.blackboard.addData('confusionHypotheses', ...
                     locHyp, false, obj.trigger.tmIdx);
                 notify(obj, 'ConfusedLocations', BlackboardEventData(obj.trigger.tmIdx));
-            elseif numLoc == 1
+            elseif numLoc > 0
+                % Assuming no confusion by using the index with the highest probability
+                [~,locIdx] = max(locHyp.posteriors);
                 % No confusion, generate Perceived Location
                 ploc = PerceivedLocation(locHyp.headOrientation, ...
                     locHyp.locations(locIdx), locHyp.posteriors(locIdx));
