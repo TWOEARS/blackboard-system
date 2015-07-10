@@ -14,8 +14,8 @@ if nargin < 3
     prior.v = d+1;
     prior.M = eye(d);   % M = inv(W)
 end
-tol = 1e-20;
-maxiter = 5000;
+tol = 1e-10;
+maxiter = 1000;
 L = -inf(1,maxiter);
 converged = false;
 t = 1;
