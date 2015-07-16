@@ -47,7 +47,7 @@ classdef LocationKS < AuditoryFrontEndDepKS
             end
             obj.angles = 0:obj.angularResolution:(360-obj.angularResolution);
             obj.invocationMaxFrequency_Hz = 2;
-            dimFeatures = param.fb_nChannels * 2; % ITD + ILD
+            dimFeatures = param.map('fb_nChannels') * 2; % ITD + ILD
             % The following creates an GMTK object that is used for localization
             % For GMTK (Graphical Models Toolkit) see:
             % http://melodi.ee.washington.edu/gmtk/
