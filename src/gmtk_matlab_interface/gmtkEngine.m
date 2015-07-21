@@ -66,7 +66,18 @@ classdef gmtkEngine < handle
             end
 
             % Check if gmtk binaries can be found
-            isargfile(obj.gmtkTri, obj.gmtkTrain, obj.gmtkJT);
+            if ~exist(obj.gmtkTri, 'file')
+                error(['Your gmtkTriangulate binary couldn''t be found under its ', ...
+                       'specified path: %s.'], obj.gmtkTri);
+            end
+            if ~exist(obj.gmtkTrain, 'file')
+                error(['Your gmtkEMtrain binary couldn''t be found under its ', ...
+                    'specified path: %s.'], obj.gmtkTrain);
+            end
+            if ~exist(obj.gmtkJT, 'file')
+                error(['Your gmtkJT binary couldn''t be found under its ', ...
+                    'specified path: %s.'], obj.gmtkJT);
+            end
             obj.gmName = gmName;
             obj.dimFeatures = dimFeatures;
             obj.gmtkPath = gmtkPath;
@@ -174,7 +185,7 @@ classdef gmtkEngine < handle
 
                     s = system(cmdfn);
                     if s ~= 0
-                        error('Failed to infer GM %s', obj.gmStruct);
+                        error('Failed to triangulate GM %s', obj.gmStruct);
                     end
 
                     % Also triangulate training structure if exists
@@ -186,7 +197,7 @@ classdef gmtkEngine < handle
 
                         s = system(cmdfn);
                         if s ~= 0
-                            error('Failed to infer GM %s', obj.gmStruct);
+                            error('Failed to triangulate GM %s', obj.gmStructTrainable);
                         end
                     end
                 otherwise
@@ -268,9 +279,9 @@ classdef gmtkEngine < handle
                     fprintf(fid, '\n');
                     fclose(fid);
                     unix(['chmod a+x ' cmdfn]);
-                    s = unix(cmdfn);
+                    [s,cmdout] = unix(cmdfn);
                     if s ~= 0
-                        error('Failed to infer GM %s', obj.gmStruct);
+                        error('Failed to infer GM %s: %s', obj.gmStruct, cmdout);
                     end
                 case 'PCWIN64'
                     % Write command function
@@ -289,9 +300,9 @@ classdef gmtkEngine < handle
                         ' -verbosity 0', ...
                         ' -cliquePrintFormat ascii"'];
 
-                    s = system(cmdfn);
+                    [s,cmdout] = system(cmdfn);
                     if s ~= 0
-                        error('Failed to infer GM %s', obj.gmStruct);
+                        error('Failed to infer GM %s: %s', obj.gmStruct, cmdout);
                     end
                 otherwise
                     error('Current OS is not supported.');
