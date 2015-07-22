@@ -279,9 +279,9 @@ classdef gmtkEngine < handle
                     fprintf(fid, '\n');
                     fclose(fid);
                     unix(['chmod a+x ' cmdfn]);
-                    [s,cmdout] = unix(cmdfn);
+                    s = unix(cmdfn);
                     if s ~= 0
-                        error('Failed to infer GM %s: %s', obj.gmStruct, cmdout);
+                        error('Failed to infer GM %s', obj.gmStruct);
                     end
                 case 'PCWIN64'
                     % Write command function
@@ -298,11 +298,10 @@ classdef gmtkEngine < handle
                         ' -cliqueOutputFileName ', makeUnixPath(obj.outputCliqueFile), ...
                         ' -cliqueListFileName ', makeUnixPath(obj.outputCliqueFile), ...
                         ' -verbosity 0', ...
-                        ' -cliquePrintFormat ascii"'];
-
-                    [s,cmdout] = system(cmdfn);
+                        ' -cliquePrintFormat ascii > /dev/null"'];
+                    s = system(cmdfn);
                     if s ~= 0
-                        error('Failed to infer GM %s: %s', obj.gmStruct, cmdout);
+                        error('Failed to infer GM %s', obj.gmStruct);
                     end
                 otherwise
                     error('Current OS is not supported.');
