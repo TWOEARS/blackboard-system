@@ -18,7 +18,11 @@ classdef IdentityKS < AuditoryFrontEndDepKS
             obj.model = v.model;
             obj.modelname = modelName;
             obj.invocationMaxFrequency_Hz = 4;
-       end
+        end
+        
+        function setInvocationFrequency( obj, newInvocationFrequency_Hz )
+            obj.invocationMaxFrequency_Hz = newInvocationFrequency_Hz;
+        end
         
         %% utility function for printing the obj
         function s = char( obj )
