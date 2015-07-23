@@ -7,11 +7,11 @@ classdef IdentityKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = IdentityKS( modelName, modelVersion )
-            modelFileName = [modelName '.' modelVersion];
+        function obj = IdentityKS( modelName, modelDir )
+            modelFileName = [modelDir filesep modelName];
             v = load( [modelFileName '.model.mat'] );
-            if ~isa( v.featureCreator, 'FeatureProcInterface' )
-                error( 'Loaded model''s featureCreator must implement FeatureProcInterface.' );
+            if ~isa( v.featureCreator, 'featureCreators.Base' )
+                error( 'Loaded model''s featureCreator must implement featureCreators.Base.' );
             end
             obj = obj@AuditoryFrontEndDepKS( v.featureCreator.getAFErequests() );
             obj.featureCreator = v.featureCreator;
@@ -42,7 +42,8 @@ classdef IdentityKS < AuditoryFrontEndDepKS
                 fprintf( 'Identity Hypothesis: %s with %i%% probability.\n', ...
                     obj.modelname, int16(score(1)*100) );
             end
-            identHyp = IdentityHypothesis( obj.modelname, score(1), obj.blocksize_s );
+            identHyp = IdentityHypothesis( ...
+                obj.modelname, score(1), obj.featureCreator.labelBlockSize_s );
             obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
             notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
