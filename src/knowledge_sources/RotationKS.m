@@ -45,24 +45,26 @@ classdef RotationKS < AbstractKS
             if abs(headRotateAngle)<minAngle
                 headRotateAngle = sign(randn(1)) * minAngle;
             end
-            % Ensure head rotation is possible
+            % Ensure head rotation is possible and add some jitter if maximum is
+            % approached
             headOrientation = obj.blackboard.getData( ...
                'headOrientation', obj.trigger.tmIdx).data;
             maxLimitHeadRotation = obj.robot.AzimuthMax - headOrientation;
             minLimitHeadRotation = obj.robot.AzimuthMin - headOrientation;
             if headRotateAngle > maxLimitHeadRotation
-                headRotateAngle = maxLimitHeadRotation - minAngle;
+                headRotateAngle = round(maxLimitHeadRotation - 5*rand);
             elseif headRotateAngle < minLimitHeadRotation
-                headRotateAngle = minLimitHeadRotation + minAngle;
+                headRotateAngle = round(minLimitHeadRotation + 5*rand);
             end
 
             % Rotate head with a relative angle
-            obj.robot.rotateHead(headRotateAngle);
+            obj.robot.rotateHead(headRotateAngle, 'relative');
 
             if obj.blackboard.verbosity > 0
-                fprintf(['-------- [Rotation KS:] Commanded head to rotate about ', ...
+                fprintf(['--%05.2fs [Rotation KS:] Commanded head to rotate about ', ...
                          '%d degrees. New head orientation: %.0f degrees\n'], ...
-                        headRotateAngle, obj.robot.getCurrentHeadOrientation);
+                        obj.trigger.tmIdx, headRotateAngle, ...
+                        obj.robot.getCurrentHeadOrientation);
             end
             obj.rotationScheduled = false;
         end
