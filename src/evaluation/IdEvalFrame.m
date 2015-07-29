@@ -110,7 +110,12 @@ classdef IdEvalFrame < handle
         end
         
         function onsetOffsets = readOnOffAnnotations( soundFileName )
-            annotFid = fopen( [soundFileName '.txt'] );
+            annotFid = -1;
+            try
+                annotFid = fopen( xml.dbGetFile([soundFileName '.txt']) );
+            catch err
+                warning( err.message );
+            end
             if annotFid ~= -1
                 onsetOffsets = [];
                 while 1
@@ -120,7 +125,7 @@ classdef IdEvalFrame < handle
                 end
                 fclose( annotFid );
             else
-%                 warning( sprintf( 'label annotation file not found: %s.txt. Assuming no events.', soundFileName ) );
+                warning( sprintf( 'label annotation file not found: %s.txt. Assuming no events.', soundFileName ) );
                 onsetOffsets = zeros(0,2);
             end
         end
