@@ -1,1 +1,0 @@
-components = 1:size(Lm,2);
