@@ -8,5 +8,4 @@
     <TwoEarsPart sub="src" startup="startBinauralSimulator">binaural-simulator</TwoEarsPart>
     <TwoEarsPart           startup="startAuditoryFrontEnd">auditory-front-end</TwoEarsPart>
     <TwoEarsPart           startup="startBlackboardSystem">blackboard-system</TwoEarsPart>
-    <TwoEarsPart sub="src" startup="startTools" >tools</TwoEarsPart>
 </requirements>
