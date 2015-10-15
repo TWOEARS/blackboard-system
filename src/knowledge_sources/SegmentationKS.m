@@ -13,14 +13,54 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
     %   Cognitive Signal Processing Group
     %   Ruhr-Universitaet Bochum
     %   Universitaetsstr. 150, 44801 Bochum
-
+    
     properties (SetAccess = private)
         name;                       % Name of the KS instance
-        bTrain = false;             % Flag, indicating if the KS is in 
+        bTrain = false;             % Flag, indicating if the KS is in
                                     % training mode
         bVerbose = false;           % Display processing information?
         dataPath = ...              % Path for storing trained models
-            fullfile(xml.dbTmp, 'learned_models', 'SegmentationKS');                                    
+            fullfile(xml.dbTmp, 'learned_models', 'SegmentationKS');
+    end
+    
+    methods (Static)
+        function fileList = getFiles(folder, extension)
+            % GETFILES Returns a cell-array, containing a list of files 
+            %   with a specified extension.
+            %
+            % REQUIRED INPUTS:
+            %    folder - Path pointing to the folder that should be
+            %       searched.
+            %    extension - String, specifying the file extension that
+            %       should be searched.
+            %
+            % OUTPUTS:
+            %    fileList - Cell-array containing all files that were found
+            %       in the folder. If no files with the specified extension
+            %       were found, an empty cell-array is returned.
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('folder', @isdir);
+            p.addRequired('extension', @ischar);            
+            parse(p, folder, extension);
+
+            % Get all files in folder
+            fileList = dir(fullfile(p.Results.folder, ...
+                ['*.', p.Results.extension]));
+            
+            % Return cell-array of filenames
+            fileList = {fileList(:).name};
+        end
+        
+        % ------------ END OF CODE --------------
+        %
+        % Copyright (C) 2014 Christopher Schymura
+        % All rights reserved.
+        %
+        % This software may be modified and distributed under the terms
+        % of the BSD license.  See the LICENSE file for details.
     end
 
     methods (Access = public)
@@ -261,18 +301,33 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             end
             
             % Check if folder containing training data exists
-            if ~exist(fullfile(obj.dataPath, obj.name), 'dir')
-                error(['No generated training data can be found ', ...
-                    'for SegmentaionKS of type ', obj.name, '.']);
-            else
-                % Otherwise remove folder
-                status = rmdir(fullfile(obj.dataPath, obj.name), 's');
-                
-                % Show error if removal was unsuccessful
-                if ~status
-                    error([fullfile(obj.dataPath, obj.name), ...
-                        ' could not be removed.']);
+            trainingFolder = fullfile(obj.dataPath, obj.name);
+            if ~exist(trainingFolder, 'dir')
+                error(['No folder containing training data can be ', ...
+                    'found for SegmentaionKS of type ', obj.name, '.']);
+            end
+            
+            % Get all mat-files from training folder
+            filelist = obj.getFiles(trainingFolder, 'mat');            
+            if isempty(filelist)
+                error([trainingFolder, ' does not contain any ', ...
+                    'training files.']);
+            end
+            
+            % Delete all files
+            nFiles = length(filelist);
+            
+            for fileIdx = 1 : nFiles
+                if obj.bVerbose
+                    disp(['Deleting temporary training files (', ...
+                        num2str(fileIdx), '/', num2str(nFiles), ') ...']);
                 end
+                
+                % Get current filename
+                filename = filelist{fileIdx};
+                
+                % Delete file
+                delete(fullfile(trainingFolder, filename));
             end
         end
 
