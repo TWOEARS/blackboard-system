@@ -16,13 +16,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
     properties (SetAccess = private)
         name;                       % Name of the KS instance
-        nChannels;                  % Number of gammatone channels
-        winSize;                    % Window size in [s]
-        hopSize;                    % Hop size in [s]
-        fLow;                       % Lowest center frequency of the 
-                                    % gammatone filterbank in [Hz].
-        fHigh;                      % Highest center frequency of the
-                                    % gammatone filterbank in [Hz].
         bTrain = false;             % Flag, indicating if the KS is in 
                                     % training mode
         bVerbose = false;           % Display processing information?
@@ -61,10 +54,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             %   bTrain - Flag for setting the KS into training mode
             %            (default = false).
                                     
-            % Set AFE requests
-            requests = {'itd', 'ild'};
-            obj = obj@AuditoryFrontEndDepKS(requests);
-            
             % Check inputs
             p = inputParser();
             defaultNumChannels = 32;
@@ -95,13 +84,44 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             p.addParameter('Verbosity', defaultBVerbose, @islogical);
             p.parse(name, varargin{:});
             
+            % Set parameters for the gammatone filterbank processor
+            fb_type = 'gammatone';
+            fb_lowFreqHz = p.Results.FLow;
+            fb_highFreqHz = p.Results.FHigh;
+            fb_nChannels = p.Results.NumChannels;
+            
+            % Set parameters for the cross-correlation processor
+            cc_wSizeSec = p.Results.WindowSize;
+            cc_hSizeSec = p.Results.HopSize;
+            cc_wname = 'hann';
+            
+            % Set parameters for the ILD processor
+            ild_wSizeSec = p.Results.WindowSize;
+            ild_hSizeSec = p.Results.HopSize;
+            ild_wname = 'hann';
+            
+            % Generate parameter structure
+            afeParameters = genParStruct( ...
+                'fb_type', fb_type, ...
+                'fb_lowFreqHz', fb_lowFreqHz, ...
+                'fb_highFreqHz', fb_highFreqHz, ...
+                'fb_nChannels', fb_nChannels, ...
+                'cc_wSizeSec', cc_wSizeSec, ...
+                'cc_hSizeSec', cc_hSizeSec, ...
+                'cc_wname', cc_wname, ...
+                'ild_wSizeSec', ild_wSizeSec, ...
+                'ild_hSizeSec', ild_hSizeSec, ...
+                'ild_wname', ild_wname);
+            
+            % Set AFE requests
+            requests{1}.name = 'itd';
+            requests{1}.params = afeParameters;
+            requests{2}.name = 'ild';
+            requests{2}.params = afeParameters;
+            obj = obj@AuditoryFrontEndDepKS(requests);
+            
             % Instantiate KS
             obj.name = p.Results.name;
-            obj.nChannels = p.Results.NumChannels;
-            obj.winSize = p.Results.WindowSize;
-            obj.hopSize = p.Results.HopSize;
-            obj.fLow = p.Results.FLow;
-            obj.fHigh = p.Results.FHigh;
             obj.bVerbose = p.Results.Verbosity;
             obj.bTrain = p.Results.bTrain;
         end
@@ -168,11 +188,16 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Start simulation
             set(sim, 'Init', true);
             
-            % Initialize auditory front-end and get AFE parameters
-            afeParameters = obj.getAfeParameters();
+            % Initialize auditory front-end
             dataObj = dataObject([], sim.SampleRate, ...
                 sim.LengthOfSimulation, 2);
-            managerObj = manager(dataObj, obj.requests, afeParameters);
+            managerObj = manager(dataObj);
+            for idx = 1 : length(obj.requests)
+                managerObj.addProcessor(obj.requests{idx}.name, ...
+                    obj.requests{idx}.params);
+            end
+            
+            %managerObj = manager(dataObj, obj.requests, obj.afeParameters);
             
             % Generate vector of azimuth positions
             % TODO: This can be extended to be set by the user in a future
@@ -211,9 +236,16 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 % Assemble filename for current set of features
                 filename = [obj.name, '_', num2str(angle), 'deg.mat'];
                 
+                % Compute target vector from angles
+                nFrames = size(itds, 1);
+                targets = angle .* ones(nFrames, 1);
+                
+                % Get parameters
+                parameters = obj.requests{1}.params;
+                
                 % Save features and meta-data to file
                 save(fullfile(obj.dataPath, obj.name, filename), ...
-                    'itds', 'ilds', 'angle', 'afeParameters', '-v7.3');
+                    'itds', 'ilds', 'targets', 'parameters', '-v7.3');
             end
         end
 
@@ -246,47 +278,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
         function obj = train(obj)
           
-        end
-    end
-    
-    methods (Access = private)
-        function afeParameters = getAfeParameters(obj)
-            % GETAFEPARAMETERS This function returns a parameter set that
-            %   can be handled by the Auditory Front-End. The parameter set
-            %   is created using the processing options the KS is
-            %   instantiated with.
-            %
-            % OUTPUTS:
-            %   afeParameters - AFE parameter structure
-            
-            % Set parameters for the gammatone filterbank processor
-            fb_type = 'gammatone';
-            fb_lowFreqHz = obj.fLow;
-            fb_highFreqHz = obj.fHigh;
-            fb_nChannels = obj.nChannels;
-            
-            % Set parameters for the cross-correlation processor
-            cc_wSizeSec = obj.winSize;
-            cc_hSizeSec = obj.hopSize;
-            cc_wname = 'hann';
-            
-            % Set parameters for the ILD processor
-            ild_wSizeSec = obj.winSize;
-            ild_hSizeSec = obj.hopSize;
-            ild_wname = 'hann';
-            
-            % Generate parameter structure
-            afeParameters = genParStruct( ...
-                'fb_type', fb_type, ...
-                'fb_lowFreqHz', fb_lowFreqHz, ...
-                'fb_highFreqHz', fb_highFreqHz, ...
-                'fb_nChannels', fb_nChannels, ...
-                'cc_wSizeSec', cc_wSizeSec, ...
-                'cc_hSizeSec', cc_hSizeSec, ...
-                'cc_wname', cc_wname, ...
-                'ild_wSizeSec', ild_wSizeSec, ...
-                'ild_hSizeSec', ild_hSizeSec, ...
-                'ild_wname', ild_wname);
         end
     end
 end
