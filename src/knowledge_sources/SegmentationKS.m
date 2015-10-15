@@ -118,7 +118,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
            
         end
 
-        function obj = generateTrainingData(obj, sceneDescription)
+        function generateTrainingData(obj, sceneDescription)
             % GENERATETRAININGDATA This function generates a dataset
             %   containing interaural time- and level-differences for a set
             %   of specified source positions. The source positions used
@@ -142,8 +142,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             
             % Check if KS is set to training mode
             if ~obj.bTrain
-                error(['LocationKS has to be initiated in training ', ...
-                    'mode to allow for this functionality.']);
+                error(['SegmentationKS has to be initiated in ', ...
+                    'training mode to allow for this functionality.']);
             end
             
             % Check if folder for storing training data exists
@@ -180,14 +180,14 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             nPositions = 181;
             angles = linspace(-90, 90, nPositions);
 
-            for k = 1 : nPositions
+            for posIdx = 1 : nPositions
                 if obj.bVerbose
                     disp(['Generating training features (', ...
-                        num2str(k), '/', num2str(nPositions), ') ...']);
+                        num2str(posIdx), '/', num2str(nPositions), ') ...']);
                 end
                 
                 % Get current angle
-                angle = angles(k);
+                angle = angles(posIdx);
                 
                 % Set source position
                 set(sim.Sources{1}, 'Position', ...
@@ -217,8 +217,31 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             end
         end
 
-        function obj = removeTrainingData(obj)
-          
+        function removeTrainingData(obj)
+            % REMOVETRAININGDATA Training data that has already been
+            %   generated for a specific instance of this knowledge source
+            %   can be removed via this function.
+            
+            % Check if KS is set to training mode
+            if ~obj.bTrain
+                error(['SegmentationKS has to be initiated in ', ...
+                    'training mode to allow for this functionality.']);
+            end
+            
+            % Check if folder containing training data exists
+            if ~exist(fullfile(obj.dataPath, obj.name), 'dir')
+                error(['No generated training data can be found ', ...
+                    'for SegmentaionKS of type ', obj.name, '.']);
+            else
+                % Otherwise remove folder
+                status = rmdir(fullfile(obj.dataPath, obj.name), 's');
+                
+                % Show error if removal was unsuccessful
+                if ~status
+                    error([fullfile(obj.dataPath, obj.name), ...
+                        ' could not be removed.']);
+                end
+            end
         end
 
         function obj = train(obj)
