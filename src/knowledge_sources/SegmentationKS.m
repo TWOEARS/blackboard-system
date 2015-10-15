@@ -16,6 +16,9 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
     
     properties (SetAccess = private)
         name;                       % Name of the KS instance
+        localizationModels;         % Cell-array, containing trained 
+                                    % localization models for each
+                                    % gammatone filterbank channel.
         bTrain = false;             % Flag, indicating if the KS is in
                                     % training mode
         bVerbose = false;           % Display processing information?
@@ -229,6 +232,9 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                     obj.requests{idx}.params);
             end
             
+            % Get center frequencies of gammatone filterbank
+            centerFrequencies = dataObj.filterbank{1}.cfHz;
+            
             % Generate vector of azimuth positions
             % TODO: This can be extended to be set by the user in a future
             % version.
@@ -275,7 +281,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 
                 % Save features and meta-data to file
                 save(fullfile(obj.dataPath, obj.name, filename), ...
-                    'itds', 'ilds', 'targets', 'parameters', '-v7.3');
+                    'itds', 'ilds', 'targets', 'centerFrequencies', ...
+                    'parameters', '-v7.3');
             end
         end
 
@@ -322,7 +329,60 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
         end
 
         function obj = train(obj)
-          
+            % TRAIN This function computes nonlinear regression models for
+            %   each frequency band of the gammatone filterbank. The models
+            %   take ITDs and ILDs as inputs and predict the most likely
+            %   azimuth angle of the source position in the range between
+            %   -90° and 90°. To use this function, training data has to be
+            %   generated first by calling the 'generateTrainingData'
+            %   method of this KS.
+            
+            % Check if KS is set to training mode
+            if ~obj.bTrain
+                error(['SegmentationKS has to be initiated in ', ...
+                    'training mode to allow for this functionality.']);
+            end
+            
+            % Check if folder containing training data exists
+            trainingFolder = fullfile(obj.dataPath, obj.name);
+            if ~exist(trainingFolder, 'dir')
+                error(['No folder containing training data can be ', ...
+                    'found for SegmentaionKS of type ', obj.name, '.']);
+            end
+            
+            % Get all mat-files from training folder
+            filelist = obj.getFiles(trainingFolder, 'mat');            
+            if isempty(filelist)
+                error([trainingFolder, ' does not contain any ', ...
+                    'training files. Please run the method ', ...
+                    '''generateTrainingData()'' first.']);
+            end
+            
+            % Get number of training files
+            nFiles = length(filelist);
+            
+            % Initialize cell-arrays for data storage
+            trainingFeatures = cell(nFiles, 2);
+            trainingTargets = cell(nFiles, 1);
+            
+            % Gather data
+            for fileIdx = 1 : nFiles
+                % Load current training file
+                data = load(fullfile(trainingFolder, filelist{fileIdx}));
+                
+                % Append training data to cell-arrays
+                trainingFeatures{fileIdx, 1} = data.itds;
+                trainingFeatures{fileIdx, 2} = data.ilds;
+                trainingTargets{fileIdx} = data.targets;
+            end
+            
+            % "Vectorize" all features
+            itds = cell2mat(trainingFeatures(:, 1));
+            ilds = cell2mat(trainingFeatures(:, 2));
+            targets = cell2mat(trainingTargets);
+            
+            % Get number of gammatone filterbank channels
+            [~, nChannels] = size(itds);
         end
     end
 end
