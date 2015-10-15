@@ -53,14 +53,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Return cell-array of filenames
             fileList = {fileList(:).name};
         end
-        
-        % ------------ END OF CODE --------------
-        %
-        % Copyright (C) 2014 Christopher Schymura
-        % All rights reserved.
-        %
-        % This software may be modified and distributed under the terms
-        % of the BSD license.  See the LICENSE file for details.
     end
 
     methods (Access = public)
