@@ -237,8 +237,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                     obj.requests{idx}.params);
             end
             
-            %managerObj = manager(dataObj, obj.requests, obj.afeParameters);
-            
             % Generate vector of azimuth positions
             % TODO: This can be extended to be set by the user in a future
             % version.
