@@ -100,35 +100,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             nData = ...
                 bsxfun(@minus, p.Results.data, dataMean) * whiteningMatrix;
         end
-        
-        function [sData, minVal, maxVal] = scaleMinMax(data)
-            % SCALEMINMAX This function scales a matrix of data points to
-            %   values between 0 and 1.
-            %
-            % REQUIRED INPUTS:
-            %   data - Input data matrix of dimensions N x D, where N is
-            %       the number of data samples and D is the data dimension.
-            %
-            % OUTPUTS:
-            %   sData - Scaled dataset of the same dimension as the input
-            %       matrix.
-            %   minVal - The minimum value of the input dataset.
-            %   maxVal - The maximum value of the input dataset.
-            
-            % Check inputs
-            p = inputParser();
-            
-            p.addRequired('data', @(x) validateattributes(x, ...
-                {'numeric'}, {'real', '2d'}));
-            p.parse(data);
-            
-            % Compute minimum and maximum values
-            minVal = min(min(p.Results.data));
-            maxVal = max(max(p.Results.data));
-            
-            % PErform scaling
-            sData = (p.Results.data - minVal) ./ (maxVal - minVal);
-        end
     end
 
     methods (Access = public)
@@ -232,6 +203,18 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             obj.name = p.Results.name;
             obj.bVerbose = p.Results.Verbosity;
             obj.bTrain = p.Results.bTrain;
+            
+            % Check if trained models are available
+            filename = [obj.name, '_models.mat'];            
+            if ~exist(fullfile(obj.dataPath, obj.name, filename), 'file')
+                warning(['No trained models are available for this ', ...
+                    'KS. Please ensure to run KS training first.']);
+            else
+                % Load available models and add them to object props
+                models = load(fullfile(obj.dataPath, obj.name, filename));
+                obj.localizationModels = models.locModels;
+            end
+
         end
 
         function delete(obj)
@@ -397,13 +380,18 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 % Get current filename
                 filename = filelist{fileIdx};
                 
-                % Delete file
-                delete(fullfile(trainingFolder, filename));
+                % Check if current file is the model file and skip it
+                if strcmp(filename, [obj.name, '_models.mat'])
+                    continue;
+                else
+                    % Delete file
+                    delete(fullfile(trainingFolder, filename));
+                end
             end
         end
 
         function obj = train(obj)
-            % TRAIN This function computes nonlinear regression models for
+            % TRAIN This function computes SVM regression models for
             %   each frequency band of the gammatone filterbank. The models
             %   take ITDs and ILDs as inputs and predict the most likely
             %   azimuth angle of the source position in the range between
@@ -457,24 +445,47 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             iacc = cell2mat(trainingFeatures(:, 3));
             targets = cell2mat(trainingTargets);
             
-            % Scale traget values between 0 and 1
-            [targets, minTarget, maxTarget] = obj.scaleMinMax(targets);
-            
             % Get number of gammatone filterbank channels
             [~, nChannels] = size(itds);
             
             % Initialize localization models
-            obj.localizationModels = cell(nChannels, 1);
+            locModels = cell(nChannels, 1);
             
             % Train localization models for each gammatone channel
-            for k = 1 : nChannels
+            for chanIdx = 1 : nChannels
+                if obj.bVerbose
+                    disp(['Training regression model for channel (', ...
+                        num2str(chanIdx), '/', num2str(nChannels), ') ...']);
+                end
+                
                 % Get training features
-                features = [squeeze(iacc(:, k, :)), ilds(:, k)];
+                features = [squeeze(iacc(:, chanIdx, :)), ilds(:, chanIdx)];
                 
                 % Perform whitening on features
                 [features, featureMean, whiteningMatrix] = ...
                     obj.whitenData(features);
+                
+                % Train SVM regression model
+                trainingParams = sprintf('-s 4 -t 0 -m 512 -h 0 -q');
+                model = libsvmtrain(targets, features, trainingParams);
+                
+                % Append model and parameters to cell-array
+                locModels{chanIdx}.model = model;
+                locModels{chanIdx}.featureMean = featureMean;
+                locModels{chanIdx}.whiteningMatrix = whiteningMatrix;
+                locModels{chanIdx}.centerFrequency = ...
+                    data.centerFrequencies(chanIdx);
             end
+            
+            % Add localization models to object properties
+            obj.localizationModels = locModels;
+            
+            % Assemble filename for current set of trained models
+            filename = [obj.name, '_models.mat'];
+            
+            % Save features and meta-data to file
+            save(fullfile(obj.dataPath, obj.name, filename), ...
+                'locModels', '-v7.3');
         end
     end
 end
