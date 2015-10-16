@@ -56,6 +56,79 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Return cell-array of filenames
             fileList = {fileList(:).name};
         end
+            
+        function [nData, dataMean, whiteningMatrix] = whitenData(data)
+            % WHITENDATA This function performs a whitening
+            %   transformation on a matrix containing data points.
+            %
+            % REQUIRED INPUTS:
+            %   data - Input data matrix of dimensions N x D, where N is
+            %       the number of data samples and D is the data dimension.
+            %
+            % OUTPUTS:
+            %   nData - Normalized data matrix, having zero mean and unit
+            %       variance.
+            %   dataMean - D x 1 vector, representing the mean of the data
+            %              samples.
+            %   whiteningMatrix - Transformation matrix for performing the
+            %       whitening transform on the given dataset.
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('data', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', '2d'}));
+            p.parse(data);
+            
+            % Check if data matrix is skinny
+            [nSamples, nDims] = size(data);
+            if nDims >= nSamples
+                error(['The number of data samples must be ', ...
+                    'greater than the data dimension.']);
+            end
+            
+            % Compute mean and covariance matrix of the input data
+            dataMean = mean(p.Results.data);
+            dataCov = cov(p.Results.data);
+            
+            % Compute whitening matrix
+            [V, D] = eig(dataCov);
+            whiteningMatrix = ...
+                V * diag(1 ./ (diag(D) + eps).^(1/2)) * V';
+            
+            % Compute normalized dataset
+            nData = ...
+                bsxfun(@minus, p.Results.data, dataMean) * whiteningMatrix;
+        end
+        
+        function [sData, minVal, maxVal] = scaleMinMax(data)
+            % SCALEMINMAX This function scales a matrix of data points to
+            %   values between 0 and 1.
+            %
+            % REQUIRED INPUTS:
+            %   data - Input data matrix of dimensions N x D, where N is
+            %       the number of data samples and D is the data dimension.
+            %
+            % OUTPUTS:
+            %   sData - Scaled dataset of the same dimension as the input
+            %       matrix.
+            %   minVal - The minimum value of the input dataset.
+            %   maxVal - The maximum value of the input dataset.
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('data', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', '2d'}));
+            p.parse(data);
+            
+            % Compute minimum and maximum values
+            minVal = min(min(p.Results.data));
+            maxVal = max(max(p.Results.data));
+            
+            % PErform scaling
+            sData = (p.Results.data - minVal) ./ (maxVal - minVal);
+        end
     end
 
     methods (Access = public)
@@ -268,6 +341,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 % Get binaural features
                 itds = dataObj.itd{1}.Data(:);
                 ilds = dataObj.ild{1}.Data(:);
+                iacc = dataObj.crosscorrelation{1}.Data(:);
                 
                 % Assemble filename for current set of features
                 filename = [obj.name, '_', num2str(angle), 'deg.mat'];
@@ -281,8 +355,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 
                 % Save features and meta-data to file
                 save(fullfile(obj.dataPath, obj.name, filename), ...
-                    'itds', 'ilds', 'targets', 'centerFrequencies', ...
-                    'parameters', '-v7.3');
+                    'itds', 'ilds', 'iacc', 'targets', ...
+                    'centerFrequencies', 'parameters', '-v7.3');
             end
         end
 
@@ -362,7 +436,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             nFiles = length(filelist);
             
             % Initialize cell-arrays for data storage
-            trainingFeatures = cell(nFiles, 2);
+            trainingFeatures = cell(nFiles, 3);
             trainingTargets = cell(nFiles, 1);
             
             % Gather data
@@ -373,16 +447,34 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 % Append training data to cell-arrays
                 trainingFeatures{fileIdx, 1} = data.itds;
                 trainingFeatures{fileIdx, 2} = data.ilds;
+                trainingFeatures{fileIdx, 3} = data.iacc;
                 trainingTargets{fileIdx} = data.targets;
             end
             
             % "Vectorize" all features
             itds = cell2mat(trainingFeatures(:, 1));
             ilds = cell2mat(trainingFeatures(:, 2));
+            iacc = cell2mat(trainingFeatures(:, 3));
             targets = cell2mat(trainingTargets);
+            
+            % Scale traget values between 0 and 1
+            [targets, minTarget, maxTarget] = obj.scaleMinMax(targets);
             
             % Get number of gammatone filterbank channels
             [~, nChannels] = size(itds);
+            
+            % Initialize localization models
+            obj.localizationModels = cell(nChannels, 1);
+            
+            % Train localization models for each gammatone channel
+            for k = 1 : nChannels
+                % Get training features
+                features = [squeeze(iacc(:, k, :)), ilds(:, k)];
+                
+                % Perform whitening on features
+                [features, featureMean, whiteningMatrix] = ...
+                    obj.whitenData(features);
+            end
         end
     end
 end
