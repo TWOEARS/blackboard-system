@@ -101,7 +101,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 bsxfun(@minus, p.Results.data, dataMean) * whiteningMatrix;
         end
     end
-
+        
     methods (Access = public)
         function obj = SegmentationKS(name, varargin)
             % SEGMENTATIONKS This is the class constructor. This KS can
@@ -139,7 +139,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             defaultWindowSize = 0.02;
             defaultHopSize = 0.01;
             defaultFLow = 80;
-            defaultFHigh = 5000;
+            defaultFHigh = 8000;
             defaultBVerbose = false;
             defaultBTrain = false;
             
@@ -205,7 +205,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             obj.bTrain = p.Results.bTrain;
             
             % Check if trained models are available
-            filename = [obj.name, '_models.mat'];            
+            filename = [obj.name, '_models_', ...
+                cell2mat(obj.reqHashs), '.mat'];
             if ~exist(fullfile(obj.dataPath, obj.name, filename), 'file')
                 warning(['No trained models are available for this ', ...
                     'KS. Please ensure to run KS training first.']);
@@ -258,88 +259,100 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             end
             
             % Check if folder for storing training data exists
-            if ~exist(fullfile(obj.dataPath, obj.name), 'dir')
-                mkdir(fullfile(obj.dataPath, obj.name))
+            dataFolder = fullfile(obj.dataPath, obj.name, 'data');
+            if ~exist(dataFolder, 'dir')
+                mkdir(dataFolder)
             end
             
-            % Initialize Binaural Simulator
-            sim = simulator.SimulatorConvexRoom(sceneDescription);
-            sim.Verbose = false;
-            
-            % Initialize source as white noise target
-            set(sim, 'Sources', {simulator.source.Point()});
-            set(sim.Sources{1}, 'AudioBuffer', simulator.buffer.Noise());
-            
-            % Set simulation length to 1 second
-            set(sim, 'LengthOfSimulation', 1);
-            
-            % Set look direction of the head to 0 degrees
-            sim.rotateHead(0, 'absolute');
-            
-            % Start simulation
-            set(sim, 'Init', true);
-            
-            % Initialize auditory front-end
-            dataObj = dataObject([], sim.SampleRate, ...
-                sim.LengthOfSimulation, 2);
-            managerObj = manager(dataObj);
-            for idx = 1 : length(obj.requests)
-                managerObj.addProcessor(obj.requests{idx}.name, ...
-                    obj.requests{idx}.params);
-            end
-            
-            % Get center frequencies of gammatone filterbank
-            centerFrequencies = dataObj.filterbank{1}.cfHz;
-            
-            % Generate vector of azimuth positions
-            % TODO: This can be extended to be set by the user in a future
-            % version.
-            nPositions = 181;
-            angles = linspace(-90, 90, nPositions);
-
-            for posIdx = 1 : nPositions
-                if obj.bVerbose
-                    disp(['Generating training features (', ...
-                        num2str(posIdx), '/', num2str(nPositions), ') ...']);
+            % Check if training data has already been generated
+            filelist = obj.getFiles(dataFolder, 'mat');
+            if ~isempty(filelist)
+                warning(['Training data for current KS is already ', ...
+                    'available. Please run the ', ...
+                    '''removeTrainingData()'' method before generating ', ...
+                    'a new training dataset.']);
+            else % Run data generation
+                % Initialize Binaural Simulator
+                sim = simulator.SimulatorConvexRoom(sceneDescription);
+                sim.Verbose = false;
+                
+                % Initialize source as white noise target
+                set(sim, 'Sources', {simulator.source.Point()});
+                set(sim.Sources{1}, 'AudioBuffer', ...
+                    simulator.buffer.Noise());
+                
+                % Set simulation length to 1 second
+                set(sim, 'LengthOfSimulation', 1);
+                
+                % Set look direction of the head to 0 degrees
+                sim.rotateHead(0, 'absolute');
+                
+                % Start simulation
+                set(sim, 'Init', true);
+                
+                % Initialize auditory front-end
+                dataObj = dataObject([], sim.SampleRate, ...
+                    sim.LengthOfSimulation, 2);
+                managerObj = manager(dataObj);
+                for idx = 1 : length(obj.requests)
+                    managerObj.addProcessor(obj.requests{idx}.name, ...
+                        obj.requests{idx}.params);
                 end
                 
-                % Get current angle
-                angle = angles(posIdx);
+                % Get center frequencies of gammatone filterbank
+                centerFrequencies = dataObj.filterbank{1}.cfHz;
                 
-                % Set source position
-                set(sim.Sources{1}, 'Position', ...
-                    [cosd(angle); sind(angle); 0]);
+                % Generate vector of azimuth positions
+                % TODO: This can be extended to be set by the user in a 
+                % future version.
+                nPositions = 181;
+                angles = linspace(-90, 90, nPositions);
                 
-                % Re-initialize Binaural Simulator and AFE
-                set(sim, 'ReInit', true);
-                dataObj.clearData();
-                managerObj.reset();
-                
-                % Get audio signal
-                earSignals = sim.getSignal(sim.LengthOfSimulation);
-                
-                % Process ear signals
-                managerObj.processSignal(earSignals);
-                
-                % Get binaural features
-                itds = dataObj.itd{1}.Data(:);
-                ilds = dataObj.ild{1}.Data(:);
-                iacc = dataObj.crosscorrelation{1}.Data(:);
-                
-                % Assemble filename for current set of features
-                filename = [obj.name, '_', num2str(angle), 'deg.mat'];
-                
-                % Compute target vector from angles
-                nFrames = size(itds, 1);
-                targets = angle .* ones(nFrames, 1);
-                
-                % Get parameters
-                parameters = obj.requests{1}.params;
-                
-                % Save features and meta-data to file
-                save(fullfile(obj.dataPath, obj.name, filename), ...
-                    'itds', 'ilds', 'iacc', 'targets', ...
-                    'centerFrequencies', 'parameters', '-v7.3');
+                for posIdx = 1 : nPositions
+                    if obj.bVerbose
+                        disp(['Generating training features (', ...
+                            num2str(posIdx), '/', num2str(nPositions), ...
+                            ') ...']);
+                    end
+                    
+                    % Get current angle
+                    angle = angles(posIdx);
+                    
+                    % Set source position
+                    set(sim.Sources{1}, 'Position', ...
+                        [cosd(angle); sind(angle); 0]);
+                    
+                    % Re-initialize Binaural Simulator and AFE
+                    set(sim, 'ReInit', true);
+                    dataObj.clearData();
+                    managerObj.reset();
+                    
+                    % Get audio signal
+                    earSignals = sim.getSignal(sim.LengthOfSimulation);
+                    
+                    % Process ear signals
+                    managerObj.processSignal(earSignals);
+                    
+                    % Get binaural features
+                    itds = dataObj.itd{1}.Data(:);
+                    ilds = dataObj.ild{1}.Data(:);
+                    iacc = dataObj.crosscorrelation{1}.Data(:);
+                    
+                    % Assemble filename for current set of features
+                    filename = [obj.name, '_', num2str(angle), 'deg.mat'];
+                    
+                    % Compute target vector from angles
+                    nFrames = size(itds, 1);
+                    targets = angle .* ones(nFrames, 1);
+                    
+                    % Get parameters
+                    parameters = obj.requests{1}.params;
+                    
+                    % Save features and meta-data to file
+                    save(fullfile(dataFolder, filename), ...
+                        'itds', 'ilds', 'iacc', 'targets', ...
+                        'centerFrequencies', 'parameters', '-v7.3');
+                end
             end
         end
 
@@ -355,7 +368,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             end
             
             % Check if folder containing training data exists
-            trainingFolder = fullfile(obj.dataPath, obj.name);
+            trainingFolder = fullfile(obj.dataPath, obj.name, 'data');
             if ~exist(trainingFolder, 'dir')
                 error(['No folder containing training data can be ', ...
                     'found for SegmentaionKS of type ', obj.name, '.']);
@@ -380,17 +393,12 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 % Get current filename
                 filename = filelist{fileIdx};
                 
-                % Check if current file is the model file and skip it
-                if strcmp(filename, [obj.name, '_models.mat'])
-                    continue;
-                else
-                    % Delete file
-                    delete(fullfile(trainingFolder, filename));
-                end
+                % Delete file
+                delete(fullfile(trainingFolder, filename));
             end
         end
-
-        function obj = train(obj)
+        
+        function obj = train(obj, varargin)
             % TRAIN This function computes SVM regression models for
             %   each frequency band of the gammatone filterbank. The models
             %   take ITDs and ILDs as inputs and predict the most likely
@@ -398,6 +406,19 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             %   -90° and 90°. To use this function, training data has to be
             %   generated first by calling the 'generateTrainingData'
             %   method of this KS.
+            %
+            % OPTIONAL INPUTS:
+            %   bOverwrite - Flag that indicates if an existing model file
+            %       that has already been genereated for the same parameter
+            %       set should be overwritten by a retrained model 
+            %       (default = false).
+            
+            % Check inputs
+            p = inputParser();
+            defaultOverwrite = false;
+            
+            p.addOptional('bOverwrite', defaultOverwrite, @islogical);
+            p.parse(varargin{:});
             
             % Check if KS is set to training mode
             if ~obj.bTrain
@@ -406,86 +427,98 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             end
             
             % Check if folder containing training data exists
-            trainingFolder = fullfile(obj.dataPath, obj.name);
+            trainingFolder = fullfile(obj.dataPath, obj.name, 'data');
             if ~exist(trainingFolder, 'dir')
                 error(['No folder containing training data can be ', ...
                     'found for SegmentaionKS of type ', obj.name, '.']);
             end
             
             % Get all mat-files from training folder
-            filelist = obj.getFiles(trainingFolder, 'mat');            
+            filelist = obj.getFiles(trainingFolder, 'mat');
             if isempty(filelist)
                 error([trainingFolder, ' does not contain any ', ...
                     'training files. Please run the method ', ...
                     '''generateTrainingData()'' first.']);
             end
             
-            % Get number of training files
-            nFiles = length(filelist);
-            
-            % Initialize cell-arrays for data storage
-            trainingFeatures = cell(nFiles, 3);
-            trainingTargets = cell(nFiles, 1);
-            
-            % Gather data
-            for fileIdx = 1 : nFiles
-                % Load current training file
-                data = load(fullfile(trainingFolder, filelist{fileIdx}));
+            % Check if trained models for current parameter settings
+            % already exist. Otherwise start training.
+            filename = [obj.name, '_models_', cell2mat(obj.reqHashs), ...
+                '.mat'];
+            if exist(fullfile(trainingFolder, filename), 'file') && ...
+                    ~p.Results.bOverwrite
+                error(['File containing trained models already exists ', ...
+                    'for the current parameter settings. Please set ', ...
+                    'this function in overwriting-mode to re-train ', ...
+                    'the existing models.']);
+            else                
+                % Get number of training files
+                nFiles = length(filelist);
                 
-                % Append training data to cell-arrays
-                trainingFeatures{fileIdx, 1} = data.itds;
-                trainingFeatures{fileIdx, 2} = data.ilds;
-                trainingFeatures{fileIdx, 3} = data.iacc;
-                trainingTargets{fileIdx} = data.targets;
-            end
-            
-            % "Vectorize" all features
-            itds = cell2mat(trainingFeatures(:, 1));
-            ilds = cell2mat(trainingFeatures(:, 2));
-            iacc = cell2mat(trainingFeatures(:, 3));
-            targets = cell2mat(trainingTargets);
-            
-            % Get number of gammatone filterbank channels
-            [~, nChannels] = size(itds);
-            
-            % Initialize localization models
-            locModels = cell(nChannels, 1);
-            
-            % Train localization models for each gammatone channel
-            for chanIdx = 1 : nChannels
-                if obj.bVerbose
-                    disp(['Training regression model for channel (', ...
-                        num2str(chanIdx), '/', num2str(nChannels), ') ...']);
+                % Initialize cell-arrays for data storage
+                trainingFeatures = cell(nFiles, 3);
+                trainingTargets = cell(nFiles, 1);
+                
+                % Gather data
+                for fileIdx = 1 : nFiles
+                    % Load current training file
+                    data = load(fullfile(trainingFolder, ...
+                        filelist{fileIdx}));
+                    
+                    % Append training data to cell-arrays
+                    trainingFeatures{fileIdx, 1} = data.itds;
+                    trainingFeatures{fileIdx, 2} = data.ilds;
+                    trainingFeatures{fileIdx, 3} = data.iacc;
+                    trainingTargets{fileIdx} = data.targets;
                 end
                 
-                % Get training features
-                features = [squeeze(iacc(:, chanIdx, :)), ilds(:, chanIdx)];
+                % "Vectorize" all features
+                itds = cell2mat(trainingFeatures(:, 1));
+                ilds = cell2mat(trainingFeatures(:, 2));
+                iacc = cell2mat(trainingFeatures(:, 3));
+                targets = cell2mat(trainingTargets);
                 
-                % Perform whitening on features
-                [features, featureMean, whiteningMatrix] = ...
-                    obj.whitenData(features);
+                % Get number of gammatone filterbank channels
+                [~, nChannels] = size(itds);
                 
-                % Train SVM regression model
-                trainingParams = sprintf('-s 4 -t 0 -m 512 -h 0 -q');
-                model = libsvmtrain(targets, features, trainingParams);
+                % Initialize localization models
+                locModels = cell(nChannels, 1);
                 
-                % Append model and parameters to cell-array
-                locModels{chanIdx}.model = model;
-                locModels{chanIdx}.featureMean = featureMean;
-                locModels{chanIdx}.whiteningMatrix = whiteningMatrix;
-                locModels{chanIdx}.centerFrequency = ...
-                    data.centerFrequencies(chanIdx);
+                % Train localization models for each gammatone channel
+                for chanIdx = 1 : nChannels
+                    if obj.bVerbose
+                        disp(['Training regression model for channel (', ...
+                            num2str(chanIdx), '/', ...
+                            num2str(nChannels), ') ...']);
+                    end
+                    
+                    % Get training features
+                    features = [squeeze(iacc(:, chanIdx, :)), ...
+                        ilds(:, chanIdx)];
+                    
+                    % Perform whitening on features
+                    [features, featureMean, whiteningMatrix] = ...
+                        obj.whitenData(features);
+                    
+                    % Train SVM regression model
+                    trainingParams = sprintf('-s 4 -t 0 -m 512 -h 0 -q');
+                    model = libsvmtrain(targets, features, trainingParams);
+                    
+                    % Append model and parameters to cell-array
+                    locModels{chanIdx}.model = model;
+                    locModels{chanIdx}.featureMean = featureMean;
+                    locModels{chanIdx}.whiteningMatrix = whiteningMatrix;
+                    locModels{chanIdx}.centerFrequency = ...
+                        data.centerFrequencies(chanIdx);
+                end
+                
+                % Add localization models to object properties
+                obj.localizationModels = locModels;
+                
+                % Save features and meta-data to file
+                save(fullfile(obj.dataPath, obj.name, filename), ...
+                    'locModels', '-v7.3');
             end
-            
-            % Add localization models to object properties
-            obj.localizationModels = locModels;
-            
-            % Assemble filename for current set of trained models
-            filename = [obj.name, '_models.mat'];
-            
-            % Save features and meta-data to file
-            save(fullfile(obj.dataPath, obj.name, filename), ...
-                'locModels', '-v7.3');
         end
     end
 end
