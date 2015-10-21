@@ -15,13 +15,16 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
     %   Universitaetsstr. 150, 44801 Bochum
     
     properties (SetAccess = private)
-        name;                       % Name of the KS instance
-        localizationModels;         % Cell-array, containing trained 
+        name                        % Name of the KS instance
+        localizationModels          % Cell-array, containing trained 
                                     % localization models for each
                                     % gammatone filterbank channel.
-        bTrain = false;             % Flag, indicating if the KS is in
+        blockSize                   % The size of one data block that
+                                    % should be processed by this KS in
+                                    % [s].
+        bTrain = false              % Flag, indicating if the KS is in
                                     % training mode
-        bVerbose = false;           % Display processing information?
+        bVerbose = false            % Display processing information?
         dataPath = ...              % Path for storing trained models
             fullfile(xml.dbTmp, 'learned_models', 'SegmentationKS');
     end
@@ -103,7 +106,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
     end
         
     methods (Access = public)
-        function obj = SegmentationKS(name, varargin)
+        function obj = SegmentationKS(name, blockSize, varargin)
             % SEGMENTATIONKS This is the class constructor. This KS can
             %   either be initialized in working or training-mode. In
             %   working mode, the KS can be used within a working
@@ -114,6 +117,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % REQUIRED INPUTS:
             %   name - Name that describes the properties of the
             %       instantiated KS object.
+            %   blockSize - Size of the processing blocks in [s].
             %
             % OPTIONAL INPUTS:
             %   ['NumChannels', numChannels] - Name-value pair for setting
@@ -144,6 +148,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             defaultBTrain = false;
             
             p.addRequired('name', @ischar);
+            p.addRequired('blockSize', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', 'scalar', 'nonnegative'}));
             p.addOptional('bTrain', defaultBTrain, @islogical);
             p.addParameter('NumChannels', defaultNumChannels, ...
                 @(x) validateattributes(x, {'numeric'}, ...
@@ -161,7 +167,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'real', 'scalar', 'nonnegative'}));
             p.addParameter('Verbosity', defaultBVerbose, @islogical);
-            p.parse(name, varargin{:});
+            p.parse(name, blockSize, varargin{:});
             
             % Set parameters for the gammatone filterbank processor
             fb_type = 'gammatone';
@@ -193,7 +199,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 'ild_wname', ild_wname);
             
             % Set AFE requests
-            requests{1}.name = 'itd';
+            requests{1}.name = 'crosscorrelation';
             requests{1}.params = afeParameters;
             requests{2}.name = 'ild';
             requests{2}.params = afeParameters;
@@ -201,8 +207,10 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             
             % Instantiate KS
             obj.name = p.Results.name;
+            obj.blockSize = p.Results.blockSize;
             obj.bVerbose = p.Results.Verbosity;
             obj.bTrain = p.Results.bTrain;
+            obj.lastExecutionTime_s = 0;
             
             % Check if trained models are available
             filename = [obj.name, '_models_', ...
@@ -215,7 +223,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 models = load(fullfile(obj.dataPath, obj.name, filename));
                 obj.localizationModels = models.locModels;
             end
-
         end
 
         function delete(obj)
@@ -223,11 +230,26 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
         end
 
         function [bExecute, bWait] = canExecute(obj)
-
+            % CANEXECUTE This function specifies which conditions must be
+            %   met before this KS can be executed. 
+            
+            % Execute KS if a sufficient amount of data for one block has
+            % been gathered
+            bExecute = (obj.blackboard.currentSoundTimeIdx - ...
+                obj.lastExecutionTime_s) >= obj.blockSize;
+            bWait = false;
         end
 
         function execute(obj)
-           
+            % EXECUTE This mehtods performs joint source segregation and
+            %   localization for one block of audio data.
+            
+            % Get features of current signal block
+            afeData = obj.getAFEdata();
+            iacc = afeData(1).Data(:);
+            ilds = afeData(2).Data(:);
+            
+            error('DEBUG');           
         end
 
         function generateTrainingData(obj, sceneDescription)
@@ -334,7 +356,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                     managerObj.processSignal(earSignals);
                     
                     % Get binaural features
-                    itds = dataObj.itd{1}.Data(:);
                     ilds = dataObj.ild{1}.Data(:);
                     iacc = dataObj.crosscorrelation{1}.Data(:);
                     
@@ -342,7 +363,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                     filename = [obj.name, '_', num2str(angle), 'deg.mat'];
                     
                     % Compute target vector from angles
-                    nFrames = size(itds, 1);
+                    nFrames = size(ilds, 1);
                     targets = angle .* ones(nFrames, 1);
                     
                     % Get parameters
@@ -350,7 +371,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                     
                     % Save features and meta-data to file
                     save(fullfile(dataFolder, filename), ...
-                        'itds', 'ilds', 'iacc', 'targets', ...
+                        'ilds', 'iacc', 'targets', ...
                         'centerFrequencies', 'parameters', '-v7.3');
                 end
             end
@@ -456,7 +477,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 nFiles = length(filelist);
                 
                 % Initialize cell-arrays for data storage
-                trainingFeatures = cell(nFiles, 3);
+                trainingFeatures = cell(nFiles, 2);
                 trainingTargets = cell(nFiles, 1);
                 
                 % Gather data
@@ -466,20 +487,18 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                         filelist{fileIdx}));
                     
                     % Append training data to cell-arrays
-                    trainingFeatures{fileIdx, 1} = data.itds;
-                    trainingFeatures{fileIdx, 2} = data.ilds;
-                    trainingFeatures{fileIdx, 3} = data.iacc;
+                    trainingFeatures{fileIdx, 1} = data.ilds;
+                    trainingFeatures{fileIdx, 2} = data.iacc;
                     trainingTargets{fileIdx} = data.targets;
                 end
                 
                 % "Vectorize" all features
-                itds = cell2mat(trainingFeatures(:, 1));
-                ilds = cell2mat(trainingFeatures(:, 2));
-                iacc = cell2mat(trainingFeatures(:, 3));
+                ilds = cell2mat(trainingFeatures(:, 1));
+                iacc = cell2mat(trainingFeatures(:, 2));
                 targets = cell2mat(trainingTargets);
                 
                 % Get number of gammatone filterbank channels
-                [~, nChannels] = size(itds);
+                [~, nChannels] = size(ilds);
                 
                 % Initialize localization models
                 locModels = cell(nChannels, 1);
