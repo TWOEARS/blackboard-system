@@ -22,8 +22,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
-        bTrain = false              % Flag, indicating if the KS is in
-                                    % training mode
+        nSources                    % Number of sources that should be 
+                                    % separated.
         bVerbose = false            % Display processing information?
         dataPath = ...              % Path for storing trained models
             fullfile(xml.dbTmp, 'learned_models', 'SegmentationKS');
@@ -106,7 +106,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
     end
         
     methods (Access = public)
-        function obj = SegmentationKS(name, blockSize, varargin)
+        function obj = SegmentationKS(name, varargin)
             % SEGMENTATIONKS This is the class constructor. This KS can
             %   either be initialized in working or training-mode. In
             %   working mode, the KS can be used within a working
@@ -117,9 +117,14 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % REQUIRED INPUTS:
             %   name - Name that describes the properties of the
             %       instantiated KS object.
-            %   blockSize - Size of the processing blocks in [s].
             %
             % OPTIONAL INPUTS:
+            %   blockSize - Size of the processing blocks in [s] 
+            %       (default = 1).
+            %   nSources - Number of sources that should be separated 
+            %       (default = 2).  
+            %
+            % INPUT PARAMETERS:
             %   ['NumChannels', numChannels] - Name-value pair for setting
             %       the number of gammatone filterbank channels that should
             %       be used by the Auditory Front-End.
@@ -134,8 +139,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             %       center frequency of the gammatone filterbank in Hz.
             %   ['Verbosity', bVerbose] - Flag indicating wheter processing
             %       information should be displayed during runtime.
-            %   bTrain - Flag for setting the KS into training mode
-            %            (default = false).
                                     
             % Check inputs
             p = inputParser();
@@ -145,12 +148,16 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             defaultFLow = 80;
             defaultFHigh = 8000;
             defaultBVerbose = false;
-            defaultBTrain = false;
+            defaultBlockSize = 1;
+            defaultNSources = 2;
             
             p.addRequired('name', @ischar);
-            p.addRequired('blockSize', @(x) validateattributes(x, ...
-                {'numeric'}, {'real', 'scalar', 'nonnegative'}));
-            p.addOptional('bTrain', defaultBTrain, @islogical);
+            p.addOptional('blockSize', defaultBlockSize, ...
+                @(x) validateattributes(x, {'numeric'}, ...
+                {'real', 'scalar', 'nonnegative'}));
+            p.addOptional('nSources', defaultNSources, ...
+                @(x) validateattributes(x, {'numeric'}, ...
+                {'integer', 'scalar', 'nonnegative'}));
             p.addParameter('NumChannels', defaultNumChannels, ...
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'integer', 'scalar', 'nonnegative'}));
@@ -167,7 +174,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'real', 'scalar', 'nonnegative'}));
             p.addParameter('Verbosity', defaultBVerbose, @islogical);
-            p.parse(name, blockSize, varargin{:});
+            p.parse(name, varargin{:});
             
             % Set parameters for the gammatone filterbank processor
             fb_type = 'gammatone';
@@ -208,8 +215,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Instantiate KS
             obj.name = p.Results.name;
             obj.blockSize = p.Results.blockSize;
+            obj.nSources = p.Results.nSources;
             obj.bVerbose = p.Results.Verbosity;
-            obj.bTrain = p.Results.bTrain;
             obj.lastExecutionTime_s = 0;
             
             % Check if trained models are available
@@ -249,7 +256,43 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             iacc = afeData(1).Data(:);
             ilds = afeData(2).Data(:);
             
-            error('DEBUG');           
+            % Get number of frames and channels
+            [nFrames, nChannels] = size(ilds);
+            
+            % Initialize location map
+            locMap = zeros(nFrames, nChannels);
+            
+            % Estimate azimuth angle for each time-frequency bin
+            for chanIdx = 1 : nChannels
+                % Get feature vector for current T-F-bin
+                features = [squeeze(iacc(:, chanIdx, :)), ...
+                    ilds(:, chanIdx)];
+                
+                % Get whitening parameters for current channels
+                featureMean = obj.localizationModels{chanIdx}.featureMean;
+                whiteningMatrix = ...
+                    obj.localizationModels{chanIdx}.whiteningMatrix;
+                
+                % Perform whitening
+                features = ...
+                    bsxfun(@minus, features, featureMean) * ...
+                    whiteningMatrix;
+                
+                % Predict azimuth positions
+                locMap(:, chanIdx) = libsvmpredict(ones(nFrames, 1), ...
+                    features, ...
+                    obj.localizationModels{chanIdx}.model, ...
+                    sprintf('-q'));
+            end
+            
+            % Wrap all features to the interval [-pi, pi]
+            locMap = mod(locMap + 180, 360) - 180;
+            locMap = locMap ./ 180 .* pi;
+            
+            % Fit a von Mises mixture model to the data
+            mvmModel = fitmvmdist(locMap(:), obj.nSources);
+            
+            % TODO: Add contruction of segmentation hypothesis here...          
         end
 
         function generateTrainingData(obj, sceneDescription)
@@ -273,12 +316,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             
             p.addRequired('sceneDescription', @(x) exist(x, 'file'));
             p.parse(sceneDescription);
-            
-            % Check if KS is set to training mode
-            if ~obj.bTrain
-                error(['SegmentationKS has to be initiated in ', ...
-                    'training mode to allow for this functionality.']);
-            end
             
             % Check if folder for storing training data exists
             dataFolder = fullfile(obj.dataPath, obj.name, 'data');
@@ -382,12 +419,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             %   generated for a specific instance of this knowledge source
             %   can be removed via this function.
             
-            % Check if KS is set to training mode
-            if ~obj.bTrain
-                error(['SegmentationKS has to be initiated in ', ...
-                    'training mode to allow for this functionality.']);
-            end
-            
             % Check if folder containing training data exists
             trainingFolder = fullfile(obj.dataPath, obj.name, 'data');
             if ~exist(trainingFolder, 'dir')
@@ -440,12 +471,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             
             p.addOptional('bOverwrite', defaultOverwrite, @islogical);
             p.parse(varargin{:});
-            
-            % Check if KS is set to training mode
-            if ~obj.bTrain
-                error(['SegmentationKS has to be initiated in ', ...
-                    'training mode to allow for this functionality.']);
-            end
             
             % Check if folder containing training data exists
             trainingFolder = fullfile(obj.dataPath, obj.name, 'data');
