@@ -23,7 +23,32 @@ classdef PositionHypothesis < Hypothesis
     methods
         function obj = PositionHypothesis(sourceIdentifier, ...
                 sourcePosition, positionVariance)
-
+            % POSITIONHYPOTHESIS This constructor function is used to
+            %   generate a new position hypothesis on the blackboard.
+            %
+            % REQUIRED INPUTS:
+            %   sourceIdentifier - Unique hash string, that was generated
+            %       by the Segmentation KS.
+            %   sourcePosition - Angular position of the sound source,
+            %       specified in [rad].
+            %   positionVariance - The circular variance of the estimated
+            %       sound source position. By definition, the circular
+            %       variance is a value between zero and one.
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('sourceIdentifier', @isstr);
+            p.addRequired('sourcePosition', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', 'scalar', '>=', -pi, '<=', pi}));
+            p.addRequired('positionVariance', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', 'scalar', '>=', 0, '<=', 1}));
+            p.parse(sourceIdentifier, sourcePosition, positionVariance);
+            
+            % Add parameters to object properties
+            obj.sourceIdentifier = p.Results.sourceIdentifier;
+            obj.sourcePosition = p.Results.sourcePosition;
+            obj.positionVariance = p.Results.positionVariance;
         end
     end
 end

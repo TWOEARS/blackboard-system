@@ -345,15 +345,16 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                     besseli(1, mvmModel.kappa(sourceIdx)) / ...
                     besseli(0, mvmModel.kappa(sourceIdx));
                 
-                % Add hypotheses to the blackboard
+                % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis(sourceIdentifier, softMask);
                 obj.blackboard.addData('segmentationHypotheses', ...
-                    segHyp, false, obj.trigger.tmIdx);
+                    segHyp, true, obj.trigger.tmIdx);
                 
+                % Add position hypothesis to the blackboard
                 posHyp = PositionHypothesis(sourceIdentifier, ...
                     sourcePosition, circularVariance);
                 obj.blackboard.addData('positionHypotheses', ...
-                    posHyp, false, obj.trigger.tmIdx);
+                    posHyp, true, obj.trigger.tmIdx);
             end
             
             % Trigger event that KS has been executed
