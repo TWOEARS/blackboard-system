@@ -14,17 +14,21 @@ classdef PositionHypothesis < Hypothesis
         sourceIdentifier            % Unique identifier of the particular 
                                     % sound source represented by this
                                     % hypothesis.
-        blockSize                   % Size of the data block in [s] that 
-                                    % this hypothesis represents.
-        sourceLocation              % Angular position of the represented 
+        startTimeIdx                % Simulation timestamp that indicates 
+                                    % the beginning of the represented
+                                    % signal block in [s].
+        endTimeIdx                  % Simulation timestamp that indicates 
+                                    % the end of the represented signal 
+                                    % block in [s].  
+        sourcePosition              % Angular position of the represented 
                                     % sound source in [deg].
-        locationVariance            % Circular variance of the estimated 
+        positionVariance            % Circular variance of the estimated 
                                     % angular position.
     end
     
     methods
         function obj = SegmentationHypothesis(sourceIdentifier, ...
-                blockSize, nFrames, nChannels, mvmModel)
+                startTimeIdx, endTimeIdx, sourcePosition, positionVariance)
 
         end
     end

@@ -14,15 +14,19 @@ classdef SegmentationHypothesis < Hypothesis
         sourceIdentifier            % Unique identifier of the particular 
                                     % sound source represented by this
                                     % hypothesis.
-        blockSize                   % Size of the data block in [s] that 
-                                    % this hypothesis represents.
+        startTimeIdx                % Simulation timestamp that indicates 
+                                    % the beginning of the represented
+                                    % signal block in [s].
+        endTimeIdx                  % Simulation timestamp that indicates 
+                                    % the end of the represented signal 
+                                    % block in [s].                                    
         softMask                    % Probabilistic segmentation mask 
                                     % associated with this sound source.
     end
     
     methods
         function obj = SegmentationHypothesis(sourceIdentifier, ...
-                blockSize, nFrames, nChannels, mvmModel)
+                startTimeIdx, endTimeIdx, softMask)
 
         end
     end
