@@ -103,6 +103,38 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             nData = ...
                 bsxfun(@minus, p.Results.data, dataMean) * whiteningMatrix;
         end
+        
+        function hashValue = generateHash(inputString)
+            % GENERATEHASH This function can be used to generate a MD5 hash
+            %   value for a given string.
+            %
+            % REQUIRED INPUTS:
+            %   inputString - String that should be converted.
+            %
+            % OUTPUTS:
+            %   hashValue - MD5 hash value
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('inputString', @ischar);
+            p.parse(inputString);
+            
+            % Convert string to byte-array            
+            byteString = java.lang.String(inputString);
+            
+            % Generate an instance of the Java "Message Digest" class
+            javaMessageDigest = ...
+                java.security.MessageDigest.getInstance('MD5');
+            
+            % Append byte array to hash processor
+            javaMessageDigest.update(byteString.getBytes);
+            
+            % Generate hash value and convert back to Matlab string format
+            byteHash = javaMessageDigest.digest();
+            byteHash = java.math.BigInteger(1, byteHash);
+            hashValue = char(byteHash.toString(16));
+        end
     end
         
     methods (Access = public)
@@ -232,10 +264,6 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             end
         end
 
-        function delete(obj)
-
-        end
-
         function [bExecute, bWait] = canExecute(obj)
             % CANEXECUTE This function specifies which conditions must be
             %   met before this KS can be executed. 
@@ -253,8 +281,10 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             
             % Get features of current signal block
             afeData = obj.getAFEdata();
-            iacc = afeData(1).Data(:);
-            ilds = afeData(2).Data(:);
+            iacc = afeData(1).getSignalBlock(obj.blockSize, ...
+                obj.timeSinceTrigger);
+            ilds = afeData(2).getSignalBlock(obj.blockSize, ...
+                obj.timeSinceTrigger);
             
             % Get number of frames and channels
             [nFrames, nChannels] = size(ilds);
@@ -292,7 +322,43 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Fit a von Mises mixture model to the data
             mvmModel = fitmvmdist(locMap(:), obj.nSources);
             
-            % TODO: Add contruction of segmentation hypothesis here...          
+            % Perform clustering on the estimated model to get soft masks
+            % for segmentation
+            [~, ~, probMap] = mvmModel.cluster(locMap(:));
+            
+            % Generate new hypotheses for each source
+            for sourceIdx = 1 : obj.nSources
+                % Generate source identifier
+                idString = [num2str(sourceIdx), ...
+                    num2str(obj.lastExecutionTime_s)];
+                sourceIdentifier = obj.generateHash(idString);
+                
+                % Get soft mask for current source
+                softMask = ...
+                    reshape(probMap(:, sourceIdx), nFrames, nChannels);
+                
+                % Get position estimate for current source
+                sourcePosition = mvmModel.mu(sourceIdx);
+                
+                % Compute circular variance for current position estimate
+                circularVariance = 1 - ...
+                    besseli(1, mvmModel.kappa(sourceIdx)) / ...
+                    besseli(0, mvmModel.kappa(sourceIdx));
+                
+                % Add hypotheses to the blackboard
+                segHyp = SegmentationHypothesis(sourceIdentifier, softMask);
+                obj.blackboard.addData('segmentationHypotheses', ...
+                    segHyp, false, obj.trigger.tmIdx);
+                
+                posHyp = PositionHypothesis(sourceIdentifier, ...
+                    sourcePosition, circularVariance);
+                obj.blackboard.addData('positionHypotheses', ...
+                    posHyp, false, obj.trigger.tmIdx);
+            end
+            
+            % Trigger event that KS has been executed
+            notify(obj, 'KsFiredEvent', ...
+                BlackboardEventData(obj.trigger.tmIdx));
         end
 
         function generateTrainingData(obj, sceneDescription)

@@ -14,12 +14,6 @@ classdef PositionHypothesis < Hypothesis
         sourceIdentifier            % Unique identifier of the particular 
                                     % sound source represented by this
                                     % hypothesis.
-        startTimeIdx                % Simulation timestamp that indicates 
-                                    % the beginning of the represented
-                                    % signal block in [s].
-        endTimeIdx                  % Simulation timestamp that indicates 
-                                    % the end of the represented signal 
-                                    % block in [s].  
         sourcePosition              % Angular position of the represented 
                                     % sound source in [deg].
         positionVariance            % Circular variance of the estimated 
@@ -27,8 +21,8 @@ classdef PositionHypothesis < Hypothesis
     end
     
     methods
-        function obj = SegmentationHypothesis(sourceIdentifier, ...
-                startTimeIdx, endTimeIdx, sourcePosition, positionVariance)
+        function obj = PositionHypothesis(sourceIdentifier, ...
+                sourcePosition, positionVariance)
 
         end
     end
