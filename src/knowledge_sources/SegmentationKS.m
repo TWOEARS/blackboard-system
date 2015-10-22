@@ -631,5 +631,39 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                     'locModels', '-v7.3');
             end
         end
+        
+        function obj = setBlockSize(obj, blockSize)
+            % SETBLOCKSIZE Setter function for the block size.
+            %
+            % REQUIRED INPUTS:
+            %   blockSize - Size of the processing blocks in [s].
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('blockSize', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', 'scalar', 'nonnegative'}));
+            p.parse(blockSize);
+            
+            % Set property
+            obj.blockSize = blockSize;
+        end
+        
+        function obj = setNumSources(obj, nSources)
+            % SETNUMSOURCES Setter function for the number of sources.
+            %
+            % REQUIRED INPUTS:
+            %   nSources - Number of sound sources.
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('blockSize', @(x) validateattributes(x, ...
+                {'numeric'}, {'integer', 'scalar', 'nonnegative'}));
+            p.parse(nSources);
+            
+            % Set property
+            obj.nSources = nSources;
+        end
     end
 end
