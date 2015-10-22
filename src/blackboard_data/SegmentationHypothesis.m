@@ -35,8 +35,7 @@ classdef SegmentationHypothesis < Hypothesis
             
             p.addRequired('sourceIdentifier', @isstr);
             p.addRequired('softMask', @(x) validateattributes(x, ...
-                {'numeric'}, {'real', '2d', 'nonnegative', ...
-                '>=', 0, '<=', 1}));
+                {'numeric'}, {'real', '2d', '>=', 0, '<=', 1}));
             p.parse(sourceIdentifier, softMask);
             
             % Add parameters to object properties
