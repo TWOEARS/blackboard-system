@@ -20,7 +20,28 @@ classdef SegmentationHypothesis < Hypothesis
     
     methods
         function obj = SegmentationHypothesis(sourceIdentifier, softMask)
-
+            % SEGMENTATIONHYPOTHESIS This constructor function is used to
+            %   generate a new segmentation hypothesis on the blackboard.
+            %
+            % REQUIRED INPUTS:
+            %   sourceIdentifier - Unique hash string, that was generated
+            %       by the Segmentation KS.
+            %   softMask - The probabilistic segmentation mask, specified
+            %       as a NxM matrix, where N is the number of frames and M
+            %       is the number of filterbank channels.
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('sourceIdentifier', @isstr);
+            p.addRequired('softMask', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', '2d', 'nonnegative', ...
+                '>=', 0, '<=', 1}));
+            p.parse(sourceIdentifier, softMask);
+            
+            % Add parameters to object properties
+            obj.sourceIdentifier = p.Results.sourceIdentifier;
+            obj.softMask = p.Results.softMask;
         end
     end
 end
