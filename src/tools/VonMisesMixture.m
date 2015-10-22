@@ -404,7 +404,8 @@ classdef VonMisesMixture
             nSamples = length(p.Results.angles);
             
             % Run conventional k-means to get an initial clustering
-            cIdx = kmeans(p.Results.angles, p.Results.nComponents);
+            cIdx = ckmeans(p.Results.angles, p.Results.nComponents, ...
+                'Replicates', 10);
             
             % Generate initial gamma matrix (hard assignments from k-means
             % results)

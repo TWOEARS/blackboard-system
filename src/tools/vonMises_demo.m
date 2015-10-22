@@ -64,13 +64,14 @@ plot(aAxis, lik, 'r', 'LineWidth', 2); hold on;
 
 % Estimate the parameters for the set of generated samples
 nComponents = 3;
-mvmEstimated = fitmvmdist(samples, nComponents);
+mvmEstimated = fitmvmdist(samples, nComponents, 'MaxIter', 300);
 
 % Plot the PDF of the estimated distribution
 likEstimated = mvmEstimated.pdf(aAxis);
 plot(aAxis, likEstimated, 'g', 'LineWidth', 2);
 
 %% Plot parameters
+
 title('DEMO: Mixture of von Mises distributions');
 xlabel('Angle [rad]');
 ylabel('Normalized count / Probability');
