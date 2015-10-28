@@ -319,15 +319,32 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             locMap = mod(locMap + 180, 360) - 180;
             locMap = locMap ./ 180 .* pi;
             
-            % Fit a von Mises mixture model to the data
-            mvmModel = fitmvmdist(locMap(:), obj.nSources);
+            % Fit a von Mises mixture model to the data. The number of
+            % mixture components is nSources + 1, because background noise
+            % is handled as a separate cluster with concentration parameter
+            % equal to zero.
+            mvmModel = fitmvmdist(locMap(:), obj.nSources + 1, ...
+                'FixedKappa', 0);
             
             % Perform clustering on the estimated model to get soft masks
             % for segmentation
             [~, ~, probMap] = mvmModel.cluster(locMap(:));
             
-            % Generate new hypotheses for each source
-            for sourceIdx = 1 : obj.nSources
+            % Generate segmentation hypothesis for background noise
+            idString = ['1', num2str(obj.lastExecutionTime_s)];
+            bgIdentifier = obj.generateHash(idString);
+            
+            % Get soft mask of background noise
+            bgSoftMask = reshape(probMap(:, 1), nFrames, nChannels);
+            
+            % Add segmentation hypothesis to the blackboard
+            segHyp = SegmentationHypothesis(bgIdentifier, ...
+                'Background', bgSoftMask);
+            obj.blackboard.addData('segmentationHypotheses', ...
+                segHyp, true, obj.trigger.tmIdx);
+            
+            % Generate new hypotheses for each "true" sound source
+            for sourceIdx = 2 : obj.nSources + 1
                 % Generate source identifier
                 idString = [num2str(sourceIdx), ...
                     num2str(obj.lastExecutionTime_s)];
@@ -346,7 +363,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                     besseli(0, mvmModel.kappa(sourceIdx));
                 
                 % Add segmentation hypothesis to the blackboard
-                segHyp = SegmentationHypothesis(sourceIdentifier, softMask);
+                segHyp = SegmentationHypothesis(sourceIdentifier, ...
+                    'SoundSource', softMask);
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
                 

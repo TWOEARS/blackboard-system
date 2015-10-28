@@ -14,18 +14,25 @@ classdef SegmentationHypothesis < Hypothesis
         sourceIdentifier            % Unique identifier of the particular 
                                     % sound source represented by this
                                     % hypothesis.
+        type                        % Specifies the type of the 
+                                    % segmentation, either 'SoundSource' or
+                                    % 'background'.
         softMask                    % Probabilistic segmentation mask 
                                     % associated with this sound source.
     end
     
     methods
-        function obj = SegmentationHypothesis(sourceIdentifier, softMask)
+        function obj = SegmentationHypothesis(sourceIdentifier, type, ...
+                softMask)
             % SEGMENTATIONHYPOTHESIS This constructor function is used to
             %   generate a new segmentation hypothesis on the blackboard.
             %
             % REQUIRED INPUTS:
             %   sourceIdentifier - Unique hash string, that was generated
             %       by the Segmentation KS.
+            %   type, String that specifies the type of the segmentation
+            %       hypothesis, which can either be 'Background' or
+            %       'SoundSource'.
             %   softMask - The probabilistic segmentation mask, specified
             %       as a NxM matrix, where N is the number of frames and M
             %       is the number of filterbank channels.
@@ -34,12 +41,15 @@ classdef SegmentationHypothesis < Hypothesis
             p = inputParser();
             
             p.addRequired('sourceIdentifier', @isstr);
+            p.addRequired('type', @(x) any(validatestring(x, ...
+                {'Background', 'SoundSource'})));
             p.addRequired('softMask', @(x) validateattributes(x, ...
                 {'numeric'}, {'real', '2d', '>=', 0, '<=', 1}));
-            p.parse(sourceIdentifier, softMask);
+            p.parse(sourceIdentifier, type, softMask);
             
             % Add parameters to object properties
             obj.sourceIdentifier = p.Results.sourceIdentifier;
+            obj.type = p.Results.type;
             obj.softMask = p.Results.softMask;
         end
     end
