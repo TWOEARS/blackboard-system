@@ -106,7 +106,8 @@ classdef VonMisesMixture
             end
         end
         
-        function [mu, kappa, cProp] = estimateParameters(angles, gamma)
+        function [mu, kappa, cProp] = estimateParameters(angles, gamma, ...
+                varargin)
             % ESTIMATEPARAMETERS This function computes the maximum 
             %   likelihood estimates of the distribution parameters mu, 
             %   kappa and the mixing proportions for a given set
@@ -117,6 +118,18 @@ classdef VonMisesMixture
             %   angles - Nx1 vector, containing N angular values, ranged
             %       between -pi and pi.
             %   gamma - NxK responsibility matrix.
+            %
+            % PARAMETERS:
+            %   ['FixedMu', fixedMu] - A vector, containing circular mean
+            %       parameters that should be fixed during the estimation
+            %       process.
+            %   ['FixedKappa', fixedKappa] - A vector, containing
+            %       concentration parameters that should be fixed during
+            %       the estimation process. If both fixed circular means
+            %       and concnetration parameters are defined, keep in mind
+            %       that the order of the vector elements determines, which
+            %       concentration parameter is assigned to which mean, e.g.
+            %       fixedMu(1) -> fixedKappa(1) etc.
             %
             % OUTPUTS:
             %   mu - Kx1 vector, containing the circular means of all K
@@ -135,28 +148,78 @@ classdef VonMisesMixture
             
             % Check inputs
             p = inputParser();
+            defaultFixedMu = [];
+            defaultFixedKappa = [];
             
             p.addRequired('angles', @(x) validateattributes(x, ...
                 {'numeric'}, {'real', 'column', '>=', -pi, '<=', pi}));
             p.addRequired('gamma', @(x) validateattributes(x, ...
                 {'numeric'}, {'real', '2d', 'nrows', length(angles)}));
-            p.parse(angles, gamma);
+            fixedMuExist = ...
+                find(cellfun(@(x) strcmpi(x, 'FixedMu') , ...
+                varargin));
+            if fixedMuExist && (isempty(varargin{fixedMuExist + 1}))
+                p.addParameter('FixedMu', defaultFixedMu, @isnumeric);
+            else
+                p.addParameter('FixedMu', defaultFixedMu, ...
+                    @(x) validateattributes(x, {'numeric'}, ...
+                    {'real', 'vector', '>=', -pi, '<=', pi}));
+            end
+            fixedKappaExist = ...
+                find(cellfun(@(x) strcmpi(x, 'FixedKappa') , ...
+                varargin));
+            if fixedKappaExist && (isempty(varargin{fixedKappaExist + 1}))
+                p.addParameter('FixedKappa', defaultFixedKappa, ...
+                    @isnumeric);
+            else
+                p.addParameter('FixedKappa', defaultFixedKappa, ...
+                    @(x) validateattributes(x, {'numeric'}, ...
+                    {'real', 'vector', 'nonnegative'}));
+            end
+            p.parse(angles, gamma, varargin{:});
+            
+            % Get number of fixed parameters
+            if ~isempty(p.Results.FixedMu)
+                nFixedMu = length(p.Results.FixedMu);
+            else
+                nFixedMu = 0;
+            end
+            
+            if ~isempty(p.Results.FixedKappa)
+                nFixedKappa = length(p.Results.FixedKappa);
+            else
+                nFixedKappa = 0;
+            end
+            
+            % Check validity of fixed parameters
+            if (nFixedMu > size(gamma, 2)) || ...
+                    (nFixedKappa > size(gamma, 2))
+                error(['The number of fixed parameters cannot ', ...
+                    'exceed the number of variables.']);
+            end
             
             % Compute mixing proportions
             cProp = sum(gamma) ./ size(gamma, 1);
             
             % Compute estimation parameters
-            x = (gamma' * cos(angles)) ./ sum(gamma)';
-            y = (gamma' * sin(angles)) ./ sum(gamma)';
+            reducedGammaMu = gamma(:, nFixedMu + 1 : end);
+            xMu = (reducedGammaMu' * cos(angles)) ./ sum(reducedGammaMu)';
+            yMu = (reducedGammaMu' * sin(angles)) ./ sum(reducedGammaMu)';
+            
+            reducedGammaKappa = gamma(:, nFixedKappa + 1 : end);
+            xKappa = (reducedGammaKappa' * cos(angles)) ./ ...
+                sum(reducedGammaKappa)';
+            yKappa = (reducedGammaKappa' * sin(angles)) ./ ...
+                sum(reducedGammaKappa)';
             
             % Compute mean angles
-            mu = atan2(y, x);
+            mu = atan2(yMu, xMu);
                         
             % Compute average distances
-            d = sqrt(x.^2 + y.^2);
+            d = sqrt(xKappa.^2 + yKappa.^2);
             
             % Use approximation scheme from [1] to estimate kappa
-            kappa = zeros(size(gamma, 2), 1);
+            kappa = zeros(size(gamma, 2) - nFixedKappa, 1);
             
             if any(d < 0.53)
                 idx = d < 0.53;
@@ -177,8 +240,8 @@ classdef VonMisesMixture
             
             % Force results to be column vectors
             cProp = cProp(:);
-            mu = mu(:);
-            kappa = kappa(:);
+            mu = [p.Results.FixedMu(:); mu(:)];
+            kappa = [p.Results.FixedKappa(:); kappa(:)];
         end
         
         function [likelihood, compLik] = computeLikelihood(angles, ...
@@ -377,6 +440,16 @@ classdef VonMisesMixture
             %       should be used as a stopping-criterion for the
             %       EM-algorithm during convergence testing (default =
             %       1E-4).
+            %   ['FixedMu', fixedMu] - A vector, containing circular mean
+            %       parameters that should be fixed during the estimation
+            %       process.
+            %   ['FixedKappa', fixedKappa] - A vector, containing
+            %       concentration parameters that should be fixed during
+            %       the estimation process. If both fixed circular means
+            %       and concnetration parameters are defined, keep in mind
+            %       that the order of the vector elements determines, which
+            %       concentration parameter is assigned to which mean, e.g.
+            %       fixedMu(1) -> fixedKappa(1) etc.            
             %
             % LITERATURE:
             %   [1] Hung et al. (2012): "Self-updating clustering algorithm
@@ -387,6 +460,8 @@ classdef VonMisesMixture
             p = inputParser();
             defaultMaxIter = 100;
             defaultErrorThreshold = 1E-4;
+            defaultFixedMu = [];
+            defaultFixedKappa = [];
             
             p.addRequired('angles', @(x) validateattributes(x, ...
                 {'numeric'}, {'real', 'vector', '>=', -pi, '<=', pi}));
@@ -398,14 +473,41 @@ classdef VonMisesMixture
             p.addParameter('ErrorThreshold', defaultErrorThreshold, ...
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'real', 'scalar', 'nonnegative'}));
+            fixedMuExist = ...
+                find(cellfun(@(x) strcmpi(x, 'FixedMu') , ...
+                varargin));
+            if fixedMuExist && (isempty(varargin{fixedMuExist + 1}))
+                p.addParameter('FixedMu', defaultFixedMu, @isnumeric);
+            else
+                p.addParameter('FixedMu', defaultFixedMu, ...
+                    @(x) validateattributes(x, {'numeric'}, ...
+                    {'real', 'vector', '>=', -pi, '<=', pi}));
+            end
+            fixedKappaExist = ...
+                find(cellfun(@(x) strcmpi(x, 'FixedKappa') , ...
+                varargin));
+            if fixedKappaExist && (isempty(varargin{fixedKappaExist + 1}))
+                p.addParameter('FixedKappa', defaultFixedKappa, ...
+                    @isnumeric);
+            else
+                p.addParameter('FixedKappa', defaultFixedKappa, ...
+                    @(x) validateattributes(x, {'numeric'}, ...
+                    {'real', 'vector', 'nonnegative'}));
+            end         
             p.parse(angles, nComponents, varargin{:});
             
             % Get number of samples
             nSamples = length(p.Results.angles);
             
-            % Run conventional k-means to get an initial clustering
-            cIdx = ckmeans(p.Results.angles, p.Results.nComponents, ...
-                'Replicates', 10);
+            % Check for fixed mean parameters and run conventional k-means
+            % to get an initial clustering
+            if ~isempty(p.Results.FixedMu)
+                cIdx = ckmeans(p.Results.angles, p.Results.nComponents, ...
+                    'Replicates', 10, 'FixedCenters', p.Results.FixedMu);
+            else
+                cIdx = ckmeans(p.Results.angles, p.Results.nComponents, ...
+                    'Replicates', 10);
+            end
             
             % Generate initial gamma matrix (hard assignments from k-means
             % results)
@@ -417,7 +519,9 @@ classdef VonMisesMixture
             
             % Get initial parameter estimates
             [muHat, kappaHat, cPropHat] = ...
-                obj.estimateParameters(p.Results.angles, gamma);
+                obj.estimateParameters(p.Results.angles, gamma, ...
+                'FixedMu', p.Results.FixedMu, ...
+                'FixedKappa', p.Results.FixedKappa);
             
             % Initialize log-likelihood and status parameters
             logLik = -realmax;
@@ -431,7 +535,9 @@ classdef VonMisesMixture
                 
                 % M-Step: Re-estimate the distribution parameters
                 [muHat, kappaHat, cPropHat] = ...
-                    obj.estimateParameters(angles, gamma);
+                    obj.estimateParameters(angles, gamma, ...
+                    'FixedMu', p.Results.FixedMu, ...
+                    'FixedKappa', p.Results.FixedKappa);
                 
                 % Evaluate the log-likelihood
                 logLikNew = ...

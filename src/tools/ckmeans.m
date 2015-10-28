@@ -17,6 +17,10 @@ function [idx, centers] = ckmeans(angles, nClusters, varargin)
 %       estimation procedure. If the number of replications is greater than
 %       one, the parameters of the replicate that yielded the lowest
 %       error will be returned (default = 1).
+%   ['FixedCenters', fixedCenters] - This parameter allows to fix a subset
+%       of cluster centers during the estimation process. The centers to be
+%       fixed have to be specified as a vector containing B elements, where
+%       B <= K - 1 is the number of fixed centers.
 %
 % OUTPUTS:
 %   idx - Nx1 vector of cluster indices for each data point.
@@ -37,6 +41,7 @@ p = inputParser();
 defaultMaxIter = 100;
 defaultErrorThreshold = 1E-6;
 defaultReplicates = 1;
+defaultFixedCenters = [];
 
 p.addRequired('angles', @(x) validateattributes(x, {'numeric'}, ...
     {'real', 'vector', '>=', -pi, '<=', pi}));
@@ -50,6 +55,9 @@ p.addParameter('ErrorThreshold', defaultErrorThreshold, ...
 p.addParameter('Replicates', defaultReplicates, ...
     @(x) validateattributes(x, {'numeric'}, ...
     {'integer', 'scalar', 'nonnegative'}));
+p.addParameter('FixedCenters', defaultFixedCenters, ...
+    @(x) validateattributes(x, {'numeric'}, ...
+    {'real', 'vector', '>=', -pi, '<=', pi}));
 p.parse(angles, nClusters, varargin{:});
 
 % Get number of data-points
@@ -68,12 +76,26 @@ for rIdx = 1 : p.Results.Replicates
     % Initialize cluster centers based on the k-means++ approach. 
     % One cluster center is chosen randomly from the set of input angles:
     centers = zeros(nClusters, 1);
-    centers(1) = angles(randi(nSamples));
     
+    % Check if any fixed centers are specified
+    if ~isempty(p.Results.FixedCenters)
+        % Get number of fixed centers
+        nFixedCenters = length(p.Results.FixedCenters);
+        
+        % Assign fixed centers to initial estimate
+        centers(1 : nFixedCenters) = p.Results.FixedCenters;
+    else
+        % Set number of fixed centers to zero
+        nFixedCenters = 0;
+        
+        % Randomly choose the first cluster center
+        centers(1) = angles(randi(nSamples));
+    end
+        
     % Add new cluster centers iteratively
-    for clusterIdx = 2 : nClusters
+    for clusterIdx = nFixedCenters + 1 : nClusters
         % Get the reduced set of cluster centers
-        centersReduced = centers(1 : clusterIdx - 1);
+        centersReduced = centers(1 : max(clusterIdx - 1, 1));
         
         % Compute circular distances to cluster centers from reduced set
         distances = computeClusterDistances(angles, centersReduced);
@@ -102,7 +124,7 @@ for rIdx = 1 : p.Results.Replicates
         [~, idx] = min(distances, [], 2);
         
         % Update cluster centers
-        for centerIdx = 1 : nClusters
+        for centerIdx = nFixedCenters + 1 : nClusters
             % Get data points of current cluster
             clusterData = angles(idx == clusterIdx);
             

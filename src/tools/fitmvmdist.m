@@ -20,6 +20,16 @@ function obj = fitmvmdist(angles, nComponents, varargin)
 %       estimation procedure. If the number of replications is greater than
 %       one, the parameters of the replicate that yielded the highest
 %       log-likelihood will be returned (default = 1).
+%   ['FixedMu', fixedMu] - A vector, containing circular mean
+%       parameters that should be fixed during the estimation
+%       process.
+%   ['FixedKappa', fixedKappa] - A vector, containing
+%       concentration parameters that should be fixed during
+%       the estimation process. If both fixed circular means
+%       and concnetration parameters are defined, keep in mind
+%       that the order of the vector elements determines, which
+%       concentration parameter is assigned to which mean, e.g.
+%       fixedMu(1) -> fixedKappa(1) etc.
 %
 % DEPENDS ON:
 %   VonMisesMixture.m
@@ -35,6 +45,8 @@ p = inputParser();
 defaultMaxIter = 100;
 defaultErrorThreshold = 1E-4;
 defaultReplicates = 1;
+defaultFixedMu = [];
+defaultFixedKappa = [];
 
 p.addRequired('angles', @(x) validateattributes(x, ...
     {'numeric'}, {'real', 'vector', '>=', -pi, '<=', pi}));
@@ -49,6 +61,12 @@ p.addParameter('ErrorThreshold', defaultErrorThreshold, ...
 p.addParameter('Replicates', defaultReplicates, ...
     @(x) validateattributes(x, {'numeric'}, ...
     {'integer', 'scalar', 'nonnegative'}));
+p.addParameter('FixedMu', defaultFixedMu, ...
+    @(x) validateattributes(x, {'numeric'}, ...
+    {'real', 'vector', '>=', -pi, '<=', pi}));
+p.addParameter('FixedKappa', defaultFixedKappa, ...
+    @(x) validateattributes(x, {'numeric'}, ...
+    {'real', 'vector', 'nonnegative'}));
 p.parse(angles, nComponents, varargin{:});
 
 % Initialize von Mises mixture models for all replicates
@@ -66,7 +84,9 @@ for rIdx = 1 : p.Results.Replicates
     % Run EM and generate model
     models{rIdx} = model.fit(p.Results.angles, p.Results.nComponents, ...
         'MaxIter', p.Results.MaxIter, ...
-        'ErrorThreshold', p.Results.ErrorThreshold);
+        'ErrorThreshold', p.Results.ErrorThreshold, ...
+        'FixedMu', p.Results.FixedMu, ...
+        'FixedKappa', p.Results.FixedKappa);
     
     % Update maximum log-likelihood
     if models{rIdx}.logLikelihood > maxLogLik
