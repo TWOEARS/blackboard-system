@@ -648,8 +648,9 @@ classdef VonMisesMixture
             [~, cLik] = obj.computeLikelihood(p.Results.angles, ...
                 p.Results.cProp, p.Results.mu, p.Results.kappa);
             
-            % Compute gamma-matrix
-            cGammas = bsxfun(@times, cLik, cProp');
+            % Compute gamma-matrix. Add a small positive number to gamma
+            % matrix to avoid numerical instabilities.
+            cGammas = bsxfun(@times, cLik, cProp') + sqrt(eps);
             
             % This is to ensure that all elements of the gamma-matrix are
             % greater than zero. Otherwise, problems can occur during the
