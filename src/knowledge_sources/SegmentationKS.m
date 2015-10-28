@@ -24,6 +24,9 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                                     % [s].
         nSources                    % Number of sources that should be 
                                     % separated.
+        fixedPositions = [];        % A set of positions that should be 
+                                    % fixed during the segmentation
+                                    % process.
         bBackground                 % Should background noise be estimated
                                     % additionally?
         bVerbose = false            % Display processing information?
@@ -330,16 +333,17 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Wrap all features to the interval [-pi, pi]
             locMap = mod(locMap + 180, 360) - 180;
             locMap = locMap ./ 180 .* pi;
-            
+           
             % Fit a von Mises mixture model to the data. The number of
             % mixture components can be set to nSources + 1, if background 
             % noise should be estimated. It is handled as a separate 
             % cluster with concentration parameter equal to zero.
             if obj.bBackground
                 mvmModel = fitmvmdist(locMap(:), obj.nSources + 1, ...
-                    'FixedKappa', 0);
+                    'FixedMu', [0, obj.fixedPositions], 'FixedKappa', 0);
             else
-                mvmModel = fitmvmdist(locMap(:), obj.nSources);
+                mvmModel = fitmvmdist(locMap(:), obj.nSources, ...
+                    'FixedMu', obj.fixedPositions);
             end
             
             % Perform clustering on the estimated model to get soft masks
@@ -706,6 +710,23 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             
             % Set property
             obj.nSources = nSources;
+        end
+        
+        function obj = setFixedPositions(obj, fixedPositions)
+            % SETFIXEDPOSITIONS Setter function for fixed source positions.
+            %
+            % REQUIRED INPUTS:
+            %   fixedPositions - Vector of fixed positions.
+            
+            % Check inputs
+            p = inputParser();
+            
+            p.addRequired('fixedPositions', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', 'vector', '>=', -pi, '<=', pi}));
+            p.parse(fixedPositions);
+            
+            % Set property
+            obj.fixedPositions = fixedPositions;
         end
     end
 end

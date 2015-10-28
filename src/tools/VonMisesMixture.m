@@ -201,6 +201,11 @@ classdef VonMisesMixture
             % Compute mixing proportions
             cProp = sum(gamma) ./ size(gamma, 1);
             
+            % Ensure that each mixing proportion coefficient is greater
+            % than zero
+            cProp = cProp + eps;
+            cProp = cProp ./ sum(cProp);
+            
             % Compute estimation parameters
             reducedGammaMu = gamma(:, nFixedMu + 1 : end);
             xMu = (reducedGammaMu' * cos(angles)) ./ sum(reducedGammaMu)';
@@ -645,6 +650,10 @@ classdef VonMisesMixture
             
             % Compute gamma-matrix
             cGammas = bsxfun(@times, cLik, cProp');
+            
+            % This is to ensure that all elements of the gamma-matrix are
+            % greater than zero. Otherwise, problems can occur during the
+            % optimization.
             gamma = bsxfun(@times, cGammas, 1 ./ sum(cGammas, 2));
         end
     end
