@@ -8,7 +8,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
     %   information, if estimated of the positions of certain sound sources
     %   are available.
     %
-    % AUTHORS:
+    % AUTHOR:
     %   Christopher Schymura (christopher.schymura@rub.de)
     %   Cognitive Signal Processing Group
     %   Ruhr-Universitaet Bochum
@@ -24,12 +24,14 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                                     % [s].
         nSources                    % Number of sources that should be 
                                     % separated.
+        bBackground                 % Should background noise be estimated
+                                    % additionally?
         bVerbose = false            % Display processing information?
         dataPath = ...              % Path for storing trained models
             fullfile(xml.dbTmp, 'learned_models', 'SegmentationKS');
     end
     
-    methods (Static)
+    methods (Static, Hidden)
         function fileList = getFiles(folder, extension)
             % GETFILES Returns a cell-array, containing a list of files 
             %   with a specified extension.
@@ -154,7 +156,13 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             %   blockSize - Size of the processing blocks in [s] 
             %       (default = 1).
             %   nSources - Number of sources that should be separated 
-            %       (default = 2).  
+            %       (default = 2).
+            %   doBackgroundEstimation - Flag that indicates if an
+            %       additional estimation of the background noise should be
+            %       performed. If this function is enabled, an additional
+            %       segmentation hypothesis will be generated at each
+            %       execution of this KS, which contains a soft mask for
+            %       the background (default = true);
             %
             % INPUT PARAMETERS:
             %   ['NumChannels', numChannels] - Name-value pair for setting
@@ -182,6 +190,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             defaultBVerbose = false;
             defaultBlockSize = 1;
             defaultNSources = 2;
+            defaultBGEstimation = true;
             
             p.addRequired('name', @ischar);
             p.addOptional('blockSize', defaultBlockSize, ...
@@ -190,6 +199,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             p.addOptional('nSources', defaultNSources, ...
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'integer', 'scalar', 'nonnegative'}));
+            p.addOptional('doBackgroundEstimation', ...
+                defaultBGEstimation, @(x) islogical(logical(x)));
             p.addParameter('NumChannels', defaultNumChannels, ...
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'integer', 'scalar', 'nonnegative'}));
@@ -198,7 +209,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 {'real', 'scalar', 'nonnegative'}));
             p.addParameter('HopSize', defaultHopSize, ...
                 @(x) validateattributes(x, {'numeric'}, ...
-                {'integer', 'scalar', 'nonnegative'}));
+                {'real', 'scalar', 'nonnegative'}));
             p.addParameter('FLow', defaultFLow, ...
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'real', 'scalar', 'nonnegative'}));
@@ -248,14 +259,15 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             obj.name = p.Results.name;
             obj.blockSize = p.Results.blockSize;
             obj.nSources = p.Results.nSources;
+            obj.bBackground = p.Results.doBackgroundEstimation;
             obj.bVerbose = p.Results.Verbosity;
             obj.lastExecutionTime_s = 0;
-            
+
             % Check if trained models are available
             filename = [obj.name, '_models_', ...
                 cell2mat(obj.reqHashs), '.mat'];
             if ~exist(fullfile(obj.dataPath, obj.name, filename), 'file')
-                error(['No trained models are available for this ', ...
+                warning(['No trained models are available for this ', ...
                     'KS. Please ensure to run KS training first.']);
             else
                 % Load available models and add them to object props
@@ -320,31 +332,43 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             locMap = locMap ./ 180 .* pi;
             
             % Fit a von Mises mixture model to the data. The number of
-            % mixture components is nSources + 1, because background noise
-            % is handled as a separate cluster with concentration parameter
-            % equal to zero.
-            mvmModel = fitmvmdist(locMap(:), obj.nSources + 1, ...
-                'FixedKappa', 0);
+            % mixture components can be set to nSources + 1, if background 
+            % noise should be estimated. It is handled as a separate 
+            % cluster with concentration parameter equal to zero.
+            if obj.bBackground
+                mvmModel = fitmvmdist(locMap(:), obj.nSources + 1, ...
+                    'FixedKappa', 0);
+            else
+                mvmModel = fitmvmdist(locMap(:), obj.nSources);
+            end
             
             % Perform clustering on the estimated model to get soft masks
             % for segmentation
             [~, ~, probMap] = mvmModel.cluster(locMap(:));
             
-            % Generate segmentation hypothesis for background noise
-            idString = ['1', num2str(obj.lastExecutionTime_s)];
-            bgIdentifier = obj.generateHash(idString);
-            
-            % Get soft mask of background noise
-            bgSoftMask = reshape(probMap(:, 1), nFrames, nChannels);
-            
-            % Add segmentation hypothesis to the blackboard
-            segHyp = SegmentationHypothesis(bgIdentifier, ...
-                'Background', bgSoftMask);
-            obj.blackboard.addData('segmentationHypotheses', ...
-                segHyp, true, obj.trigger.tmIdx);
+            % Generate hypotheses
+            if obj.bBackground                
+                % Generate segmentation hypothesis for background noise
+                idString = ['1', num2str(obj.lastExecutionTime_s)];
+                bgIdentifier = obj.generateHash(idString);
+                
+                % Get soft mask of background noise
+                bgSoftMask = reshape(probMap(:, 1), nFrames, nChannels);
+                
+                % Add segmentation hypothesis to the blackboard
+                segHyp = SegmentationHypothesis(bgIdentifier, ...
+                    'Background', bgSoftMask);
+                obj.blackboard.addData('segmentationHypotheses', ...
+                    segHyp, true, obj.trigger.tmIdx);
+                
+                % Set index shift to "1"
+                idxShift = 1;
+            else
+                idxShift = 0;
+            end
             
             % Generate new hypotheses for each "true" sound source
-            for sourceIdx = 2 : obj.nSources + 1
+            for sourceIdx = 1 + idxShift : obj.nSources + idxShift
                 % Generate source identifier
                 idString = [num2str(sourceIdx), ...
                     num2str(obj.lastExecutionTime_s)];

@@ -4,7 +4,7 @@ classdef PositionHypothesis < Hypothesis
     %   source. The hypothesis will be represented by the estimated angular
     %   position and the corresponding circular variance.
     %
-    % AUTHORS:
+    % AUTHOR:
     %   Christopher Schymura (christopher.schymura@rub.de)
     %   Cognitive Signal Processing Group
     %   Ruhr-Universitaet Bochum
