@@ -31,7 +31,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                                     % additionally?
         bVerbose = false            % Display processing information?
         dataPath = ...              % Path for storing trained models
-            fullfile(xml.dbTmp, 'learned_models', 'SegmentationKS');
+            fullfile(xml.dbPath, 'learned_models', 'SegmentationKS');
     end
     
     methods (Static, Hidden)
