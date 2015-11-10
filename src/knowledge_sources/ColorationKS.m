@@ -19,23 +19,15 @@ classdef ColorationKS < AuditoryFrontEndDepKS
             requests{3}.name = 'time';
             requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
-            % Get length of block size from length of binaural simulation
-            %obj
-            %obj.blockSizeSec = obj.blackboard.robotConnect.LengthOfSimulation;
             % This KS stores it actual execution times
             obj.lastExecutionTime_s = 0;
         end
 
         function [bExecute, bWait] = canExecute(obj)
-            %afeData = obj.getAFEdata();
-            %timeSObj = afeData(3);
-            %bExecute = hasSignalEnergy(timeSObj, obj.blockSizeSec, obj.timeSinceTrigger);
-            %bWait = false;
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
             bExecute = (obj.blackboard.currentSoundTimeIdx - ...
                 obj.lastExecutionTime_s) >= getSignalLength(obj);
-            if ~bExecute, disp('Wait'); end
             bWait = false;
         end
 
@@ -51,19 +43,16 @@ classdef ColorationKS < AuditoryFrontEndDepKS
         end
 
         function execute(obj)
-            %TODO:
-            % In order to implement this KS the following prolbem has to be solved in
-            % order to allow a comparison between the actual test signal and a reference
-            % signal:
-            % * two instances of the Binaural Simulator and the AFE has to be running in
-            %   parallel
-            % * both of them have to get the same commands for turning their head etc.
-            refExcitationPattern = obj.blackboard.getLastData('colorationReference')
+            % This looks first in the Blackboard if we have already data for a Coloration
+            % reference. If not it calculates them first.
+            % Otherwise it will compare the reference data with the current ones.
+            refExcitationPattern = obj.blackboard.getLastData('colorationReference');
             if isempty(refExcitationPattern)
                 refExcitationPattern = obj.getExcitationPattern();
                 obj.blackboard.addData('colorationReference', refExcitationPattern, ...
                     false, obj.trigger.tmIdx);
             else
+                refExcitationPattern = refExcitationPattern.data;
                 testExcitationPattern = obj.getExcitationPattern();
                 colorationValue = colorationMooreTan2003(testExcitationPattern, ...
                                                          refExcitationPattern);
