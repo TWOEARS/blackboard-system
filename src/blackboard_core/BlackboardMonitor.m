@@ -91,11 +91,6 @@ classdef BlackboardMonitor < handle
         function handleBinding(obj, evntSource, evnt, evntSink, triggerDuplicate )
             bbprintf(obj, '[Event Fired:] %s -> (%s) -> %s\n', ...
                      char(evntSource), evnt.EventName, char(evntSink))
-            %if obj.blackboard.verbosity > 0
-            %    fprintf(['-------- [Event Fired:] ',...
-            %        '%s -> (%s) -> %s\n'],...
-            %        char(evntSource), evnt.EventName, char(evntSink) );
-            %end
             if isa( evnt, 'BlackboardEventData' )
                 evntTmIdx = evnt.data;
             else

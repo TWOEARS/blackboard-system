@@ -10,9 +10,13 @@ function bbprintf(obj,messageString,varargin)
 %       printfString  - message to print in printf format
 %       var1, ...     - variables needed for printf message
 
+%if isfield(obj,'monitor')
+%    obj.monitor
+%end
+
 if obj.blackboard.verbosity > 0
-    fprintf(['--%05.2fs [Event Fired:] ', messageString], ...
-            obj.trigger.tmIdx,varargin{:});
+    fprintf(['--%05.2fs ', messageString], ...
+            obj.blackboard.currentSoundTimeIdx,varargin{:});
 end
 
 % vim: set sw=4 ts=4 expandtab textwidth=90 :

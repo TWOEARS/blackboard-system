@@ -60,12 +60,10 @@ classdef RotationKS < AbstractKS
             % Rotate head with a relative angle
             obj.robot.rotateHead(headRotateAngle, 'relative');
 
-            if obj.blackboard.verbosity > 0
-                fprintf(['--%05.2fs [Rotation KS:] Commanded head to rotate about ', ...
-                         '%d degrees. New head orientation: %.0f degrees\n'], ...
-                        obj.trigger.tmIdx, headRotateAngle, ...
-                        obj.robot.getCurrentHeadOrientation);
-            end
+            bbprintf(obj, ['[RotationKS:] Commanded head to rotate about ', ...
+                           '%d degrees. New head orientation: %.0f degrees\n'], ...
+                          headRotateAngle, obj.robot.getCurrentHeadOrientation);
+
             obj.rotationScheduled = false;
         end
     end
