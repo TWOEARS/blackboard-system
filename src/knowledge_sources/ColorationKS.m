@@ -14,9 +14,9 @@ classdef ColorationKS < AuditoryFrontEndDepKS
                 'fb_nERBs', 1);
             requests{1}.name = 'filterbank';
             requests{1}.params = param;
-            requests{2}.name = 'adaptation';
+            requests{2}.name = 'time';
             requests{2}.params = param;
-            requests{3}.name = 'time';
+            requests{3}.name = 'adaptation';
             requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             % This KS stores it actual execution times
