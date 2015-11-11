@@ -48,10 +48,18 @@ classdef ColorationKS < AuditoryFrontEndDepKS
             % Otherwise it will compare the reference data with the current ones.
             refExcitationPattern = obj.blackboard.getLastData('colorationReference');
             if isempty(refExcitationPattern)
+                if obj.blackboard.verbosity > 0
+                    fprintf('--%05.2fs [ColorationKS:] Learning the reference.\n', ...
+                            obj.trigger.tmIdx);
+                end
                 refExcitationPattern = obj.getExcitationPattern();
                 obj.blackboard.addData('colorationReference', refExcitationPattern, ...
                     false, obj.trigger.tmIdx);
             else
+                if obj.blackboard.verbosity > 0
+                    fprintf('--%05.2fs [ColorationKS:] Found reference in memory.\n', ...
+                            obj.trigger.tmIdx);
+                end
                 refExcitationPattern = refExcitationPattern.data;
                 testExcitationPattern = obj.getExcitationPattern();
                 colorationValue = colorationMooreTan2003(testExcitationPattern, ...
