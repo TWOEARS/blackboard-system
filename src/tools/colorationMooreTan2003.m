@@ -16,19 +16,25 @@ function D = colorationMooreTan2003(testExcitationPattern, refExcitationPattern)
 %   * w_s  - slope of the decrease in weighting for high frequency channels
 s = 1.3; % not used yet
 w = 0.3;
-f = 32; % not used yet
+f = -40; % not used yet (original f = 32;)
 w_s = 0.4;
 
+% Sum up over time
+refExcitationPattern = db(rms(refExcitationPattern))';
+testExcitationPattern = db(rms(testExcitationPattern))';
+
+% Apply floor value
+refExcitationPattern(refExcitationPattern<f) = f;
+testExcitationPattern(testExcitationPattern<f) = f;
+
 % First order differences
-diffFirstOrder = abs(db(rms(testExcitationPattern))' - ...
-    db(rms(refExcitationPattern))');
+diffFirstOrder = abs(testExcitationPattern - refExcitationPattern);
+
 % Second order differences
 for nn = 1:size(diffFirstOrder, 1) - 1
     diffSecondOrder(nn) = ...
-        (db(rms(testExcitationPattern(:,nn+1))) - ...
-         db(rms(refExcitationPattern(:,nn+1)))) - ...
-        (db(rms(testExcitationPattern(:,nn))) - ...
-         db(rms(refExcitationPattern(:,nn))));
+        (testExcitationPattern(nn+1) - refExcitationPattern(nn+1)) - ...
+        (testExcitationPattern(nn) - refExcitationPattern(nn));
 end
 % Create weighting parameter for the different frequency channels
 weight = ones(39,1);
