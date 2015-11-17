@@ -2,7 +2,8 @@ classdef ColorationKS < AuditoryFrontEndDepKS
     % ColorationKS predicts the coloration of a signal compared to a learned reference
     % signal. If no reference is available the current signal will be stored as reference.
     %
-    % The coloration is judged after the model from Moore and Tan (2004).
+    % The coloration is judged after the model from Moore and Tan (2004), which is
+    % implemented under tools/colorationMooreTan2003.m.
 
     properties (SetAccess = private)
         % The ColorationKS has different parameters for speech and noise/music and needs a

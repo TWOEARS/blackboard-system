@@ -16,22 +16,19 @@ function D = colorationMooreTan2003(testExcitationPattern, refExcitationPattern,
 %
 %   DETAILS
 %
-% This function calculates the values D of the Moore and Tan (2004) model. It uses
-% the AFE to calculate the excitation pattern. So, it would also be interesting to
-% see if the model has still the same prediction for the original Tan and
-% Moore (2003) data.
-
-% FIXME: Moore and Tan (2004) sample the excitation pattern at 0.5 ERB. Wat does this
-% mean, how did they implement it?
+%       This function calculates the values D of the Moore and Tan (2004) model. It is
+%       used inside ColorationKS, where the two excitation patterns are provided.
 
 % Model parameters:
+%
 %   * s    - sharpening of the auditory filters
 %   * w    - weighting factor between first and second order model parameters
 %   * f    - floor value, excitation levels below this level are set to the fixed
 %            value f. This value should enhance the prediction for signals were
 %            complete parts of the signal are missing.
 %   * w_s  - slope of the decrease in weighting for high frequency channels
-s = 1.5; % not used yet
+%
+s = 1.5; % Applied directly in ColorationKS
 w = 0.4;
 f = -40; % not used yet (original f = 32;)
 w_s = 0.5;
