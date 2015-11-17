@@ -1,17 +1,25 @@
 classdef ColorationKS < AuditoryFrontEndDepKS
-    % ColorationKS predicts the coloration of a signal compared ...
+    % ColorationKS predicts the coloration of a signal compared to a learned reference
+    % signal. If no reference is available the current signal will be stored as reference.
+    %
+    % The coloration is judged after the model from Moore and Tan (2004).
 
     properties (SetAccess = private)
-        blockSizeSec;
+        % The ColorationKS has different parameters for speech and noise/music and needs a
+        % parameter to inform it about the presented audio type.
+        % This should be replaced by an automatic classification of the audio type in the
+        % future.
+        audioType = '';
     end
 
     methods
-        function obj = ColorationKS()
+        function obj = ColorationKS(audioType)
             param = genParStruct( ...
                 'fb_type', 'gammatone', ...
-                'fb_lowFreqHz', 80, ...
-                'fb_highFreqHz', 20000, ...
-                'fb_nERBs', 1);
+                'fb_lowFreqHz', 25, ... % ERB number 1, (1) on page 901
+                'fb_highFreqHz', 16800, ... % ERB number 40, (1) on page 901
+                'fb_nERBs', 1, ...
+                'fb_bwERBs', 1.01859/1.5); % final set of parameters on page 906
             requests{1}.name = 'filterbank';
             requests{1}.params = param;
             requests{2}.name = 'time';
@@ -21,6 +29,7 @@ classdef ColorationKS < AuditoryFrontEndDepKS
             obj = obj@AuditoryFrontEndDepKS(requests);
             % This KS stores it actual execution times
             obj.lastExecutionTime_s = 0;
+            obj.audioType = audioType;
         end
 
         function [bExecute, bWait] = canExecute(obj)
@@ -63,7 +72,8 @@ classdef ColorationKS < AuditoryFrontEndDepKS
                 refExcitationPattern = refExcitationPattern.data;
                 testExcitationPattern = obj.getExcitationPattern();
                 colorationValue = colorationMooreTan2003(testExcitationPattern, ...
-                                                         refExcitationPattern);
+                                                         refExcitationPattern, ...
+                                                         obj.audioType);
                 obj.blackboard.addData('colorationHypotheses', colorationValue, ...
                     false, obj.trigger.tmIdx);
             end
