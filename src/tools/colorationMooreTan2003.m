@@ -12,7 +12,7 @@ function D = colorationMooreTan2003(testExcitationPattern, refExcitationPattern,
 %                                   'non-speech' (default)
 %
 %   OUTPUT PARAMETERS
-%       D                       - difference rating (~coloration)
+%       D                       - weighted excitation pattern difference (~coloration)
 %
 %   DETAILS
 %
@@ -54,12 +54,12 @@ for nn = 1:size(diffFirstOrder, 1) - 1
 end
 
 % Create weighting parameter for the different frequency channels
-weight = ones(40,1);                              % (2) on page 903
-weight(18:40) = 1 - w_s .* ((18:40) - 17.5) / 46; % (3) on page 903
+weight = ones(79,1);                                         % (2) on page 903
+weight(34:79) = 1 - w_s .* (linspace(17.5,40,46)-17.5) / 46; % (3) on page 903
 % Weights for the case of speech, see the remarks under (2) and (3) on page 903
 if strcmp('speech', audioType)
-    weight(1:3) = 0;
-    weight(37:40) = 0;
+    weight(1:6) = 0;
+    weight(37:72) = 0;
 end
 
 % Sum and standard deviation of first order differences across frequency channels
