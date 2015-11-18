@@ -23,10 +23,8 @@ classdef ColorationKS < AuditoryFrontEndDepKS
                 'fb_bwERBs', 1.01859/1.5); % final set of parameters on page 906
             requests{1}.name = 'filterbank';
             requests{1}.params = param;
-            requests{2}.name = 'time';
+            requests{2}.name = 'adaptation';
             requests{2}.params = param;
-            requests{3}.name = 'adaptation';
-            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             % This KS stores it actual execution times
             obj.lastExecutionTime_s = 0;
@@ -75,8 +73,9 @@ classdef ColorationKS < AuditoryFrontEndDepKS
                 colorationValue = colorationMooreTan2003(testExcitationPattern, ...
                                                          refExcitationPattern, ...
                                                          obj.audioType);
-                obj.blackboard.addData('colorationHypotheses', colorationValue, ...
-                    false, obj.trigger.tmIdx);
+                hyp = ColorationHypothesis(colorationValue, obj.audioType);
+                obj.blackboard.addData('colorationHypotheses', hyp, false, ...
+                                       obj.trigger.tmIdx);
             end
             obj.lastExecutionTime_s = obj.trigger.tmIdx;
             notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
