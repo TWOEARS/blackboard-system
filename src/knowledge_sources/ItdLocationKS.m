@@ -63,7 +63,7 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
             icObj = afeData(3);
             ic = icObj.getSignalBlock(obj.blocksizeSec, obj.timeSinceTrigger)';
             % Load lookup table
-            lookupTable = load(fullfile(obj.dataPath, 'default_lookup.mat'));
+            lookupTable = load(xml.dbGetFile(fullfile(obj.dataPath, 'default_lookup.mat')));
             % Convert ITDs to azimuth angles
             phi = obj.itdToAngle(itd',lookupTable);
             % Calculate the median over time for every frequency channel of the azimuth
@@ -96,13 +96,29 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
             % Make two peaks in the posteriors distribution for the two possible
             % directions (front-back confusion)
             posteriors = zeros(size(obj.angles));
+            % Use the value in the horizontal plane
+            %if phi>95 & phi<265
+            %    phi = wrapTo360(phi+180);
+            %end
+            %distribution = hann(3);
+            %phi2 = NaN;
             if ~isnan(phi)
-                posteriors([phi+1 wrapTo360(phi+182)-1]) = 0.5;
+                %posteriors(wrapTo360(phi)+1) = 1;
+                % Get front-back confusion
+                if phi<=180
+                    phi2 = phi + 2*(90-phi);
+                else
+                    phi2 = phi + 2*(270-phi);
+                end
+                idx = [wrapTo360(phi-1:phi+1)+1 wrapTo360(phi2-1:phi2+1)+1];
+                posteriors(idx) = [0.25 1.0 0.25 0.25 1.0 0.25];
             end
 
             % We simply take the average of posteriors across all the
             % samples for this block
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
+            %currentHeadOrientation
+            %wrapTo360([phi phi2])
             hyp = LocationHypothesis(currentHeadOrientation, obj.angles, posteriors);
             obj.blackboard.addData('locationHypotheses', hyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
