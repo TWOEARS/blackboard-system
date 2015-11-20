@@ -97,21 +97,20 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
             % directions (front-back confusion)
             posteriors = zeros(size(obj.angles));
             % Use the value in the horizontal plane
-            %if phi>95 & phi<265
-            %    phi = wrapTo360(phi+180);
-            %end
-            %distribution = hann(3);
+            if phi>95 & phi<265
+                phi = wrapTo360(phi+180);
+            end
             %phi2 = NaN;
             if ~isnan(phi)
-                %posteriors(wrapTo360(phi)+1) = 1;
-                % Get front-back confusion
-                if phi<=180
-                    phi2 = phi + 2*(90-phi);
-                else
-                    phi2 = phi + 2*(270-phi);
-                end
-                idx = [wrapTo360(phi-1:phi+1)+1 wrapTo360(phi2-1:phi2+1)+1];
-                posteriors(idx) = [0.25 1.0 0.25 0.25 1.0 0.25];
+                posteriors(wrapTo360(phi)+1) = 1;
+                %% Get front-back confusion
+                %if phi<=180
+                %    phi2 = phi + 2*(90-phi);
+                %else
+                %    phi2 = phi + 2*(270-phi);
+                %end
+                %idx = [wrapTo360(phi-1:phi+1)+1 wrapTo360(phi2-1:phi2+1)+1];
+                %posteriors(idx) = [0.25 1.0 0.25 0.25 1.0 0.25];
             end
 
             % We simply take the average of posteriors across all the
