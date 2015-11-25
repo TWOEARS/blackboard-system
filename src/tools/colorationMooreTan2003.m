@@ -72,4 +72,7 @@ sdD = w * sdFirstOrder + (1-w) * sdSecondOrder;    % 6) on page 903
 % Use only standard deviaton as metric, see text after 6) on page 903
 D = sdD;
 
+% Scale predictions to be in the range ~ 0..1
+D = D / 2.5;
+
 % vim: set sw=4 ts=4 et tw=90:
