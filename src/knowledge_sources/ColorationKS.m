@@ -4,6 +4,11 @@ classdef ColorationKS < AuditoryFrontEndDepKS
     %
     % The coloration is judged after the model from Moore and Tan (2004), which is
     % implemented under tools/colorationMooreTan2003.m.
+    %
+    % References:
+    %   Moore, B. C. J., & Tan, C. (2004). Development and Validation of a Method for
+    %   Predicting the Perceived Naturalness of Sounds Subjected to Spectral Distortion.
+    %   JAES, 52(9), 900–14.
 
     properties (SetAccess = private)
         % The ColorationKS has different parameters for speech and noise/music and needs a
@@ -23,10 +28,8 @@ classdef ColorationKS < AuditoryFrontEndDepKS
                 'fb_bwERBs', 1.01859/1.5); % final set of parameters on page 906
             requests{1}.name = 'filterbank';
             requests{1}.params = param;
-            requests{2}.name = 'adaptation';
-            requests{2}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
-            % This KS stores it actual execution times
+            % This KS stores the time, when it was executed
             obj.lastExecutionTime_s = 0;
             obj.audioType = audioType;
         end
