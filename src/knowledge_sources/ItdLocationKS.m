@@ -82,7 +82,7 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
             azimuth = azimuth(~isnan(azimuth));
             % remove outliers more than 30deg away from median
             if length(azimuth)>0
-                azimuth_std = azimuth_std(abs(azimuth-median(azimuth))<30);
+                azimuth = azimuth(abs(azimuth-median(azimuth))<30);
             end
             % Calculate final azimuth value
             phi = round(wrapTo360(median(azimuth)));
