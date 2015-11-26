@@ -30,7 +30,6 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
             requests{3}.name = 'ic';
             requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
-            %obj.blocksizeSec = 0.5;
             obj.invocationMaxFrequency_Hz = 2;
         end
 
@@ -74,24 +73,19 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
                 idx = ~isnan(angle);
                 if size(angle(idx),1)==0
                     azimuth(n) = NaN;
-                    azimuth_std(n) = NaN;
                 else
                     azimuth(n) = median(angle(idx));
-                    azimuth_std(n) = std(angle(idx));
                 end
             end
             % Calculate the median over frequency channels
             % remove NaN
             azimuth = azimuth(~isnan(azimuth));
-            %azimuth_std = azimuth_std(~isnan(azimuth_std));
             % remove outliers more than 30deg away from median
             if length(azimuth)>0
                 azimuth_std = azimuth_std(abs(azimuth-median(azimuth))<30);
-                azimuth = azimuth(abs(azimuth-median(azimuth))<30);
             end
             % Calculate final azimuth value
             phi = round(wrapTo360(median(azimuth)));
-            %phi_std = round(wrapTo360(median(azimuth_std)));
 
             % Make two peaks in the posteriors distribution for the two possible
             % directions (front-back confusion)
@@ -116,8 +110,6 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
             % We simply take the average of posteriors across all the
             % samples for this block
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
-            %currentHeadOrientation
-            %wrapTo360([phi phi2])
             hyp = LocationHypothesis(currentHeadOrientation, obj.angles, posteriors);
             obj.blackboard.addData('locationHypotheses', hyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
