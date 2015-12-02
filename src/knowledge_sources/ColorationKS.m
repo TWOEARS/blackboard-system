@@ -8,7 +8,7 @@ classdef ColorationKS < AuditoryFrontEndDepKS
     % References:
     %   Moore, B. C. J., & Tan, C. (2004). Development and Validation of a Method for
     %   Predicting the Perceived Naturalness of Sounds Subjected to Spectral Distortion.
-    %   JAES, 52(9), 900â€“14.
+    %   JAES, 52(9), 900–14.
 
     properties (SetAccess = private)
         % The ColorationKS has different parameters for speech and noise/music and needs a
@@ -59,15 +59,12 @@ classdef ColorationKS < AuditoryFrontEndDepKS
             % Otherwise it will compare the reference data with the current ones.
             refExcitationPattern = obj.blackboard.getLastData('colorationReference');
             if isempty(refExcitationPattern)
-                if obj.blackboard.verbosity > 0
-                    fprintf('--%05.2fs [ColorationKS:] Learning the reference.\n', ...
-                            obj.trigger.tmIdx);
-                end
+                bbprintf(obj, '[ColorationKS:] Learning the reference.\n');
                 refExcitationPattern = obj.getExcitationPattern();
                 obj.blackboard.addData('colorationReference', refExcitationPattern, ...
                     false, obj.trigger.tmIdx);
             else
-                bbprintf(obj, '[ColorationKS:] Found reference in memory.\n')
+                bbprintf(obj, '[ColorationKS:] Found reference in memory.\n');
                 refExcitationPattern = refExcitationPattern.data;
                 testExcitationPattern = obj.getExcitationPattern();
                 colorationValue = colorationMooreTan2003(testExcitationPattern, ...
