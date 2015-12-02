@@ -141,6 +141,7 @@ classdef BlackboardSystem < handle
             n = length( obj.blackboard.KSs );
         end
 
+
         %% List available AFE cues
         function listAfeData(obj)
             % Get AFE cues
@@ -160,14 +161,24 @@ classdef BlackboardSystem < handle
             fprintf(1, '\n');
         end
 
+        %% Return AFE cues
+        function cues = getAfeData(obj, name)
+            if strcmp('head_rotation', name)
+                cues = obj.blackboard.getData('headOrientation');
+            else
+                afeData = obj.dataConnect.managerObject.Data;
+                cues = getfield(afeData, name);
+            end
+        end
+
         %% Plot AFE cues
         function plotAfeData(obj, name)
+            cues = getAfeData(obj, name);
             if strcmp('head_rotation', name)
-                headOrientations = obj.blackboard.getData('headOrientation');
                 % Get default plotting parameter from AFE
                 p = Parameters.getPlottingParameters();
                 figure;
-                plot([headOrientations.sndTmIdx], [headOrientations.data]);
+                plot([cues.sndTmIdx], [cues.data]);
                 xlabel('Time (s)', ...
                        'fontsize', p.map('fsize_label'), ...
                        'fontname', p.map('ftype'));
@@ -178,16 +189,14 @@ classdef BlackboardSystem < handle
                       'fontsize', p.map('fsize_title'), ...
                       'fontname', p.map('ftype'));
                 set(gca,'fontsize',p.map('fsize_axes'),'fontname',p.map('ftype'));
-                axis([headOrientations(1).sndTmIdx headOrientations(end).sndTmIdx ...
+                axis([cues(1).sndTmIdx cues(end).sndTmIdx ...
                       0 360]);
             else % AFE cues
-                data = obj.dataConnect.managerObject.Data;
-                cue = getfield(data, name);
-                if size(cue,2)==1
-                    cue{1}.plot;
-                elseif size(cue,2)==2
-                    cue{1}.plot;
-                    cue{2}.plot;
+                if size(cues,2)==1
+                    cues{1}.plot;
+                elseif size(cues,2)==2
+                    cues{1}.plot;
+                    cues{2}.plot;
                 else
                     error(['Your picked data has %i channels, only 1 or 2 ', ...
                            'are supported.']);
