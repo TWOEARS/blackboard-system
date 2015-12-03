@@ -49,9 +49,9 @@ classdef DNNLocationKS < AuditoryFrontEndDepKS
             nHiddenLayers = 4;
             nHiddenNodes = 128;
             for c = 1:obj.nChannels
-                strModels = sprintf('%s/DNN_%s_channel%d_%dlayers_%dnodes', obj.dataPath, preset, c, nHiddenLayers, nHiddenNodes);
+                strModels = sprintf('%s/DNN_%s_channel%d_%dlayers_%dnodes.mat', obj.dataPath, preset, c, nHiddenLayers, nHiddenNodes);
                 % Load localisation module
-                load(strModels);
+                load(xml.dbGetFile(strModels));
                 obj.DNNs{c} = C.NNs;
                 obj.normFactors{c} = C.normFactors;
             end
@@ -69,9 +69,9 @@ classdef DNNLocationKS < AuditoryFrontEndDepKS
         function execute(obj)
             afeData = obj.getAFEdata();
             ccSObj = afeData(1);
-            cc = ccSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger)';
+            cc = ccSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
             ildSObj = afeData(2);
-            ild = ildSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger)';
+            ild = ildSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
             
             % Compute posteriors for each frequency channel and time frame
             nFrames = size(ild,1);
