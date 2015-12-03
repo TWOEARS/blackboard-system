@@ -48,13 +48,13 @@ classdef ConfusionSolvingKS < AbstractKS
             % rotation and predictd distribution from after head rotation
             post = (confHyp.posteriors + predictedPosteriors) / 2;
             post = post ./ sum(post);
-%            hold off;
-%            plot(obj.confusionHypothesis.locations, ...
-%               obj.confusionHypothesis.posteriors, 'o--');
-%            hold on;
-%            plot(obj.confusionHypothesis.locations, predictedPosteriors, 'go--');
-%            plot(obj.confusionHypothesis.locations, post, 'ro--');
-%            legend('Dist before rotation', 'Dist after rotation', 'Average dist');
+            %figure
+            %hold off;
+            %plot(confHyp.locations, confHyp.posteriors, 'o--');
+            %hold on;
+            %plot(confHyp.locations, predictedPosteriors, 'go--');
+            %plot(confHyp.locations, post, 'ro--');
+            %legend('Dist before rotation', 'Dist after rotation', 'Average dist');
             [m,idx] = max(post);
             if m > obj.postThreshold;
                 % Generate Perceived Location

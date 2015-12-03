@@ -9,9 +9,9 @@ classdef PerceivedLocation < Hypothesis
 
     methods
         function obj = PerceivedLocation(headOrientation, location, posterior)
-            obj.location = location;
-            obj.headOrientation = headOrientation;
-            obj.relativeLocation = mod(location + headOrientation, 360);
+            obj.location = wrapTo360(location);
+            obj.headOrientation = wrapTo360(headOrientation);
+            obj.relativeLocation = wrapTo360(obj.location + obj.headOrientation);
             obj.setScore(posterior);
         end
     end
