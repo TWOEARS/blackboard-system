@@ -22,9 +22,13 @@ classdef BlackboardSystem < handle
             obj.robotConnect = robotConnect;
         end
 
-        function setDataConnect( obj, connectorClassName )
+        function setDataConnect( obj, connectorClassName, dataFs )
+            dataConnectArgs = {obj.robotConnect};
+            if nargin > 2 
+                dataConnectArgs{end+1} = dataFs; 
+            end
             % Connect to the Two!Ears Auditory Front-End module
-            obj.dataConnect = obj.createKS( connectorClassName, {obj.robotConnect} );
+            obj.dataConnect = obj.createKS( connectorClassName, dataConnectArgs );
         end
 
         function createProcsForKs( obj, ks )
@@ -44,8 +48,8 @@ classdef BlackboardSystem < handle
 
         function buildDataConnectFromXml( obj, bbsXmlElements )
             elements = bbsXmlElements.getElementsByTagName( 'dataConnection' );
-            ksType = char( elements.item(0).getAttribute('Type') );
-            obj.setDataConnect( ksType );
+            [ksType,ksConstructArgs] = obj.readKsXmlConstructArgs( elements.item(0) );
+            obj.setDataConnect( ksType, ksConstructArgs{:} );
         end
 
         function kss = buildKSsFromXml( obj, bbsXmlElements )
@@ -56,25 +60,28 @@ classdef BlackboardSystem < handle
                 if kss.isKey( ksName )
                     error( '%s used twice as KS name!', ksName );
                 end
-                ksType = char( ksElements.item(k-1).getAttribute('Type') );
-                ksParamElements = ...
-                    ksElements.item(k-1).getChildNodes.getElementsByTagName('Param');
-                ksParams = {};
-                for jj = 1:ksParamElements.getLength()
-                    ksParamType = char( ksParamElements.item(jj-1).getAttribute('Type') );
-                    ksParamStr = char( ksParamElements.item(jj-1).getFirstChild.getData );
-                    switch ksParamType
-                        case 'char'
-                            ksParams{end+1} = ksParamStr;
-                        case 'double'
-                            ksParams{end+1} = str2double( ksParamStr );
-                        case 'int'
-                            ksParams{end+1} = int64( str2double( ksParamStr ) );
-                        case 'ref'
-                            ksParams{end+1} = obj.(ksParamStr);
-                    end
+                [ksType,ksConstructArgs] = obj.readKsXmlConstructArgs( ksElements.item(k-1) );
+                kss(ksName) = obj.createKS( ksType, ksConstructArgs );
+            end
+        end
+        
+        function [ksType, ksParams] = readKsXmlConstructArgs( obj, ksXmlElement )
+            ksType = char( ksXmlElement.getAttribute('Type') );
+            ksParamElements = ksXmlElement.getChildNodes.getElementsByTagName('Param');
+            ksParams = {};
+            for jj = 1:ksParamElements.getLength()
+                ksParamType = char( ksParamElements.item(jj-1).getAttribute('Type') );
+                ksParamStr = char( ksParamElements.item(jj-1).getFirstChild.getData );
+                switch ksParamType
+                    case 'char'
+                        ksParams{end+1} = ksParamStr;
+                    case 'double'
+                        ksParams{end+1} = str2double( ksParamStr );
+                    case 'int'
+                        ksParams{end+1} = int64( str2double( ksParamStr ) );
+                    case 'ref'
+                        ksParams{end+1} = obj.(ksParamStr);
                 end
-                kss(ksName) = obj.createKS( ksType, ksParams );
             end
         end
 
