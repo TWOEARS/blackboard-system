@@ -39,14 +39,17 @@ classdef ConfusionSolvingKS < AbstractKS
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             headRotation = currentHeadOrientation - confHyp.headOrientation;
             newLocHyp = obj.blackboard.getLastData('locationHypotheses').data;
+            
+            [post1, post2] = remove_front_back_confusion(confHyp.posteriors, newLocHyp.posteriors, headRotation);
+            
             % Changed int16 to round here, which seems to cause problem
             % with circshift in the next line
             idxDelta = round(headRotation / ...
                 (newLocHyp.locations(2) - newLocHyp.locations(1)));
-            predictedPosteriors = circshift(newLocHyp.posteriors,[0 idxDelta]);
+            post2 = circshift(post2, idxDelta);
             % Take the average of the posterior distribution before head
             % rotation and predictd distribution from after head rotation
-            post = (confHyp.posteriors + predictedPosteriors) / 2;
+            post = (post1 + post2);
             post = post ./ sum(post);
             %figure
             %hold off;
