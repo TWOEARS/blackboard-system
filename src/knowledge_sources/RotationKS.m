@@ -41,7 +41,7 @@ classdef RotationKS < AbstractKS
                 headRotateAngle = perceivedAngle - 360;
             end
             % Ensure minimal head rotation
-            minAngle = 3;
+            minAngle = 10;
             if abs(headRotateAngle)<minAngle
                 headRotateAngle = sign(randn(1)) * minAngle;
             end
