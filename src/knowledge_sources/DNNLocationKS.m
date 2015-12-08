@@ -15,12 +15,17 @@ classdef DNNLocationKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = DNNLocationKS()
+        function obj = DNNLocationKS(nChannels)
+            if nargin < 1
+                % Default number of frequency channels is 16 for DNN
+                % localition KS
+                nChannels = 16;
+            end
             param = genParStruct(...
                 'fb_type', 'gammatone', ...
                 'fb_lowFreqHz', 80, ...
                 'fb_highFreqHz', 8000, ...
-                'fb_nChannels', 32, ...
+                'fb_nChannels', nChannels, ...
                 'ihc_method', 'halfwave', ...
                 'ild_wSizeSec', 20E-3, ...
                 'ild_hSizeSec', 10E-3, ...
@@ -41,15 +46,15 @@ classdef DNNLocationKS < AuditoryFrontEndDepKS
             obj.blockSize = 0.5;
 
             % Load localiastion DNNs
-            obj.nChannels = param.fb_nChannels;
-            obj.DNNs = cell(obj.nChannels, 1);
-            obj.normFactors = cell(obj.nChannels, 1);
+            obj.nChannels = nChannels;
+            obj.DNNs = cell(nChannels, 1);
+            obj.normFactors = cell(nChannels, 1);
 
             preset = 'MCT_DIFFUSE';
             nHiddenLayers = 4;
             nHiddenNodes = 128;
-            for c = 1:obj.nChannels
-                strModels = sprintf('%s/DNN_%s_channel%d_%dlayers_%dnodes.mat', obj.dataPath, preset, c, nHiddenLayers, nHiddenNodes);
+            for c = 1:nChannels
+                strModels = sprintf('%s.%dchannels/DNN_%s_channel%d_%dlayers_%dnodes.mat', obj.dataPath, nChannels, preset, c, nHiddenLayers, nHiddenNodes);
                 % Load localisation module
                 load(xml.dbGetFile(strModels));
                 obj.DNNs{c} = C.NNs;
