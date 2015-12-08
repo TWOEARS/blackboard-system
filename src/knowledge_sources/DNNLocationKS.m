@@ -54,7 +54,7 @@ classdef DNNLocationKS < AuditoryFrontEndDepKS
             nHiddenLayers = 4;
             nHiddenNodes = 128;
             for c = 1:nChannels
-                strModels = sprintf('%s.%dchannels/DNN_%s_channel%d_%dlayers_%dnodes.mat', obj.dataPath, nChannels, preset, c, nHiddenLayers, nHiddenNodes);
+                strModels = sprintf('%s/%dchannels/DNN_%s_channel%d_%dlayers_%dnodes.mat', obj.dataPath, nChannels, preset, c, nHiddenLayers, nHiddenNodes);
                 % Load localisation module
                 load(xml.dbGetFile(strModels));
                 obj.DNNs{c} = C.NNs;
