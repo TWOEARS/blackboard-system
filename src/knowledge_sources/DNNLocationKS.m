@@ -98,13 +98,13 @@ classdef DNNLocationKS < AuditoryFrontEndDepKS
             end
             
             % Average posteriors over frequency
-            prob_AF = exp(squeeze(nansum(log(post),3)));
+            prob_AF = exp(squeeze(nanSum(log(post),3)));
 
             % Normalise each frame such that probabilities sum up to one
             prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
 
             % Average posteriors over time
-            prob_AFN_F = nanmean(prob_AFN, 1);
+            prob_AFN_F = nanMean(prob_AFN, 1);
 
             % Create a new location hypothesis
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
