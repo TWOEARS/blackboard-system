@@ -24,13 +24,13 @@ nAz = numel(azimuth);
 % Identify front-back confusion from post1
 post1 = post1(:);
 post2 = post2(:);
-[pIdx1,pa] = findPeaks([0; post1; 0]);
+[pIdx1,pa] = findAllPeaks([0; post1; 0]);
 pIdx1 = pIdx1 - 1;
 pIdx1 = pIdx1(pa > threshold);
 [fbIdx1, fbAz1] = find_front_back_idx(pIdx1);
 
 % Identify front-back confusion from post2
-[pIdx2,pa] = findPeaks([0; post2; 0]);
+[pIdx2,pa] = findAllPeaks([0; post2; 0]);
 pIdx2 = pIdx2 - 1;
 pIdx2 = pIdx2(pa > threshold);
 [fbIdx2, fbAz2] = find_front_back_idx(pIdx2);

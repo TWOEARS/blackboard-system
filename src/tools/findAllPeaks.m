@@ -1,4 +1,4 @@
-function [k,v]=findPeaks(x,m,w)
+function [k,v]=findAllPeaks(x,m,w)
 %findPeaks finds peaks with optional quadratic interpolation [K,V]=(X,M,W)
 %
 %   USAGE
