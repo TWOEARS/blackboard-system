@@ -39,9 +39,11 @@ classdef ConfusionSolvingKS < AbstractKS
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             headRotation = currentHeadOrientation - confHyp.headOrientation;
             newLocHyp = obj.blackboard.getLastData('locationHypotheses').data;
-            
-            [post1, post2] = remove_front_back_confusion(confHyp.posteriors, newLocHyp.posteriors, headRotation);
-            
+
+            [post1, post2] = removeFrontBackConfusion(confHyp.posteriors, ...
+                                                      newLocHyp.posteriors, ...
+                                                      headRotation);
+
             % Changed int16 to round here, which seems to cause problem
             % with circshift in the next line
             idxDelta = round(headRotation / ...
