@@ -64,7 +64,10 @@ for n = 1:size(fbIdx2,1)
     p = max(post2(fbIdx2(n,:)));
     fbAzNew = mod(fbAz2(n,:) + rotateAngle, 360);
     for m = 1:2
-        if (isempty(fbAz2(n,mod(m,2)+1)) | isempty(post1(azimuth==fbAzNew(m)))), break, end
+        if (isempty(fbAz2(n,mod(m,2)+1)) || isempty(post1(azimuth==fbAzNew(m))))
+            continue;
+        end
+        
         %if sum(fbAz2(n,mod(m,2)+1)==srcAz)>0 || min(abs(azimuth(pIdx1) - fbAzNew(m))) > 5
         if sum(fbAz2(n,mod(m,2)+1)==srcAz)>0 || post1(azimuth==fbAzNew(m)) < threshold
             idx = fbIdx2(n,m)-1:fbIdx2(n,m)+1;
