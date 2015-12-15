@@ -1,10 +1,10 @@
 classdef ConfusionKS < AbstractKS
-    % ConfusionKS examines location hypotheses and decides whether
+    % ConfusionKS examines azimuth hypotheses and decides whether
     % there is a front-back confusion. In the case of a confusion, a head
     % rotation will be triggered.
 
     properties (SetAccess = private)
-        postThreshold = 0.1;       % Posterior probability threshold for a valid
+        postThreshold = 0.1;       % Distribution probability threshold for a valid
                                    % SourcesAzimuthsDistributionHypothesis
         bSolveConfusion = true;    % Invoke ConfusionSolvingKS
     end
@@ -34,30 +34,30 @@ classdef ConfusionKS < AbstractKS
         end
 
         function execute(obj)
-            locHyp = obj.blackboard.getData( ...
+            aziHyp = obj.blackboard.getData( ...
                 'sourcesAzimuthsDistributionHypotheses', obj.trigger.tmIdx).data;
-            % Generates location hypotheses if posterior > threshold
-            locIdx = locHyp.posteriors > obj.postThreshold;
+            % Generates location hypotheses if posterior distribution > threshold
+            locIdx = aziHyp.sourcesDistribution > obj.postThreshold;
             numLoc = sum(locIdx);
             if numLoc > 1 && obj.bSolveConfusion
                 % Assume there is a confusion when there are more than 1
                 % valid location
-                % cf = ConfusionHypothesis(locHyp.blockNo, locHyp.headOrientation, ...
-                %         locHyp.locations(locIdx), locHyp.posteriors(locIdx));
+                % cf = ConfusionHypothesis(aziHyp.blockNo, aziHyp.headOrientation, ...
+                %         aziHyp.azimuths(locIdx), aziHyp.sourcesDistribution(locIdx));
                 obj.blackboard.addData('confusionHypotheses', ...
-                    locHyp, false, obj.trigger.tmIdx);
+                    aziHyp, false, obj.trigger.tmIdx);
                 notify(obj, 'ConfusedLocations', BlackboardEventData(obj.trigger.tmIdx));
             elseif numLoc > 0
                 % Assuming no confusion by using the index with the highest probability
-                [~,locIdx] = max(locHyp.posteriors);
-                % No confusion, generate Perceived Location
-                ploc = PerceivedLocation(locHyp.headOrientation, ...
-                    locHyp.locations(locIdx), locHyp.posteriors(locIdx));
-                obj.blackboard.addData('perceivedLocations', ploc, false, ...
+                [~,locIdx] = max(aziHyp.sourcesDistribution);
+                % No confusion, generate Perceived Azimuth
+                ploc = PerceivedAzimuth(aziHyp.headOrientation, ...
+                    aziHyp.azimuths(locIdx), aziHyp.sourcesDistribution(locIdx));
+                obj.blackboard.addData('perceivedAzimuths', ploc, false, ...
                     obj.trigger.tmIdx);
                 notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
             end
-            locHyp.setSeenByConfusionKS;
+            aziHyp.setSeenByConfusionKS;
         end
     end
 end

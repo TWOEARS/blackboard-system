@@ -2,7 +2,7 @@ classdef ConfusionSolvingKS < AbstractKS
     % ConfusionSolvingKS solves a confusion given new features.
 
     properties (SetAccess = private)
-        postThreshold = 0.1;   % Posterior probability threshold for a valid
+        postThreshold = 0.1;   % Distribution probability threshold for a valid
                                % SourcesAzimuthsDistributionHypothesis
     end
 
@@ -42,9 +42,9 @@ classdef ConfusionSolvingKS < AbstractKS
             newAziHyp = ...
                 obj.blackboard.getLastData('sourcesAzimuthsDistributionHypotheses').data;
 
-            [post1, post2] = removeFrontBackConfusion(confHyp.locations, ...
-                                                      confHyp.posteriors, ...
-                                                      newAziHyp.posteriors, ...
+            [post1, post2] = removeFrontBackConfusion(confHyp.azimuths, ...
+                                                      confHyp.sourcesDistribution, ...
+                                                      newAziHyp.sourcesDistribution, ...
                                                       headRotation);
 
             % Changed int16 to round here, which seems to cause problem
@@ -52,24 +52,24 @@ classdef ConfusionSolvingKS < AbstractKS
             idxDelta = round(headRotation / ...
                 (newAziHyp.locations(2) - newAziHyp.locations(1)));
             post2 = circshift(post2, idxDelta);
-            % Take the average of the posterior distribution before head
+            % Take the average of the sources distribution before head
             % rotation and predictd distribution from after head rotation
             post = (post1 + post2);
             post = post ./ sum(post);
             %figure
             %hold off;
-            %plot(confHyp.locations, confHyp.posteriors, 'o--');
+            %plot(confHyp.locations, confHyp.sourcesDistribution, 'o--');
             %hold on;
-            %plot(confHyp.locations, predictedPosteriors, 'go--');
+            %plot(confHyp.locations, predictedDistribution, 'go--');
             %plot(confHyp.locations, post, 'ro--');
             %legend('Dist before rotation', 'Dist after rotation', 'Average dist');
             [m,idx] = max(post);
             if m > obj.postThreshold;
-                % Generate Perceived Location
-                ploc = PerceivedLocation(...
+                % Generate Perceived Azimuth
+                ploc = PerceivedAzimuth(...
                     confHyp.headOrientation, ...
-                    confHyp.locations(idx), m);
-                obj.blackboard.addData('perceivedLocations', ploc, false, ...
+                    confHyp.azimuths(idx), m);
+                obj.blackboard.addData('perceivedAzimuths', ploc, false, ...
                     obj.trigger.tmIdx);
                 notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
             end
