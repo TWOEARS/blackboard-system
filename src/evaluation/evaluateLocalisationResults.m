@@ -20,7 +20,7 @@ end
 relativeAzimuth = zeros(length(perceivedAzimuths),1);
 score = zeros(length(perceivedAzimuths),1);
 for m=1:length(perceivedAzimuths)
-    relativeLocation(m) = perceivedAzimuths(m).data.relativeAzimuth;
+    relativeAzimuth(m) = perceivedAzimuths(m).data.relativeAzimuth;
     score(m) = perceivedAzimuths(m).data.score;
 end
 
