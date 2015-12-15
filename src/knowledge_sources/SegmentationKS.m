@@ -386,8 +386,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 softMask = ...
                     reshape(probMap(:, sourceIdx), nFrames, nChannels);
 
-                % Get position estimate for current source
-                sourcePosition = mvmModel.mu(sourceIdx);
+                % Get azimuth estimate for current source
+                sourceAzimuth = mvmModel.mu(sourceIdx);
 
                 % Compute circular variance for current position estimate
                 circularVariance = 1 - ...
@@ -402,7 +402,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
                 % Add position hypothesis to the blackboard
                 aziHyp = SourceAzimuthHypothesis(sourceIdentifier, ...
-                    sourcePosition, circularVariance);
+                    sourceAzimuth, circularVariance);
                 obj.blackboard.addData('sourceAzimuthHypotheses', ...
                     aziHyp, true, obj.trigger.tmIdx);
             end
