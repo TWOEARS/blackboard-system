@@ -1,6 +1,6 @@
 classdef ItdLocationKS < AuditoryFrontEndDepKS
-    % ItdLocationKS calculates posterior probabilities for each azimuth angle
-    % and generates LocationHypothesis when provided with spatial 
+    % ItdLocationKS calculates posterior probabilities for each azimuth angle and
+    % generates a SourcesAzimuthsDistributionHypothesis when provided with spatial
     % observation
 
     properties (SetAccess = private)
@@ -110,8 +110,10 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
             % We simply take the average of posteriors across all the
             % samples for this block
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
-            hyp = LocationHypothesis(currentHeadOrientation, obj.angles, posteriors);
-            obj.blackboard.addData('locationHypotheses', hyp, false, obj.trigger.tmIdx);
+            aziHyp = SourcesAzimuthsDistributionHypothesis( ...
+                currentHeadOrientation, obj.angles, posteriors);
+            obj.blackboard.addData( ...
+                'sourcesAzimuthsDistributionHypotheses', aziHyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
         end
 

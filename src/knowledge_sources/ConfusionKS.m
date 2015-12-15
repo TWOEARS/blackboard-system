@@ -5,7 +5,7 @@ classdef ConfusionKS < AbstractKS
 
     properties (SetAccess = private)
         postThreshold = 0.1;       % Posterior probability threshold for a valid
-                                   % LocationHypothesis
+                                   % SourcesAzimuthsDistributionHypothesis
         bSolveConfusion = true;    % Invoke ConfusionSolvingKS
     end
 
@@ -27,14 +27,15 @@ classdef ConfusionKS < AbstractKS
         end
 
         function [bExecute, bWait] = canExecute(obj)
-            bExecute = ~(obj.blackboard.getData('locationHypotheses', ...
+            bExecute = ~(obj.blackboard.getData( ...
+                'sourcesAzimuthsDistributionHypotheses', ...
                 obj.trigger.tmIdx).data.seenByConfusionKS);
             bWait = false;
         end
 
         function execute(obj)
             locHyp = obj.blackboard.getData( ...
-                'locationHypotheses', obj.trigger.tmIdx).data;
+                'sourcesAzimuthsDistributionHypotheses', obj.trigger.tmIdx).data;
             % Generates location hypotheses if posterior > threshold
             locIdx = locHyp.posteriors > obj.postThreshold;
             numLoc = sum(locIdx);

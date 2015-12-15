@@ -1,6 +1,6 @@
 classdef DnnLocationKS < AuditoryFrontEndDepKS
-    % DnnLocationKS calculates posterior probabilities for each azimuth 
-    % angle and generates LocationHypothesis when provided with spatial 
+    % DnnLocationKS calculates posterior probabilities for each azimuth angle and
+    % generates SourcesAzimuthsDistributionHypothesis when provided with spatial
     % observation
 
     properties (SetAccess = private)
@@ -54,7 +54,9 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             nHiddenLayers = 4;
             nHiddenNodes = 128;
             for c = 1:nChannels
-                strModels = sprintf('%s/%dchannels/DNN_%s_channel%d_%dlayers_%dnodes.mat', obj.dataPath, nChannels, preset, c, nHiddenLayers, nHiddenNodes);
+                strModels = sprintf( ...
+                    '%s/%dchannels/DNN_%s_channel%d_%dlayers_%dnodes.mat', ...
+                    obj.dataPath, nChannels, preset, c, nHiddenLayers, nHiddenNodes);
                 % Load localisation module
                 load(xml.dbGetFile(strModels));
                 obj.DNNs{c} = C.NNs;
@@ -77,7 +79,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             cc = ccSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
             ildSObj = afeData(2);
             ild = ildSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
-            
+
             % Compute posteriors for each frequency channel and time frame
             nFrames = size(ild,1);
             nAzimuths = numel(obj.angles);
@@ -85,10 +87,12 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             yy = zeros(nFrames, nAzimuths);
             for c = 1:obj.nChannels
                 testFeatures = [squeeze(cc(:,c,:)) ild(:,c)];
- 
+
                 % Normalise features
-                testFeatures = testFeatures - repmat(obj.normFactors{c}(1,:),[size(testFeatures,1) 1]);
-                testFeatures = testFeatures ./ sqrt(repmat(obj.normFactors{c}(2,:),[size(testFeatures,1) 1]));
+                testFeatures = testFeatures - ...
+                    repmat(obj.normFactors{c}(1,:),[size(testFeatures,1) 1]);
+                testFeatures = testFeatures ./ ...
+                    sqrt(repmat(obj.normFactors{c}(2,:),[size(testFeatures,1) 1]));
 
                 obj.DNNs{c}.testing = 1;
                 obj.DNNs{c} = nnff(obj.DNNs{c}, testFeatures, yy);
@@ -96,7 +100,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 post(:,:,c) = p + eps;
                 obj.DNNs{c}.testing = 0;
             end
-            
+
             % Average posteriors over frequency
             prob_AF = exp(squeeze(nanSum(log(post),3)));
 
@@ -108,11 +112,14 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
 
             % Create a new location hypothesis
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
-            locHyp = LocationHypothesis(currentHeadOrientation, obj.angles, prob_AFN_F);
-            obj.blackboard.addData('locationHypotheses', ...
-                locHyp, false, obj.trigger.tmIdx);
+            aziHyp = SourcesAzimuthsDistributionHypothesis( ...
+                currentHeadOrientation, obj.angles, prob_AFN_F);
+            obj.blackboard.addData( ...
+                'sourcesAzimuthsDistributionHypotheses', aziHyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
         end
-        
+
     end
 end
+
+% vim: set sw=4 ts=4 et tw=90 cc=+1:

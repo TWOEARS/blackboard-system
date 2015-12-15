@@ -3,7 +3,7 @@ classdef ConfusionSolvingKS < AbstractKS
 
     properties (SetAccess = private)
         postThreshold = 0.1;   % Posterior probability threshold for a valid
-                               % LocationHypothesis
+                               % SourcesAzimuthsDistributionHypothesis
     end
 
     methods
@@ -21,13 +21,14 @@ classdef ConfusionSolvingKS < AbstractKS
             if confHyp.seenByConfusionSolvingKS, return; end;
             confHeadOrient = confHyp.headOrientation;
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation');
-            % If no new LocationHypothesis has arrived, do nothing
-            lastLocHyp = obj.blackboard.getLastData('locationHypotheses');
-            if lastLocHyp.sndTmIdx == obj.trigger.tmIdx
+            % If no new SourcesAzimuthsDistributionHypothesis has arrived, do nothing
+            lastAziHyp = ...
+                obj.blackboard.getLastData('sourcesAzimuthsDistributionHypotheses');
+            if lastAziHyp.sndTmIdx == obj.trigger.tmIdx
                 bWait = true;
                 return;
             end;
-            % If head has not been turned but there's already a new loc
+            % If head has not been turned but there's already a new azimuths
             % hypothesis, don't wait again
             if confHeadOrient == currentHeadOrientation.data, return; end;
             bExecute = true;
@@ -38,16 +39,18 @@ classdef ConfusionSolvingKS < AbstractKS
                 obj.trigger.tmIdx).data;
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             headRotation = currentHeadOrientation - confHyp.headOrientation;
-            newLocHyp = obj.blackboard.getLastData('locationHypotheses').data;
+            newAziHyp = ...
+                obj.blackboard.getLastData('sourcesAzimuthsDistributionHypotheses').data;
 
-            [post1, post2] = removeFrontBackConfusion(confHyp.locations, confHyp.posteriors, ...
-                                                      newLocHyp.posteriors, ...
+            [post1, post2] = removeFrontBackConfusion(confHyp.locations, ...
+                                                      confHyp.posteriors, ...
+                                                      newAziHyp.posteriors, ...
                                                       headRotation);
 
             % Changed int16 to round here, which seems to cause problem
             % with circshift in the next line
             idxDelta = round(headRotation / ...
-                (newLocHyp.locations(2) - newLocHyp.locations(1)));
+                (newAziHyp.locations(2) - newAziHyp.locations(1)));
             post2 = circshift(post2, idxDelta);
             % Take the average of the posterior distribution before head
             % rotation and predictd distribution from after head rotation
