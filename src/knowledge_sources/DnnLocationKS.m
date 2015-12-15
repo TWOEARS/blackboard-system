@@ -1,5 +1,5 @@
-classdef DNNLocationKS < AuditoryFrontEndDepKS
-    % DNNLocationKS calculates posterior probabilities for each azimuth 
+classdef DnnLocationKS < AuditoryFrontEndDepKS
+    % DnnLocationKS calculates posterior probabilities for each azimuth 
     % angle and generates LocationHypothesis when provided with spatial 
     % observation
 
@@ -8,14 +8,14 @@ classdef DNNLocationKS < AuditoryFrontEndDepKS
         DNNs;                       % Learned deep neural networks
         normFactors;                % Feature normalisation factors
         nChannels;                  % Number of frequency channels
-        dataPath = fullfile('learned_models', 'DNNLocationKS');
+        dataPath = fullfile('learned_models', 'DnnLocationKS');
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
     end
 
     methods
-        function obj = DNNLocationKS(nChannels)
+        function obj = DnnLocationKS(nChannels)
             if nargin < 1
                 % Default number of frequency channels is 16 for DNN
                 % localition KS
