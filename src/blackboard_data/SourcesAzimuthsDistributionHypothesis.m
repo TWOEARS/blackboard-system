@@ -3,18 +3,18 @@ classdef SourcesAzimuthsDistributionHypothesis < Hypothesis
     % for possible source positions
 
     properties (SetAccess = private)
-        posteriors;                        % Posterior distribution for all angles
-        locations;                         % Relative locations
-        headOrientation;                   % Head orientation angle
+        sourcesDistribution;           % Posterior distribution of possible sources
+        azimuths;                      % Relative azimuths (x-axis of sourcesDistribution)
+        headOrientation;               % Head orientation angle
         seenByConfusionKS = false;
         seenByConfusionSolvingKS = false;
     end
 
     methods
-        function obj = LocationHypothesis(headOrientation, locations, posteriors)
+        function obj = LocationHypothesis(headOrientation, azimuths, sourcesDistribution)
             obj.headOrientation = headOrientation;
-            obj.locations = locations;
-            obj.posteriors = posteriors;
+            obj.azimuths = azimuths;
+            obj.sourcesDistribution = sourcesDistribution;
         end
         function obj = setSeenByConfusionKS(obj)
             obj.seenByConfusionKS = true;

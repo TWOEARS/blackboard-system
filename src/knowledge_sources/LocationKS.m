@@ -1,6 +1,7 @@
 classdef LocationKS < AuditoryFrontEndDepKS
-    % LocationKS calculates posterior probabilities for each azimuth angleand generates
-    % SourcesAzimuthsDistributionHypothesis when provided with spatial observation
+    % LocationKS calculates a distribution of posterior probabilities for each azimuth
+    % angle and generates SourcesAzimuthsDistributionHypothesis when provided with spatial
+    % observation
 
     properties (SetAccess = private)
         name;                  % Name of LocationKS
@@ -122,14 +123,14 @@ classdef LocationKS < AuditoryFrontEndDepKS
             fprintf(fidFlist, '%s\n', htkfn);
             fclose(fidFlist);
 
-            % Calculate posteriors of clique 0 (which contains RV:location)
+            % Calculate posterior distribution of clique 0 (which contains RV:location)
             obj.gmtkLoc.infer(flist, 0);
 
-            % Now if successful, posteriors are written in output files 
+            % Now if successful, the posterior distributions are written in output files 
             % with an appendix of _0 for the first utterance
             post = load(strcat(obj.gmtkLoc.outputCliqueFile, '_0'));
 
-            % We simply take the average of posteriors across all the
+            % We simply take the average of posterior distributions across all the
             % samples for this block
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             aziHyp = SourcesAzimuthsDistributionHypothesis( ...

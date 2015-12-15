@@ -80,7 +80,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             ildSObj = afeData(2);
             ild = ildSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
 
-            % Compute posteriors for each frequency channel and time frame
+            % Compute posterior distributions for each frequency channel and time frame
             nFrames = size(ild,1);
             nAzimuths = numel(obj.angles);
             post = zeros(nFrames, nAzimuths, obj.nChannels);
@@ -101,13 +101,13 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 obj.DNNs{c}.testing = 0;
             end
 
-            % Average posteriors over frequency
+            % Average posterior distributions over frequency
             prob_AF = exp(squeeze(nanSum(log(post),3)));
 
             % Normalise each frame such that probabilities sum up to one
             prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
 
-            % Average posteriors over time
+            % Average posterior distributions over time
             prob_AFN_F = nanMean(prob_AFN, 1);
 
             % Create a new location hypothesis
