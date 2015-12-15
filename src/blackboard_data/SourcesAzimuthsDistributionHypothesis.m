@@ -11,7 +11,8 @@ classdef SourcesAzimuthsDistributionHypothesis < Hypothesis
     end
 
     methods
-        function obj = LocationHypothesis(headOrientation, azimuths, sourcesDistribution)
+        function obj = SourcesAzimuthsDistributionHypothesis( ...
+                headOrientation, azimuths, sourcesDistribution)
             obj.headOrientation = headOrientation;
             obj.azimuths = azimuths;
             obj.sourcesDistribution = sourcesDistribution;

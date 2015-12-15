@@ -50,7 +50,7 @@ classdef ConfusionSolvingKS < AbstractKS
             % Changed int16 to round here, which seems to cause problem
             % with circshift in the next line
             idxDelta = round(headRotation / ...
-                (newAziHyp.locations(2) - newAziHyp.locations(1)));
+                (newAziHyp.azimuths(2) - newAziHyp.azimuths(1)));
             post2 = circshift(post2, idxDelta);
             % Take the average of the sources distribution before head
             % rotation and predictd distribution from after head rotation
@@ -58,10 +58,10 @@ classdef ConfusionSolvingKS < AbstractKS
             post = post ./ sum(post);
             %figure
             %hold off;
-            %plot(confHyp.locations, confHyp.sourcesDistribution, 'o--');
+            %plot(confHyp.azimuths, confHyp.sourcesDistribution, 'o--');
             %hold on;
-            %plot(confHyp.locations, predictedDistribution, 'go--');
-            %plot(confHyp.locations, post, 'ro--');
+            %plot(confHyp.azimuths, predictedDistribution, 'go--');
+            %plot(confHyp.azimuths, post, 'ro--');
             %legend('Dist before rotation', 'Dist after rotation', 'Average dist');
             [m,idx] = max(post);
             if m > obj.postThreshold;
