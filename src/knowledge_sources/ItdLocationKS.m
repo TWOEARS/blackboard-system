@@ -1,6 +1,6 @@
 classdef ItdLocationKS < AuditoryFrontEndDepKS
-    % ItdLocationKS calculates posterior probabilities for each azimuth angle
-    % and generates LocationHypothesis when provided with spatial 
+    % ItdLocationKS calculates posterior probabilities for each azimuth angle and
+    % generates a SourcesAzimuthsDistributionHypothesis when provided with spatial
     % observation
 
     properties (SetAccess = private)
@@ -89,14 +89,14 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
 
             % Make two peaks in the posteriors distribution for the two possible
             % directions (front-back confusion)
-            posteriors = zeros(size(obj.angles));
+            sourcesDistribution = zeros(size(obj.angles));
             % Use the value in the horizontal plane
             if phi>95 & phi<265
                 phi = wrapTo360(phi+180);
             end
             %phi2 = NaN;
             if ~isnan(phi)
-                posteriors(wrapTo360(phi)+1) = 1;
+                sourcesDistribution(wrapTo360(phi)+1) = 1;
                 %% Get front-back confusion
                 %if phi<=180
                 %    phi2 = phi + 2*(90-phi);
@@ -104,14 +104,16 @@ classdef ItdLocationKS < AuditoryFrontEndDepKS
                 %    phi2 = phi + 2*(270-phi);
                 %end
                 %idx = [wrapTo360(phi-1:phi+1)+1 wrapTo360(phi2-1:phi2+1)+1];
-                %posteriors(idx) = [0.25 1.0 0.25 0.25 1.0 0.25];
+                %sourcesDistribution(idx) = [0.25 1.0 0.25 0.25 1.0 0.25];
             end
 
-            % We simply take the average of posteriors across all the
+            % We simply take the average of posterior distributins across all the
             % samples for this block
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
-            hyp = LocationHypothesis(currentHeadOrientation, obj.angles, posteriors);
-            obj.blackboard.addData('locationHypotheses', hyp, false, obj.trigger.tmIdx);
+            aziHyp = SourcesAzimuthsDistributionHypothesis( ...
+                currentHeadOrientation, obj.angles, sourcesDistribution);
+            obj.blackboard.addData( ...
+                'sourcesAzimuthsDistributionHypotheses', aziHyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
         end
 
