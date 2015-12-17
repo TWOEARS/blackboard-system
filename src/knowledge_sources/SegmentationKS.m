@@ -31,7 +31,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                                     % additionally?
         bVerbose = false            % Display processing information?
         dataPath = ...              % Path for storing trained models
-            fullfile(xml.dbPath, 'learned_models', 'SegmentationKS');
+            fullfile('learned_models', 'SegmentationKS');
     end
 
     methods (Access = public)
@@ -161,14 +161,14 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Check if trained models are available
             filename = [obj.name, '_models_', ...
                 cell2mat(obj.reqHashs), '.mat'];
-            if ~exist(fullfile(obj.dataPath, obj.name, filename), 'file')
-                warning(['No trained models are available for this ', ...
-                    'KS. Please ensure to run KS training first.']);
-            else
+            try
                 % Load available models and add them to object props
-                models = load(fullfile(obj.dataPath, obj.name, filename));
-                obj.localizationModels = models.locModels;
+                models = load(xml.dbGetFile(fullfile(obj.dataPath, obj.name, filename)));
+            catch
+                error(['No trained models are available for this ', ...
+                       'KS. Please ensure to run KS training first.']);
             end
+            obj.localizationModels = models.locModels;
         end
 
         function [bExecute, bWait] = canExecute(obj)
