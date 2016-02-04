@@ -58,19 +58,19 @@ classdef RotationKS < AbstractKS
 
         function execute(obj)
 
-%             confHyp = obj.blackboard.getData('confusionHypotheses', ...
-%                 obj.trigger.tmIdx).data;
-%             [~,idx] = max(confHyp.sourcesDistribution);
-%             if confHyp.azimuths(idx) < 180
-%                 % The most likely source is in the left plane, try turn the
-%                 % head to the left
-%                 headRotationAngles = obj.rotationAngles(obj.rotationAngles > 0);
-%             else
-%                 headRotationAngles = obj.rotationAngles(obj.rotationAngles < 0);
-%             end
+            confHyp = obj.blackboard.getData('confusionHypotheses', ...
+                obj.trigger.tmIdx).data;
+            [~,idx] = max(confHyp.sourcesDistribution);
+            if confHyp.azimuths(idx) < 180
+                % The most likely source is in the left plane, try turn the
+                % head to the left
+                headRotationAngles = obj.rotationAngles(obj.rotationAngles > 0);
+            else
+                headRotationAngles = obj.rotationAngles(obj.rotationAngles < 0);
+            end
             
             % Randomly select a head rotation angle
-            headRotateAngle = obj.rotationAngles(randi(length(obj.rotationAngles)));
+            headRotateAngle = headRotationAngles(randi(length(headRotationAngles)));
             % Rotate head with a relative angle
             obj.robot.rotateHead(headRotateAngle, 'relative');
 
