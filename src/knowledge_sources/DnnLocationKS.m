@@ -12,6 +12,9 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
+        energyThreshold = 2E-3;     % ratemap energy threshold (cuberoot 
+                                    % compression) for detecting active 
+                                    % frames
     end
 
     methods
@@ -44,6 +47,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
+            obj.lastExecutionTime_s = 0;
 
             % Load localiastion DNNs
             obj.nChannels = nChannels;
@@ -67,9 +71,14 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
 
 
         function [bExecute, bWait] = canExecute(obj)
-            afeData = obj.getAFEdata();
-            timeSObj = afeData(3);
-            bExecute = hasSignalEnergy(timeSObj, obj.blockSize, obj.timeSinceTrigger);
+            %afeData = obj.getAFEdata();
+            %timeSObj = afeData(3);
+            %bExecute = hasSignalEnergy(timeSObj, obj.blockSize, obj.timeSinceTrigger);
+            
+            % Execute KS if a sufficient amount of data for one block has
+            % been gathered
+            bExecute = (obj.blackboard.currentSoundTimeIdx - ...
+                obj.lastExecutionTime_s) >= obj.blockSize;
             bWait = false;
         end
 

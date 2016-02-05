@@ -4,7 +4,7 @@ classdef RotationKS < AbstractKS
     properties (SetAccess = private)
         rotationScheduled = false;    % To avoid repetitive head rotations
         robot;                        % Reference to a robot object
-        rotationAngles = [30 20 10 -10 -20 -30]; % left <-- positive angles; negative angles --> right
+        rotationAngles = [30 20 -20 -30]; % left <-- positive angles; negative angles --> right
         minRotationAngle = 10;        % minimum rotation angles
     end
 
