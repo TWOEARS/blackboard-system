@@ -71,6 +71,7 @@ classdef RotationKS < AbstractKS
             
             % Randomly select a head rotation angle
             headRotateAngle = headRotationAngles(randi(length(headRotationAngles)));
+            
             % Rotate head with a relative angle
             obj.robot.rotateHead(headRotateAngle, 'relative');
 
