@@ -44,6 +44,7 @@ classdef IdTruthPlotKS < AuditoryFrontEndDepKS
             set( gca, 'XTick', [] );
             plotIdentificationScene( obj.subplots(2), ...
                 obj.labels, obj.onOffsets, idHyps, timeRange );
+            drawnow;
         end
         
     end
