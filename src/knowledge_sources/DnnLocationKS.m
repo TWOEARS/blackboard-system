@@ -47,7 +47,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
-            obj.lastExecutionTime_s = 0;
+            obj.invocationMaxFrequency_Hz = 10;
 
             % Load localiastion DNNs
             obj.nChannels = nChannels;
@@ -77,17 +77,13 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
-            bExecute = (obj.blackboard.currentSoundTimeIdx - ...
-                obj.lastExecutionTime_s) >= obj.blockSize;
+            bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
         end
 
         function execute(obj)
-            afeData = obj.getAFEdata();
-            ccSObj = afeData(1);
-            cc = ccSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
-            ildSObj = afeData(2);
-            ild = ildSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
+            cc = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
+            ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
 
             % Compute posterior distributions for each frequency channel and time frame
             nFrames = size(ild,1);

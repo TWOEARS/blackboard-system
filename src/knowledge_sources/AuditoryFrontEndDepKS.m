@@ -5,6 +5,7 @@ classdef AuditoryFrontEndDepKS < AbstractKS
     properties (SetAccess = private)
         requests;       
         reqHashs;
+        lastBlockEnd;
     end
     
     %% -----------------------------------------------------------------------------------
@@ -15,6 +16,7 @@ classdef AuditoryFrontEndDepKS < AbstractKS
             obj.requests = requests;
             for ii = 1 : length( obj.requests )
                 obj.reqHashs{ii} = AuditoryFrontEndKS.getRequestHash( obj.requests{ii} );
+                obj.lastBlockEnd(ii) = 0;
             end
             %           example:
             %             requests{1}.name = 'modulation';
@@ -45,6 +47,40 @@ classdef AuditoryFrontEndDepKS < AbstractKS
             for ii = 1 : length( obj.requests )
                 afeSignals(ii) = obj.blackboard.signals(obj.reqHashs{ii});
             end
+        end
+        %% -------------------------------------------------------------------------------
+
+        function ens = hasEnoughNewSignal( obj, blockLen_s )
+            ens = all( obj.blackboard.currentSoundTimeIdx - obj.lastBlockEnd >= blockLen_s );
+        end
+        %% -------------------------------------------------------------------------------
+
+        function signalBlock = getSignalBlock( obj, sigId, blockTimes, padFront, padEnd )
+            signalStream = obj.blackboard.signals(obj.reqHashs{sigId});
+            backOffset = obj.blackboard.currentSoundTimeIdx - blockTimes(2);
+            if backOffset < 0
+                error( 'Requesting blocks ending in the future is not possible.' );
+            end
+            blockLen = blockTimes(2) - blockTimes(1);
+            signalBlock = signalStream.getSignalBlock( blockLen, backOffset, padFront );
+            if nargin >= 5 && padEnd
+                blocksize_samples = ceil( signalStream.FsHz * blockLen );
+                if (size( signalBlock, 1 ) < blocksize_samples)
+                    signalBlock = [signalBlock; ...
+                        zeros( blocksize_samples - size(signalBlock,1), ...
+                               size(signalBlock,2), size(signalBlock,3) )];
+                end
+            end
+            obj.lastBlockEnd(sigId) = blockTimes(2);
+        end
+        %% -------------------------------------------------------------------------------
+
+        function signalBlock = getNextSignalBlock( obj, sigId, blockLen_s, shift_s, padFront, padEnd )
+            if nargin < 4, shift_s = blockLen_s; end
+            if nargin < 5, padFront = true; end
+            if nargin < 6, padEnd = false; end
+            blockTimes = [obj.lastBlockEnd(sigId)+shift_s-blockLen_s obj.lastBlockEnd(sigId)+shift_s];
+            signalBlock = obj.getSignalBlock( sigId, blockTimes, padFront, padEnd );
         end
         %% -------------------------------------------------------------------------------
 
