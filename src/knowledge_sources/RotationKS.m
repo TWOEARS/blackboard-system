@@ -4,7 +4,7 @@ classdef RotationKS < AbstractKS
     properties (SetAccess = private)
         rotationScheduled = false;    % To avoid repetitive head rotations
         robot;                        % Reference to a robot object
-        rotationAngles = [30 20 -20 -30]; % left <-- positive angles; negative angles --> right
+        rotationAngles = [20 -20]; % left <-- positive angles; negative angles --> right
         minRotationAngle = 10;        % minimum rotation angles
     end
 
@@ -18,8 +18,16 @@ classdef RotationKS < AbstractKS
             % left <-- positive angles; negative angles --> right
             headOrientation = robot.getCurrentHeadOrientation;
             %rotationStep = robot.Sources{1}.IRDataset.AzimuthResolution;
-            rotationRight = round(mod(robot.AzimuthMin-headOrientation, 360) - 360); % right: -78
-            rotationLeft = round(mod(robot.AzimuthMax-headOrientation, 360)); % left: 78
+            if isinf(robot.AzimuthMin)
+                rotationRight = -80;
+            else
+                rotationRight = round(mod(robot.AzimuthMin-headOrientation, 360) - 360); % right: -78
+            end
+            if isinf(robot.AzimuthMax)
+                rotationLeft = 80;
+            else
+                rotationLeft = round(mod(robot.AzimuthMax-headOrientation, 360)); % left: 78
+            end
             %obj.rotationAngles = rotationRight:rotationStep:rotationLeft;
             
             % Force possible rotation angles
