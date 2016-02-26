@@ -5,10 +5,10 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
 
     properties (SetAccess = private)
         angles;                     % All azimuth angles to be considered
-        DNNs;                       % Learned deep neural networks
+        GMMs;                       % Learned localiation GMMs
         normFactors;                % Feature normalisation factors
         nChannels;                  % Number of frequency channels
-        dataPath = fullfile('learned_models', 'DnnLocationKS');
+        dataPath = fullfile('learned_models', 'GmmLocationKS');
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
@@ -18,18 +18,18 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = DnnLocationKS(nChannels)
+        function obj = GmmLocationKS(nChannels)
             if nargin < 1
-                % Default number of frequency channels is 16 for DNN
+                % Default number of frequency channels is 32 for GMM
                 % localition KS
-                nChannels = 16;
+                nChannels = 32;
             end
             param = genParStruct(...
                 'fb_type', 'gammatone', ...
                 'fb_lowFreqHz', 80, ...
                 'fb_highFreqHz', 8000, ...
                 'fb_nChannels', nChannels, ...
-                'ihc_method', 'halfwave', ...
+                'ihc_method', 'dau', ...
                 'ild_wSizeSec', 20E-3, ...
                 'ild_hSizeSec', 10E-3, ...
                 'rm_wSizeSec', 20E-3, ...
@@ -39,33 +39,25 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
                 'cc_wSizeSec', 20E-3, ...
                 'cc_hSizeSec', 10E-3, ...
                 'cc_wname', 'hann');
-            requests{1}.name = 'crosscorrelation';
+            requests{1}.name = 'itd';
             requests{1}.params = param;
             requests{2}.name = 'ild';
             requests{2}.params = param;
-            requests{3}.name = 'time';
-            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.lastExecutionTime_s = 0;
 
-            % Load localiastion DNNs
+            % Localisation model params
             obj.nChannels = nChannels;
-            obj.DNNs = cell(nChannels, 1);
-            obj.normFactors = cell(nChannels, 1);
-
             preset = 'MCT_DIFFUSE';
-            nHiddenLayers = 4;
-            nHiddenNodes = 128;
-            for c = 1:nChannels
-                strModels = sprintf( ...
-                    '%s/%dchannels/DNN_%s_channel%d_%dlayers_%dnodes.mat', ...
-                    obj.dataPath, nChannels, preset, c, nHiddenLayers, nHiddenNodes);
-                % Load localisation module
-                load(xml.dbGetFile(strModels));
-                obj.DNNs{c} = C.NNs;
-                obj.normFactors{c} = C.normFactors;
-            end
+            nMix = 16;
+            strModels = fullfile(obj.dataPath, sprintf('GMM_%s_%dchannels_%dmix_Norm.mat', preset, nChannels, nMix));
+            
+            % Load localisation models
+            load(xml.dbGetFile(strModels));
+            obj.GMMs = C.gmmFinal;
+            obj.normFactors = C.featNorm;
+            
             obj.angles = C.azimuths;
         end
 
@@ -84,8 +76,8 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
 
         function execute(obj)
             afeData = obj.getAFEdata();
-            ccSObj = afeData(1);
-            cc = ccSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
+            itdSObj = afeData(1);
+            itd = itdSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
             ildSObj = afeData(2);
             ild = ildSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
 
@@ -93,9 +85,8 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
             nFrames = size(ild,1);
             nAzimuths = numel(obj.angles);
             post = zeros(nFrames, nAzimuths, obj.nChannels);
-            yy = zeros(nFrames, nAzimuths);
             for c = 1:obj.nChannels
-                testFeatures = [squeeze(cc(:,c,:)) ild(:,c)];
+                testFeatures = [itd(:,c) ild(:,c)];
 
                 % Normalise features
                 testFeatures = testFeatures - ...
@@ -103,11 +94,15 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
                 testFeatures = testFeatures ./ ...
                     sqrt(repmat(obj.normFactors{c}(2,:),[size(testFeatures,1) 1]));
 
-                obj.DNNs{c}.testing = 1;
-                obj.DNNs{c} = nnff(obj.DNNs{c}, testFeatures, yy);
-                p = obj.DNNs{c}.a{end};
-                post(:,:,c) = p + eps;
-                obj.DNNs{c}.testing = 0;
+                prob = zeros(nFrames, nAzimuths);
+                for jj = 1 : nAzimuths
+                    % Conventional recognition using the complete feature space
+                    prob(:,jj) = gmmprob(obj.GMMs{c}(jj),testFeatures);
+                end
+                post(:,:,c) = prob + eps;
+                
+                % Normalize across all azimuth directions
+                post(:,:,c) = post(:,:,c) ./ repmat(sum(post(:,:,c),2),[1 size(post(:,:,c),2) 1]);
             end
 
             % Average posterior distributions over frequency
