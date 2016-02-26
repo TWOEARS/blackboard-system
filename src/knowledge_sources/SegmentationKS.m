@@ -178,7 +178,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
             bExecute = (obj.blackboard.currentSoundTimeIdx - ...
-                obj.lastExecutionTime_s) >= obj.blockSize;
+                obj.lastExecutionTime_s) >= 0.1;
             bWait = false;
         end
 
