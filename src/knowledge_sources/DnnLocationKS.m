@@ -105,7 +105,8 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             end
 
             % Average posterior distributions over frequency
-            prob_AF = exp(squeeze(nanSum(log(post),3)));
+            %prob_AF = exp(squeeze(nanSum(log(post),3)));
+            prob_AF = squeeze(nanMean(post,3));
 
             % Normalise each frame such that probabilities sum up to one
             prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);

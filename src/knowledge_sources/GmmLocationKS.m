@@ -45,7 +45,7 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
             requests{2}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
-            obj.lastExecutionTime_s = 0;
+            obj.invocationMaxFrequency_Hz = 10;
 
             % Localisation model params
             obj.nChannels = nChannels;
@@ -69,17 +69,13 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
             
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
-            bExecute = (obj.blackboard.currentSoundTimeIdx - ...
-                obj.lastExecutionTime_s) >= obj.blockSize;
+            bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
         end
 
         function execute(obj)
-            afeData = obj.getAFEdata();
-            itdSObj = afeData(1);
-            itd = itdSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
-            ildSObj = afeData(2);
-            ild = ildSObj.getSignalBlock(obj.blockSize, obj.timeSinceTrigger);
+            itd = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
+            ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
 
             % Compute posterior distributions for each frequency channel and time frame
             nFrames = size(ild,1);
