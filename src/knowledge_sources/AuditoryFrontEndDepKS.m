@@ -62,13 +62,28 @@ classdef AuditoryFrontEndDepKS < AbstractKS
                 error( 'Requesting blocks ending in the future is not possible.' );
             end
             blockLen = blockTimes(2) - blockTimes(1);
-            signalBlock = signalStream.getSignalBlock( blockLen, backOffset, padFront );
-            if nargin >= 5 && padEnd
-                blocksize_samples = ceil( signalStream.FsHz * blockLen );
-                if (size( signalBlock, 1 ) < blocksize_samples)
-                    signalBlock = [signalBlock; ...
-                        zeros( blocksize_samples - size(signalBlock,1), ...
-                               size(signalBlock,2), size(signalBlock,3) )];
+            if iscell(signalStream)
+                signalBlock = cell(size(signalStream));
+                for n = 1:length(signalBlock)
+                    signalBlock{n} = signalStream{n}.getSignalBlock( blockLen, backOffset, padFront );
+                    if nargin >= 5 && padEnd
+                        blocksize_samples = ceil( signalStream{n}.FsHz * blockLen );
+                        if (size( signalBlock{n}, 1 ) < blocksize_samples)
+                            signalBlock{n} = [signalBlock{n}; ...
+                                zeros( blocksize_samples - size(signalBlock{n},1), ...
+                                       size(signalBlock{n},2), size(signalBlock{n},3) )];
+                        end
+                    end
+                end
+            else
+                signalBlock = signalStream.getSignalBlock( blockLen, backOffset, padFront );
+                if nargin >= 5 && padEnd
+                    blocksize_samples = ceil( signalStream.FsHz * blockLen );
+                    if (size( signalBlock, 1 ) < blocksize_samples)
+                        signalBlock = [signalBlock; ...
+                            zeros( blocksize_samples - size(signalBlock,1), ...
+                                   size(signalBlock,2), size(signalBlock,3) )];
+                    end
                 end
             end
             obj.lastBlockEnd(sigId) = blockTimes(2);

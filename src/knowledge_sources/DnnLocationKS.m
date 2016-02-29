@@ -43,8 +43,6 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             requests{1}.params = param;
             requests{2}.name = 'ild';
             requests{2}.params = param;
-            requests{3}.name = 'time';
-            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.invocationMaxFrequency_Hz = 10;
