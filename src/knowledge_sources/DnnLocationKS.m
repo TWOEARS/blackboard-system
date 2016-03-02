@@ -18,11 +18,14 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = DnnLocationKS(nChannels)
-            if nargin < 1
-                % Default number of frequency channels is 16 for DNN
+        function obj = DnnLocationKS(azimuthResolution, nChannels)
+            if nargin < 2
+                % Default number of frequency channels is 32 for DNN
                 % localition KS
-                nChannels = 16;
+                nChannels = 32;
+            end
+            if nargin < 1
+                azimuthResolution = 5;
             end
             param = genParStruct(...
                 'fb_type', 'gammatone', ...
@@ -55,10 +58,11 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             preset = 'MCT_DIFFUSE';
             nHiddenLayers = 4;
             nHiddenNodes = 128;
+            modelPath = fullfile(obj.dataPath, sprintf('LearnedDNNs_%ddeg_%dchannels', azimuthResolution, nChannels));
             for c = 1:nChannels
-                strModels = sprintf( ...
-                    '%s/%dchannels/DNN_%s_channel%d_%dlayers_%dnodes.mat', ...
-                    obj.dataPath, nChannels, preset, c, nHiddenLayers, nHiddenNodes);
+                strModels = fullfile(modelPath, sprintf( ...
+                    'DNN_%s_%ddeg_%dchannels_channel%d_%dlayers_%dnodes.mat', ...
+                    preset, azimuthResolution, nChannels, c, nHiddenLayers, nHiddenNodes));
                 % Load localisation module
                 load(xml.dbGetFile(strModels));
                 obj.DNNs{c} = C.NNs;
@@ -81,6 +85,11 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
 
         function execute(obj)
             cc = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
+            % Use only -1ms to 1ms
+            idx = ceil(size(cc,3)/2);
+            mlag = ceil(obj.blackboard.KSs{1}.afeFs/1000);
+            cc = cc(:,:,idx-mlag:idx+mlag);
+            
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
 
             % Compute posterior distributions for each frequency channel and time frame
