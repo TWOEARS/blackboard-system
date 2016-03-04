@@ -43,6 +43,8 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
             requests{1}.params = param;
             requests{2}.name = 'ild';
             requests{2}.params = param;
+            requests{3}.name = 'time';
+            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.invocationMaxFrequency_Hz = 10;
@@ -76,7 +78,14 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
         function execute(obj)
             itd = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
+            sig = obj.getNextSignalBlock( 3, obj.blockSize, obj.blockSize, false );
 
+            blockNo = floor(obj.lastExecutionTime_s/0.5);
+            subplot(2,1,blockNo);
+            plot(sig{1});
+            title(sprintf('Block %d', blockNo));
+            
+            
             % Compute posterior distributions for each frequency channel and time frame
             nFrames = size(ild,1);
             nAzimuths = numel(obj.angles);
