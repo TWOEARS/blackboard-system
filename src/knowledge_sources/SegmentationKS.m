@@ -32,6 +32,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
         bVerbose = false            % Display processing information?
         dataPath = ...              % Path for storing trained models
             fullfile('learned_models', 'SegmentationKS');
+        hopSize
     end
 
     methods (Access = public)
@@ -157,6 +158,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             obj.bBackground = p.Results.doBackgroundEstimation;
             obj.bVerbose = p.Results.Verbosity;
             obj.lastExecutionTime_s = 0;
+            obj.hopSize = p.Results.HopSize;
 
             % Check if trained models are available
             filename = [obj.name, '_models_', ...
@@ -288,7 +290,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
                 % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis(sourceIdentifier, ...
-                    'SoundSource', softMask);
+                    'SoundSource', softMask, obj.hopSize);
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
 

@@ -37,23 +37,51 @@ classdef SegmentIdentityKS < AuditoryFrontEndDepKS
         
         function execute( obj )
             afeData = obj.getAFEdata();
-            afeData = obj.featureCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
+            afeData = obj.featureCreator.cutDataBlock( afeData, ...
+                obj.timeSinceTrigger );
             
-            mask = obj.blackboard.getLastData('segmentationHypotheses', obj.trigger.tmIdx);
+            mask = obj.blackboard.getLastData('segmentationHypotheses', ...
+                obj.trigger.tmIdx);
             % create masked copy of afeData
-            for idx_mask = 1 : numel(mask.data)
-                afeData_masked = obj.featureCreator.maskData( afeData, mask.data(idx_mask).softMask );
+            for idx_mask = 1 : numel(mask.data)-1
+                afeData_masked = obj.maskAFEData( afeData, ...
+                    mask.data(idx_mask).softMask, ...
+                    mask.data(idx_mask).hopSize );
                 
-                obj.featureCreator.setAfeData( afeData );
+                obj.featureCreator.setAfeData( afeData_masked );
                 x = obj.featureCreator.constructVector();
                 [d, score] = obj.model.applyModel( x{1} );
             end
             bbprintf(obj, '[IdentitiyKS:] %s with %i%% probability.\n', ...
                      obj.modelname, int16(score(1)*100) );
             identHyp = IdentityHypothesis( ...
-                obj.modelname, score(1), obj.featureCreator.labelBlockSize_s );
-            obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
-            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+                obj.modelname, score(1), ...
+                obj.featureCreator.labelBlockSize_s );
+            obj.blackboard.addData( 'identityHypotheses', ...
+                identHyp, true, obj.trigger.tmIdx );
+            notify( obj, 'KsFiredEvent', ...
+                BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end
+    
+    methods (Static)
+        function afeBlock = maskAFEData( afeData, mask, maskHopSize )
+            afeBlock = containers.Map( 'KeyType', 'int32', 'ValueType', 'any' );
+            for afeKey = afeData.keys
+                afeSignal = afeData(afeKey{1});
+                % skip masking of spectral features
+                if ~strcmpi( afeSignal{1}.Name, 'spectralFeatures' )
+                    if isa( afeSignal, 'cell' )
+                        afeSignalExtract{1} = afeSignal{1}.maskSignalCopy( mask, maskHopSize );
+                        afeSignalExtract{2} = afeSignal{2}.maskSignalCopy( mask, maskHopSize );
+                    else
+                        afeSignalExtract = afeSignal.maskSignalCopy( mask, maskHopSize );
+                    end
+                else
+                    afeSignalExtract = afeSignal;
+                end
+                afeBlock(afeKey{1}) = afeSignalExtract;
+            end
+        end
+    end % static methods
 end

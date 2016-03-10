@@ -19,11 +19,13 @@ classdef SegmentationHypothesis < Hypothesis
                                     % 'background'.
         softMask                    % Probabilistic segmentation mask 
                                     % associated with this sound source.
+        hopSize
+        
     end
     
     methods
         function obj = SegmentationHypothesis(sourceIdentifier, type, ...
-                softMask)
+                softMask, hopSize)
             % SEGMENTATIONHYPOTHESIS This constructor function is used to
             %   generate a new segmentation hypothesis on the blackboard.
             %
@@ -45,12 +47,15 @@ classdef SegmentationHypothesis < Hypothesis
                 {'Background', 'SoundSource'})));
             p.addRequired('softMask', @(x) validateattributes(x, ...
                 {'numeric'}, {'real', '2d', '>=', 0, '<=', 1}));
-            p.parse(sourceIdentifier, type, softMask);
+            p.addRequired('hopSize', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', '1d', '>', 0}));
+            p.parse(sourceIdentifier, type, softMask, hopSize);
             
             % Add parameters to object properties
             obj.sourceIdentifier = p.Results.sourceIdentifier;
             obj.type = p.Results.type;
             obj.softMask = p.Results.softMask;
+            obj.hopSize = p.Results.hopSize;
         end
     end
 end
