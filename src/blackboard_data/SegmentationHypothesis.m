@@ -19,7 +19,7 @@ classdef SegmentationHypothesis < Hypothesis
                                     % 'background'.
         softMask                    % Probabilistic segmentation mask 
                                     % associated with this sound source.
-        hopSize
+        hopSize                     % Hop size or sampling rate of the mask
         
     end
     

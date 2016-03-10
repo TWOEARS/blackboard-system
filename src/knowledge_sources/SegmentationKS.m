@@ -32,7 +32,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
         bVerbose = false            % Display processing information?
         dataPath = ...              % Path for storing trained models
             fullfile('learned_models', 'SegmentationKS');
-        hopSize
+        hopSize                     % sampling rate of segmentation output
     end
 
     methods (Access = public)
