@@ -18,11 +18,20 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = DnnLocationKS(nChannels)
+        function obj = DnnLocationKS(preset, nChannels, azRes)
             if nargin < 1
-                % Default number of frequency channels is 16 for DNN
+                % Default preset is 'MCT-DIFFUSE'. For localisation in the
+                % front hemifield only, use 'MCT-DIFFUSE-FRONT'
+                preset = 'MCT-DIFFUSE';
+            end
+            if nargin < 2
+                % Default number of frequency channels is 32 for GMM
                 % localition KS
-                nChannels = 16;
+                nChannels = 32;
+            end
+            if nargin < 3
+                % Default azimuth resolution is 5 deg.
+                azRes = 5;
             end
             param = genParStruct(...
                 'fb_type', 'gammatone', ...
@@ -52,13 +61,12 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             obj.DNNs = cell(nChannels, 1);
             obj.normFactors = cell(nChannels, 1);
 
-            preset = 'MCT_DIFFUSE';
             nHiddenLayers = 4;
             nHiddenNodes = 128;
             for c = 1:nChannels
                 strModels = sprintf( ...
-                    '%s/%dchannels/DNN_%s_channel%d_%dlayers_%dnodes.mat', ...
-                    obj.dataPath, nChannels, preset, c, nHiddenLayers, nHiddenNodes);
+                    '%s/LearnedDNNs_%s_cc-ild_%ddeg_%dchannels/DNN_%s_%ddeg_%dchannels_channel%d_%dlayers_%dnodes.mat', ...
+                    obj.dataPath, preset, azRes, nChannels, preset, azRes, nChannels, c, nHiddenLayers, nHiddenNodes);
                 % Load localisation module
                 load(xml.dbGetFile(strModels));
                 obj.DNNs{c} = C.NNs;
@@ -81,6 +89,9 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
 
         function execute(obj)
             cc = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
+            idx = ceil(size(cc,3)/2);
+            mlag = 16;
+            cc = cc(:,:,idx-mlag:idx+mlag);
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
 
             % Compute posterior distributions for each frequency channel and time frame
