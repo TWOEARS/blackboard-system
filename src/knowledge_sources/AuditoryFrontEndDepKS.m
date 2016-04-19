@@ -2,7 +2,7 @@ classdef AuditoryFrontEndDepKS < AbstractKS
     % TODO: add description
 
     %% -----------------------------------------------------------------------------------
-    properties (SetAccess = private)
+    properties (SetAccess = {?DataProcs.BlackboardKsWrapper})
         requests;       
         reqHashs;
         lastBlockEnd;

@@ -31,7 +31,7 @@ classdef Blackboard < handle
         %% Set currentSoundTimeIdx
         function obj = setSoundTimeIdx( obj, newSoundTimeIdx )
             if newSoundTimeIdx <= obj.currentSoundTimeIdx
-                error( 'time has to be monotonically increasing.' );
+                warning( 'BB:tNotIncreasing', 'time should be monotonically increasing.' );
             end
             obj.currentSoundTimeIdx = newSoundTimeIdx;
         end
