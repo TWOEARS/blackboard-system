@@ -89,8 +89,12 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
 
         function execute(obj)
             cc = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
-            idx = ceil(size(cc,3)/2);
-            mlag = 16;
+            nlags = size(cc,3);
+            if nlags > 37 % 37 lags when sampled at 16kHz
+                error('DnnLocationKS: requires 16kHz sampling rate');
+            end
+            idx = ceil(nlags/2);
+            mlag = 16; % only use -1 ms to 1 ms
             cc = cc(:,:,idx-mlag:idx+mlag);
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
 
