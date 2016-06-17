@@ -47,11 +47,15 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 'rm_decaySec', 8E-3, ...
                 'cc_wSizeSec', 20E-3, ...
                 'cc_hSizeSec', 10E-3, ...
-                'cc_wname', 'hann');
+                'cc_wname', 'hann', ...
+                'prec_wSizeSec', 0.02, ...
+                'prec_hSizeSec', 0.01);
             requests{1}.name = 'crosscorrelation';
             requests{1}.params = param;
             requests{2}.name = 'ild';
             requests{2}.params = param;
+            requests{3}.name = 'precedence';
+            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.invocationMaxFrequency_Hz = 10;
@@ -89,18 +93,26 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
 
         function execute(obj)
             cc = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
-            idx = ceil(size(cc,3)/2);
+            precedence = obj.getNextSignalBlock( 3, obj.blockSize, obj.blockSize, false );
+            precedence_ild = precedence{2};
+            precedence_cc = precedence{3};
+            
+%             idx = ceil(size(cc,3)/2);
+            idx = ceil(size(precedence_cc,3)/2);
             mlag = 16;
-            cc = cc(:,:,idx-mlag:idx+mlag);
+%             cc = cc(:,:,idx-mlag:idx+mlag);
+            cc = precedence_cc(:,:,idx-mlag:idx+mlag);
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
 
             % Compute posterior distributions for each frequency channel and time frame
-            nFrames = size(ild,1);
+%             nFrames = size(ild,1);
+            nFrames = size(precedence_ild,1);
             nAzimuths = numel(obj.angles);
             post = zeros(nFrames, nAzimuths, obj.nChannels);
             yy = zeros(nFrames, nAzimuths);
             for c = 1:obj.nChannels
-                testFeatures = [squeeze(cc(:,c,:)) ild(:,c)];
+%                 testFeatures = [squeeze(cc(:,c,:)) ild(:,c)];
+                testFeatures = [squeeze(cc(:,c,:)) precedence_ild(:,c)];
 
                 % Normalise features
                 testFeatures = testFeatures - ...

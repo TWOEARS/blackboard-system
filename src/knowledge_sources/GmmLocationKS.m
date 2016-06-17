@@ -47,11 +47,15 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
                 'rm_decaySec', 8E-3, ...
                 'cc_wSizeSec', 20E-3, ...
                 'cc_hSizeSec', 10E-3, ...
-                'cc_wname', 'hann');
+                'cc_wname', 'hann', ...
+                'prec_wSizeSec', 0.02, ...
+                'prec_hSizeSec', 0.01);
             requests{1}.name = 'itd';
             requests{1}.params = param;
             requests{2}.name = 'ild';
             requests{2}.params = param;
+            requests{3}.name = 'precedence';
+            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.invocationMaxFrequency_Hz = 10;
@@ -83,13 +87,18 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
         function execute(obj)
             itd = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
+            precedence = obj.getNextSignalBlock( 3, obj.blockSize, obj.blockSize, false );
+            precedence_itd = precedence{1};
+            precedence_ild = precedence{2};
 
             % Compute posterior distributions for each frequency channel and time frame
-            nFrames = size(ild,1);
+%             nFrames = size(ild,1);
+            nFrames = size(precedence_ild,1);
             nAzimuths = numel(obj.angles);
             post = zeros(nFrames, nAzimuths, obj.nChannels);
             for c = 1:obj.nChannels
-                testFeatures = [itd(:,c) ild(:,c)];
+%                 testFeatures = [itd(:,c) ild(:,c)];
+                testFeatures = [precedence_itd(:,c) precedence_ild(:,c)];
 
                 % Normalise features
                 testFeatures = testFeatures - ...
