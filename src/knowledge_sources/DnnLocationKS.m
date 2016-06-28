@@ -3,6 +3,9 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
     % generates SourcesAzimuthsDistributionHypothesis when provided with spatial
     % observation
 
+    % TODO: make this KS work with synthesized sound sources, see qoe_localisation folder
+    % in TWOEARS/examples repo
+    
     properties (SetAccess = private)
         angles;                     % All azimuth angles to be considered
         DNNs;                       % Learned deep neural networks
@@ -15,28 +18,35 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
         energyThreshold = 2E-3;     % ratemap energy threshold (cuberoot 
                                     % compression) for detecting active 
                                     % frames
+        freqRange;                  % Frequency range to be considered
+        channels = [];                   % Frequency channels to be used
     end
 
     methods
-        function obj = DnnLocationKS(preset, nChannels, azRes)
+        function obj = DnnLocationKS(preset, highFreq, lowFreq, azRes)
             if nargin < 1
                 % Default preset is 'MCT-DIFFUSE'. For localisation in the
                 % front hemifield only, use 'MCT-DIFFUSE-FRONT'
                 preset = 'MCT-DIFFUSE';
             end
-            if nargin < 2
-                % Default number of frequency channels is 32 for GMM
-                % localition KS
-                nChannels = 32;
+            defaultFreqRange = [80 8000];
+            freqRange = defaultFreqRange;
+            % Frequency range to be considered
+            if exist('highFreq', 'var')   
+                freqRange(2) = highFreq;
             end
-            if nargin < 3
+            if exist('lowFreq', 'var')
+                freqRange(1) = lowFreq;
+            end
+            if nargin < 4
                 % Default azimuth resolution is 5 deg.
                 azRes = 5;
             end
+            nChannels = 32;
             param = genParStruct(...
                 'fb_type', 'gammatone', ...
-                'fb_lowFreqHz', 80, ...
-                'fb_highFreqHz', 8000, ...
+                'fb_lowFreqHz', defaultFreqRange(1), ...
+                'fb_highFreqHz', defaultFreqRange(2), ...
                 'fb_nChannels', nChannels, ...
                 'ihc_method', 'halfwave', ...
                 'ild_wSizeSec', 20E-3, ...
@@ -55,9 +65,10 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.invocationMaxFrequency_Hz = 10;
-
-            % Load localiastion DNNs
             obj.nChannels = nChannels;
+            obj.freqRange = freqRange;
+            
+            % Load localiastion DNNs
             obj.DNNs = cell(nChannels, 1);
             obj.normFactors = cell(nChannels, 1);
 
@@ -98,30 +109,44 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             cc = cc(:,:,idx-mlag:idx+mlag);
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
 
+            % Only consider those channels within obj.freqRange
+            if isempty(obj.channels)
+                afe = obj.getAFEdata;
+                obj.channels = find(afe(1).cfHz >= obj.freqRange(1) & afe(1).cfHz <= obj.freqRange(2));
+            end
+            
             % Compute posterior distributions for each frequency channel and time frame
-            nFrames = size(ild,1);
+            [nFrames] = size(ild,1);
             nAzimuths = numel(obj.angles);
-            post = zeros(nFrames, nAzimuths, obj.nChannels);
+            numChans = length(obj.channels);
+            post = zeros(nFrames, nAzimuths, numChans);
             yy = zeros(nFrames, nAzimuths);
-            for c = 1:obj.nChannels
-                testFeatures = [squeeze(cc(:,c,:)) ild(:,c)];
+            for n = 1:numChans
+                ch = obj.channels(n);
+                testFeatures = [squeeze(cc(:,ch,:)) ild(:,ch)];
 
                 % Normalise features
                 testFeatures = testFeatures - ...
-                    repmat(obj.normFactors{c}(1,:),[size(testFeatures,1) 1]);
+                    repmat(obj.normFactors{ch}(1,:),[size(testFeatures,1) 1]);
                 testFeatures = testFeatures ./ ...
-                    sqrt(repmat(obj.normFactors{c}(2,:),[size(testFeatures,1) 1]));
+                    sqrt(repmat(obj.normFactors{ch}(2,:),[size(testFeatures,1) 1]));
 
-                obj.DNNs{c}.testing = 1;
-                obj.DNNs{c} = nnff(obj.DNNs{c}, testFeatures, yy);
-                p = obj.DNNs{c}.a{end};
-                post(:,:,c) = p + eps;
-                obj.DNNs{c}.testing = 0;
+                obj.DNNs{ch}.testing = 1;
+                obj.DNNs{ch} = nnff(obj.DNNs{ch}, testFeatures, yy);
+                p = obj.DNNs{ch}.a{end};
+                post(:,:,n) = p + eps;
+                obj.DNNs{ch}.testing = 0;
             end
 
+            % Remove channels that have zero variance across time
+            validChannels = ones(numChans,1);
+            for n = 1:numChans
+               if max(std(post(:,:,n))) < 1E-4
+                   validChannels(n) = 0;
+               end
+            end
             % Average posterior distributions over frequency
-            %prob_AF = exp(squeeze(nanSum(log(post),3)));
-            prob_AF = squeeze(nanMean(post,3));
+            prob_AF = exp(squeeze(nanSum(log(post(:,:,validChannels==1)),3)));
 
             % Normalise each frame such that probabilities sum up to one
             prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
