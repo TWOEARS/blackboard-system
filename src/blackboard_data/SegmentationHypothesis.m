@@ -19,13 +19,14 @@ classdef SegmentationHypothesis < Hypothesis
                                     % 'background'.
         softMask                    % Probabilistic segmentation mask 
                                     % associated with this sound source.
+        cfHz                        % center frequencies of the mask
         hopSize                     % Hop size or sampling rate of the mask
         
     end
     
     methods
         function obj = SegmentationHypothesis(sourceIdentifier, type, ...
-                softMask, hopSize)
+                softMask, cfHz, hopSize)
             % SEGMENTATIONHYPOTHESIS This constructor function is used to
             %   generate a new segmentation hypothesis on the blackboard.
             %
@@ -47,14 +48,17 @@ classdef SegmentationHypothesis < Hypothesis
                 {'Background', 'SoundSource'})));
             p.addRequired('softMask', @(x) validateattributes(x, ...
                 {'numeric'}, {'real', '2d', '>=', 0, '<=', 1}));
+            p.addRequired('cfHz', @(x) validateattributes(x, ...
+                {'numeric'}, {'real', '>', 0}));
             p.addRequired('hopSize', @(x) validateattributes(x, ...
-                {'numeric'}, {'real', '1d', '>', 0}));
-            p.parse(sourceIdentifier, type, softMask, hopSize);
+                {'numeric'}, {'real', 'scalar', '>', 0}));
+            p.parse(sourceIdentifier, type, softMask, cfHz, hopSize);
             
             % Add parameters to object properties
             obj.sourceIdentifier = p.Results.sourceIdentifier;
             obj.type = p.Results.type;
             obj.softMask = p.Results.softMask;
+            obj.cfHz = p.Results.cfHz;
             obj.hopSize = p.Results.hopSize;
         end
     end

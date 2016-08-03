@@ -46,6 +46,7 @@ classdef SegmentIdentityKS < AuditoryFrontEndDepKS
             for idx_mask = 1 : numel(mask.data)
                 afeData_masked = obj.maskAFEData( afeData, ...
                     mask.data(idx_mask).softMask, ...
+                    mask.data(idx_mask).cfHz, ...
                     mask.data(idx_mask).hopSize );
                 
                 obj.featureCreator.setAfeData( afeData_masked );
@@ -66,22 +67,33 @@ classdef SegmentIdentityKS < AuditoryFrontEndDepKS
     end
     
     methods (Static)
-        function afeBlock = maskAFEData( afeData, mask, maskHopSize )
+        function afeBlock = maskAFEData( afeData, mask, cfHz, maskHopSize )
             afeBlock = containers.Map( 'KeyType', 'int32', 'ValueType', 'any' );
             for afeKey = afeData.keys
                 afeSignal = afeData(afeKey{1});
-                % skip masking of spectral features
-                if ~strcmpi( afeSignal{1}.Name, 'spectralFeatures' )
-                    if isa( afeSignal, 'cell' )
-                        afeSignalExtract{1} = afeSignal{1}.maskSignalCopy( mask, maskHopSize );
-                        afeSignalExtract{2} = afeSignal{2}.maskSignalCopy( mask, maskHopSize );
-                    else
-                        afeSignalExtract = afeSignal.maskSignalCopy( mask, maskHopSize );
+                if isa( afeSignal, 'cell' )
+                    for ii = 1 : numel( afeSignal )
+                        if isa( afeSignal{ii}, 'TimeFrequencySignal' ) || ...
+                                isa( afeSignal{ii}, 'CorrelationSignal' ) || ...
+                                isa( afeSignal{ii}, 'ModulationSignal' )
+                            afeSignalExtract{ii} = ...
+                                   afeSignal{ii}.maskSignalCopy( mask, cfHz, maskHopSize );
+                        else
+                            afeSignalExtract{ii} = afeSignal{ii};
+                        end
                     end
                 else
-                    afeSignalExtract = afeSignal;
+                    if isa( afeSignal, 'TimeFrequencySignal' ) || ...
+                            isa( afeSignal, 'CorrelationSignal' ) || ...
+                            isa( afeSignal, 'ModulationSignal' )
+                        afeSignalExtract = ...
+                                      afeSignal.maskSignalCopy( mask, cfHz, maskHopSize );
+                    else
+                        afeSignalExtract = afeSignal;
+                    end
                 end
                 afeBlock(afeKey{1}) = afeSignalExtract;
+                clear afeSignalExtract;
             end
         end
     end % static methods
