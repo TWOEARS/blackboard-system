@@ -19,7 +19,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                                     % compression) for detecting active 
                                     % frames
         freqRange;                  % Frequency range to be considered
-        channels = [];                   % Frequency channels to be used
+        channels = [];              % Frequency channels to be used
     end
 
     methods
