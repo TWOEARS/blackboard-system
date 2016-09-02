@@ -32,6 +32,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
         bVerbose = false            % Display processing information?
         dataPath = ...              % Path for storing trained models
             fullfile('learned_models', 'SegmentationKS');
+        hopSize                     % sampling rate of segmentation output
     end
 
     methods (Access = public)
@@ -157,6 +158,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             obj.bBackground = p.Results.doBackgroundEstimation;
             obj.bVerbose = p.Results.Verbosity;
             obj.lastExecutionTime_s = 0;
+            obj.hopSize = p.Results.HopSize;
 
             % Check if trained models are available
             filename = [obj.name, '_models_', ...
@@ -178,7 +180,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
             bExecute = (obj.blackboard.currentSoundTimeIdx - ...
-                obj.lastExecutionTime_s) >= obj.blockSize;
+                obj.lastExecutionTime_s) >= 0.1;
             bWait = false;
         end
 
@@ -195,6 +197,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
             % Get number of frames and channels
             [nFrames, nChannels] = size(ilds);
+            cfHz = afeData(2).cfHz;
+            hopSize = 1 / afeData(2).FsHz;
 
             % Initialize location map
             locMap = zeros(nFrames, nChannels);
@@ -257,7 +261,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
                 % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis(bgIdentifier, ...
-                    'Background', bgSoftMask);
+                    'Background', bgSoftMask, cfHz, hopSize);
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
 
@@ -288,7 +292,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
                 % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis(sourceIdentifier, ...
-                    'SoundSource', softMask);
+                    'SoundSource', softMask, cfHz, hopSize);
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
 
