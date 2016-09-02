@@ -5,7 +5,6 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
     properties ( SetAccess = private )
         observationModel
         blockSize
-        dataPath = fullfile('learned_models', 'StreamSegregationKS');
         useFixedAzimuths = false;
         fixedAzimuths = [];
     end
@@ -43,7 +42,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 requests{requestIdx}.name = afeRequests{requestIdx};
                 requests{requestIdx}.params = afeParameters;
             end
-            obj = obj@AuditoryFrontEndDepKS(requests);
+            obj = obj@AuditoryFrontEndDepKS( requests );
             
             % If fixed azimuth angles should be used, this has to be
             % specified as additional input arguments, where each input
@@ -72,14 +71,38 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             ilds = obj.getNextSignalBlock( 2, obj.blockSize, ...
                 obj.blockSize, false );
             
+            % Get current look direction.
+            lookDirection = obj.blackboardSystem.robotConnect.getCurrentHeadOrientation();
+            
             % Check if azimuth angles are fixed and compute soft-masks.
             if obj.useFixedAzimuths
-                for azimuth = obj.fixedAzimuths
-                    likelihood = ...
-                        obj.observationModel.computeLikelihood( itds, ilds, 0 );
+                numAzimuths = length( obj.fixedAzimuths );
+                likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
+                
+                for azimuthIdx = 1 : numAzimuths
+                    % Get absolute azimuth.
+                    absoluteAzimuth = wrapTo180( obj.fixedAzimuths(azimuthIdx) - ...
+                        lookDirection );
+                    
+                    likelihoods(:, :, azimuthIdx) = ...
+                        obj.observationModel.computeLikelihood( ...
+                        itds, ilds, absoluteAzimuth / 180 * pi );
                 end
             else
-                
+                % TODO: Add interface to DnnLocalsationKS here...
+            end
+            
+            % Normalize likelihoods and put hypotheses on the blackboard.
+            likelihoodSum = squeeze( sum(permute(likelihoods, [3 2 1])) )';
+            softMasks = bsxfun( @rdivide, likelihoods, likelihoodSum );
+            numSoftMasks = size( softMasks, 3 );
+            
+            for hypIdx = 1 : numSoftMasks
+                % Add segmentation hypothesis to the blackboard
+                segHyp = SegmentationHypothesis( ['Source ', num2str(hypIdx)], ...
+                    'SoundSource', squeeze(softMasks(:, :, hypIdx)) );
+                obj.blackboard.addData('segmentationHypotheses', ...
+                    segHyp, true, obj.trigger.tmIdx);
             end
         end
     end    
