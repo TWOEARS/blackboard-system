@@ -60,6 +60,11 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             obj.observationModel = ObservationModel( trainingParameters );
         end
         
+        function setFixedAzimuths( obj, newFixedAzimuths )
+            obj.fixedAzimuths = newFixedAzimuths;
+            obj.useFixedAzimuths = ~isempty( newFixedAzimuths );
+        end
+        
         function [bExecute, bWait] = canExecute(obj)
             bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
