@@ -21,11 +21,12 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             p.addOptional( 'BlockSize', defaultBlockSize, ...
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'scalar', 'real', 'positive'}) );
+            p.addOptional( 'FixedAzms', [] );
             
             if nargin == 1
                 p.parse( parameterFile );
             else
-                p.parse( parameterFile, varargin{1} );
+                p.parse( parameterFile, varargin );
             end
             
             % Read training parameters and load corresponding observation
@@ -47,9 +48,9 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             % If fixed azimuth angles should be used, this has to be
             % specified as additional input arguments, where each input
             % represents an azimuth angle in degrees.
-            if nargin > 2
+            if ~isempty( p.Results.FixedAzms )
                 obj.useFixedAzimuths = true;
-                obj.fixedAzimuths = cell2mat( varargin(2 : end) );
+                obj.fixedAzimuths = p.Results.FixedAzms;
             end
             
             % Assign block size.
