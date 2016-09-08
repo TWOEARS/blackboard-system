@@ -26,7 +26,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             if nargin == 1
                 p.parse( parameterFile );
             else
-                p.parse( parameterFile, varargin );
+                p.parse( parameterFile, varargin{:} );
             end
             
             % Read training parameters and load corresponding observation
@@ -65,6 +65,10 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             obj.useFixedAzimuths = ~isempty( newFixedAzimuths );
         end
         
+        function setBlocksize( obj, newBlocksize )
+            obj.blockSize = newBlocksize;
+        end
+        
         function [bExecute, bWait] = canExecute(obj)
             bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
@@ -78,7 +82,8 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 obj.blockSize, false );
             
             % Get current look direction.
-            lookDirection = obj.blackboardSystem.robotConnect.getCurrentHeadOrientation();
+            lookDirection = obj.blackboard.getLastData( 'headOrientation' );
+            lookDirection = lookDirection.data;
             
             % Check if azimuth angles are fixed and compute soft-masks.
             if obj.useFixedAzimuths
@@ -103,12 +108,15 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             softMasks = bsxfun( @rdivide, likelihoods, likelihoodSum );
             numSoftMasks = size( softMasks, 3 );
             
+            afeData = obj.getAFEdata();
+            cfHz = afeData(2).cfHz;
+            hopSize = 1 / afeData(2).FsHz;
+
             for hypIdx = 1 : numSoftMasks
                 % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis( ['Source ', num2str(hypIdx)], ...
                     'SoundSource', squeeze(softMasks(:, :, hypIdx)), ...
-                    obj.blackboardSystem.dataConnect.managerObject.Data.itd{1}.cfHz, ...
-                    1 / obj.blackboardSystem.dataConnect.managerObject.Data.itd{1}.FsHz );
+                    cfHz, hopSize );
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
             end
