@@ -89,15 +89,18 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             if obj.useFixedAzimuths
                 numAzimuths = length( obj.fixedAzimuths );
                 likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
+                refAzm = zeros( size( obj.fixedAzimuths ) );
                 
                 for azimuthIdx = 1 : numAzimuths
-                    % Get absolute azimuth.
-                    absoluteAzimuth = wrapTo180( obj.fixedAzimuths(azimuthIdx) - ...
+                    % Get relative azimuths -- obj.fixedAzimuths thus contains absolute
+                    % azimuths
+                    headRelativeAzimuth = wrapTo180( obj.fixedAzimuths(azimuthIdx) - ...
                         lookDirection );
+                    refAzm(azimuthIdx) = headRelativeAzimuth;
                     
                     likelihoods(:, :, azimuthIdx) = ...
                         obj.observationModel.computeLikelihood( ...
-                        itds, ilds, absoluteAzimuth / 180 * pi );
+                        itds, ilds, headRelativeAzimuth / 180 * pi );
                 end
             else
                 % TODO: Add interface to DnnLocalsationKS here...
@@ -116,7 +119,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis( ['Source ', num2str(hypIdx)], ...
                     'SoundSource', squeeze(softMasks(:, :, hypIdx)), ...
-                    cfHz, hopSize );
+                    cfHz, hopSize, refAzm(hypIdx) );
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
             end
