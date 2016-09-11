@@ -108,6 +108,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             
             % Normalize likelihoods and put hypotheses on the blackboard.
             likelihoodSum = squeeze( sum(permute(likelihoods, [3 2 1]),1) )';
+            likelihoodSum(likelihoodSum == 0) = 1; % do not divide by 0
             softMasks = bsxfun( @rdivide, likelihoods, likelihoodSum );
             numSoftMasks = size( softMasks, 3 );
             
