@@ -4,23 +4,36 @@ classdef IdentityKS < AuditoryFrontEndDepKS
         modelname;
         model;                 % classifier model
         featureCreator;
+        blockCreator;
     end
 
     methods
         function obj = IdentityKS( modelName, modelDir )
             modelFileName = [modelDir filesep modelName];
             v = load( [modelFileName '.model.mat'] );
-            if ~isa( v.featureCreator, 'featureCreators.Base' )
-                error( 'Loaded model''s featureCreator must implement featureCreators.Base.' );
+            if ~isa( v.featureCreator, 'FeatureCreators.Base' )
+                error( 'Loaded model''s featureCreator must implement FeatureCreators.Base.' );
             end
             obj = obj@AuditoryFrontEndDepKS( v.featureCreator.getAFErequests() );
             obj.featureCreator = v.featureCreator;
+            if isfield(v, 'blockCreator')
+                if ~isa( v.blockCreator, 'BlockCreators.Base' )
+                    error( 'Loaded model''s block creator must implement BeatureCreators.Base.' );
+                end
+            elseif isfield(v, 'blockSize_s')
+                v.blockCreator = BlockCreators.StandardBlockCreator( v.blockSize_s, 0.5/3 );
+            else
+                % for models missing a block creator instance
+                v.blockCreator = BlockCreators.StandardBlockCreator( 0.5, 0.5/3 );
+            end
+            obj.blockCreator = v.blockCreator;
             obj.model = v.model;
             obj.modelname = modelName;
             obj.invocationMaxFrequency_Hz = 4;
         end
         
         function setInvocationFrequency( obj, newInvocationFrequency_Hz )
+            % Youssef @Ivo: wieso nicht im Abstract Class?
             obj.invocationMaxFrequency_Hz = newInvocationFrequency_Hz;
         end
         
@@ -37,7 +50,7 @@ classdef IdentityKS < AuditoryFrontEndDepKS
         
         function execute( obj )
             afeData = obj.getAFEdata();
-            afeData = obj.featureCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
+            afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
             
             obj.featureCreator.setAfeData( afeData );
             x = obj.featureCreator.constructVector();
@@ -46,7 +59,7 @@ classdef IdentityKS < AuditoryFrontEndDepKS
             bbprintf(obj, '[IdentitiyKS:] %s with %i%% probability.\n', ...
                      obj.modelname, int16(score(1)*100) );
             identHyp = IdentityHypothesis( ...
-                obj.modelname, score(1), obj.featureCreator.labelBlockSize_s );
+                obj.modelname, score(1), obj.blockCreator.blockSize_s );
             obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
             notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
