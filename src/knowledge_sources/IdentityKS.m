@@ -16,8 +16,15 @@ classdef IdentityKS < AuditoryFrontEndDepKS
             end
             obj = obj@AuditoryFrontEndDepKS( v.featureCreator.getAFErequests() );
             obj.featureCreator = v.featureCreator;
-            if ~isa( v.blockCreator, 'BlockCreators.Base' )
-                error( 'Loaded model''s block creator must implement BeatureCreators.Base.' );
+            if isfield(v, 'blockCreator')
+                if ~isa( v.blockCreator, 'BlockCreators.Base' )
+                    error( 'Loaded model''s block creator must implement BeatureCreators.Base.' );
+                end
+            elseif isfield(v, 'blockSize_s')
+                v.blockCreator = BlockCreators.StandardBlockCreator( v.blockSize_s, 0.5/3 );
+            else
+                % for models missing a block creator instance
+                v.blockCreator = BlockCreators.StandardBlockCreator( 0.5, 0.5/3 );
             end
             obj.blockCreator = v.blockCreator;
             obj.model = v.model;
