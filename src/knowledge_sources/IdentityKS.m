@@ -59,7 +59,7 @@ classdef IdentityKS < AuditoryFrontEndDepKS
             bbprintf(obj, '[IdentitiyKS:] %s with %i%% probability.\n', ...
                      obj.modelname, int16(score(1)*100) );
             identHyp = IdentityHypothesis( ...
-                obj.modelname, score(1), obj.blockCreator.blockSize_s );
+                obj.modelname, score(1), d(1), obj.blockCreator.blockSize_s );
             obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
             notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
