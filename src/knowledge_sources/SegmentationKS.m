@@ -197,6 +197,8 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
             % Get number of frames and channels
             [nFrames, nChannels] = size(ilds);
+            cfHz = afeData(2).cfHz;
+            hopSize = 1 / afeData(2).FsHz;
 
             % Initialize location map
             locMap = zeros(nFrames, nChannels);
@@ -259,7 +261,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
                 % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis(bgIdentifier, ...
-                    'Background', bgSoftMask);
+                    'Background', bgSoftMask, cfHz, hopSize);
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
 
@@ -290,7 +292,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
 
                 % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis(sourceIdentifier, ...
-                    'SoundSource', softMask, obj.hopSize);
+                    'SoundSource', softMask, cfHz, hopSize);
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
 
