@@ -95,7 +95,7 @@ classdef IdentityLocationKS < IdentityKS
                 end
 
                 % concatenate binaural features into last (modulation dim)
-                feat_binaural_idxs = find( BindingKS.isBinaural(featureNames(feat_idxs)) );
+                feat_binaural_idxs = find( IdentityLocationKS.isBinaural(featureNames(feat_idxs)) );
                 if isequal(length(feat_binaural_idxs), length(featureNames(feat_idxs)) )
                     disp('binaural feature');
                     num_mod = num_mod * 2;
