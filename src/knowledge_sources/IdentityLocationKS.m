@@ -1,4 +1,4 @@
-classdef BindingKS < IdentityKS
+classdef IdentityLocationKS < IdentityKS
     
     properties (SetAccess = private)
         classnames;
@@ -6,7 +6,7 @@ classdef BindingKS < IdentityKS
     end
 
     methods
-        function obj = BindingKS( modelName, modelDir )
+        function obj = IdentityLocationKS( modelName, modelDir )
             obj = obj@IdentityKS( modelName, modelDir );
             modelFileName = fullfile(modelDir, modelName);
             v = load( [modelFileName '.model.mat'] );
@@ -35,7 +35,7 @@ classdef BindingKS < IdentityKS
                 id_decision =  1-d_blob(end, ii);
                 loc_probs =  score_blob(1:end-1, ii);
                 loc_decisions =  d_blob(1:end-1, ii);
-                bbprintf(obj, '[BindingKS:] %s with %i%% probability.\n', ...
+                bbprintf(obj, '[IdentityLocationKS:] %s with %i%% probability.\n', ...
                          obj.classnames{ii}, int16(id_prob*100));
                 hyp = IdentityLocationHypothesis( obj.classnames{ii}, ...
                     id_prob, id_decision, obj.blockCreator.blockSize_s, ...
