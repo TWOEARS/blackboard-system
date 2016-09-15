@@ -8,10 +8,11 @@ classdef BindingKS < IdentityKS
     methods
         function obj = BindingKS( modelName, modelDir )
             obj = obj@IdentityKS( modelName, modelDir );
-            modelFileName = [modelDir filesep modelName];
+            modelFileName = fullfile(modelDir, modelName);
             v = load( [modelFileName '.model.mat'] );
             obj.classnames = v.classnames;
             obj.azimuths = v.azimuths;
+            obj.model.initNet(v.modelDir, v.fname_net_def, v.fname_weights);
         end
         
         function execute( obj )
@@ -24,12 +25,25 @@ classdef BindingKS < IdentityKS
             [blobs_in, blobs_in_names] = obj.reshape2Blob( x{1}, x{2} );
             [d, score] = obj.model.applyModel( {blobs_in, blobs_in_names} );
             
-            bbprintf(obj, '[BindingKS:] %s with %i%% probability.\n', ...
-                     obj.modelname, int16(score(1)*100) );
-            identHyp = IdentityHypothesis( ...
-                obj.modelname, score(1), obj.blockCreator.blockSize_s );
-            obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
-            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+            blobs_out_names = fieldnames(score);
+            score_blob = score.(blobs_out_names{1}); % use only first one
+            d_blob = d.(blobs_out_names{1}); % use only first one
+            currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
+            for ii = 1:numel(obj.classnames)
+                % invert void bin output
+                id_prob =  1-score_blob(end, ii);
+                id_decision =  1-d_blob(end, ii);
+                loc_probs =  score_blob(1:end-1, ii);
+                loc_decisions =  d_blob(1:end-1, ii);
+                bbprintf(obj, '[BindingKS:] %s with %i%% probability.\n', ...
+                         obj.classnames{ii}, int16(id_prob*100));
+                hyp = IdentityLocationHypothesis( obj.classnames{ii}, ...
+                    id_prob, id_decision, obj.blockCreator.blockSize_s, ...
+                    currentHeadOrientation, ...
+                    obj.azimuths, loc_probs, loc_decisions );
+                obj.blackboard.addData( 'identityHypotheses', hyp, true, obj.trigger.tmIdx );
+                notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+            end % classnames
         end
     end
     
@@ -49,8 +63,6 @@ classdef BindingKS < IdentityKS
             feature_type_names = unique( cellfun(@(v) v(1), featureNames(1,:)) );
             x_feat = cell( size(feature_type_names) );
             for ii = 1 : numel(feature_type_names)
-                disp(feature_type_names{ii})
-
                 % Determine time bins in a single block.
                 % We assume the block size is constant within a feature type
                 is_feat = cellfun(@(v) strfind([v{:}], feature_type_names{ii}), ...
@@ -60,11 +72,8 @@ classdef BindingKS < IdentityKS
                 t_idxs_names = unique(cellfun(@(v) v(4), featureNames(feat_idxs)));
                 t_idxs = sort( cell2mat( cellfun(@(x) str2double(char(x(2:end))), ...
                     t_idxs_names, 'un', false) ) );
-
                 num_blocks = length( t_idxs );
-
-                disp([min(t_idxs), max(t_idxs)]);
-
+                
                 if strcmp(feature_type_names{ii}, 'amsFeatures')
                     % T x F x mF x N
                     num_freqChannels = obj.featureCreator.amFreqChannels;
