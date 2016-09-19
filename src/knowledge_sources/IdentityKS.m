@@ -8,13 +8,26 @@ classdef IdentityKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = IdentityKS( modelName, modelDir )
+        function obj = IdentityKS( modelName, modelDir, ppRemoveDc )
             modelFileName = [modelDir filesep modelName];
             v = load( [modelFileName '.model.mat'] );
             if ~isa( v.featureCreator, 'FeatureCreators.Base' )
                 error( 'Loaded model''s featureCreator must implement FeatureCreators.Base.' );
             end
-            obj = obj@AuditoryFrontEndDepKS( v.featureCreator.getAFErequests() );
+            afeRequests = v.featureCreator.getAFErequests();
+%             if nargin > 2 && pp_bNormalizeRMS
+%                 for ii = 1 : numel( afeRequests )
+%                     afeRequests{ii}.params.replaceParameters( ...
+%                                    genParStruct( 'pp_bNormalizeRMS', pp_bNormalizeRMS ) );
+%                 end
+%             end
+            if nargin > 2 && ppRemoveDc
+                for ii = 1 : numel( afeRequests )
+                    afeRequests{ii}.params.replaceParameters( ...
+                                   genParStruct( 'pp_bRemoveDC', ppRemoveDc ) );
+                end
+            end
+            obj = obj@AuditoryFrontEndDepKS( afeRequests );
             obj.featureCreator = v.featureCreator;
             if isfield(v, 'blockCreator')
                 if ~isa( v.blockCreator, 'BlockCreators.Base' )
