@@ -78,7 +78,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                         
                         % Resample if necessary
                         if info.SampleRate ~= 44100
-                            disp(['GridCorpus::Processing file ', file{:}, ...
+                            disp(['GenderRecognitionKS::Processing file ', file{:}, ...
                                 ' for speaker ', num2str(speakerIdx), ' ...']);
                             
                             [signal, fs] = audioread( fullfile(pathToSpeakerFiles, file{:}) );
@@ -100,21 +100,37 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             end
         end
         
-        function replicatedSignal = replicateSignal( signal, ...
-                signalLength, samplingRate )
-            %REPLICATESIGNAL Summary of this function goes here
-            %   Detailed explanation goes here
+        function features = processBlock( ratemap, pitch, spectralFeatures )
+            % PROCESSBLOCK
             
-            % Get desired number of samples
-            numSamples = ceil( signalLength * samplingRate );
+            % Get NaNs from pitch estimation.
+            nanIdxs = isnan( pitch(:, 1) );
+            numNans = sum(nanIdxs);
             
-            % Get number of replicates
-            numReplicates = ceil( numSamples / length(signal) );
-            
-            % Replicate signal and truncate to desired length
-            replicatedSignal = repmat( signal(:), numReplicates, 1 );
-            replicatedSignal = replicatedSignal( 1 : numSamples );            
-        end
+            if numNans / size( ratemap, 1 ) > 0.75
+                % No harmonic parts in signal.
+                features = [];
+            else
+                % Get "non-nan" idxs.
+                prRatemap = ratemap( ~nanIdxs, : );
+                prPitch = pitch( ~nanIdxs, : );
+                prSpectralFeatures = spectralFeatures( ~nanIdxs, : );
+                
+                % Compute formant map.
+                formantMap = zeros( size(prRatemap) );
+                formantMap(:, 2 : end - 1) = 0.5 .* (prRatemap(:, 3 : end) - ...
+                    prRatemap(:, 1 : end - 2));
+                formantMap(:, 1) = prRatemap(:, 2) - prRatemap(:, 1);
+                formantMap(:, end) = prRatemap(:, end) - prRatemap(:, end - 1);
+                
+                rawFeatures = [formantMap, prPitch(:, 1), ...
+                    prSpectralFeatures(:, 1 : 5), prSpectralFeatures(:, 7 : end)];
+                
+                % Compute statistical parameters of the extracted features.
+                features = [mean(rawFeatures), var(rawFeatures), ...
+                    skewness(rawFeatures), kurtosis(rawFeatures)];
+            end
+        end        
     end    
 
     methods ( Access = public )
@@ -133,7 +149,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                 'fb_type', 'gammatone', ...
                 'fb_lowFreqHz', 50, ...
                 'fb_highFreqHz', 5000, ...
-                'fb_nChannels', 32, ...
+                'fb_nChannels', 64, ...
                 'rm_wSizeSec', 0.02, ...
                 'rm_hSizeSec', 0.01, ...
                 'rm_wname', 'hann', ...
@@ -144,7 +160,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             requests{1}.params = afeParameters;
             requests{2}.name = 'pitch';
             requests{2}.params = afeParameters;
-            requests{3}.name = 'spectral_features';
+            requests{3}.name = 'spectralFeatures';
             requests{3}.params = afeParameters;
             obj = obj@AuditoryFrontEndDepKS( requests );
             
@@ -190,6 +206,26 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             pathToGridCorpus = fullfile( db.path(), 'sound_databases', ...
                 'grid_corpus' );
             
+            % Initialize AFE.
+            afeParameters = genParStruct( ...
+                'pp_bNormalizeRMS', true, ...
+                'ihc_method', 'halfwave', ...
+                'fb_type', 'gammatone', ...
+                'fb_lowFreqHz', 50, ...
+                'fb_highFreqHz', 5000, ...
+                'fb_nChannels', 64, ...
+                'rm_wSizeSec', 0.02, ...
+                'rm_hSizeSec', 0.01, ...
+                'rm_wname', 'hann', ...
+                'p_pitchRangeHz', [50, 600] );
+            
+            requests = {'ratemap', 'pitch', 'spectralFeatures'};
+            
+            warning( 'off', 'all' );
+            dataObj = dataObject( [], 16000, 1, 2 );
+            managerObj = manager( dataObj, requests, afeParameters );
+            warning( 'on', 'all' );
+            
             % Specify speakers for training and test sets.
             femaleSpeakers = {'s4', 's7', 's11', 's15', 's16', 's18', 's20', ...
                 's21', 's22', 's23', 's24', 's25', 's29', 's31', 's33', 's34'};
@@ -229,7 +265,6 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                 else
                     speakerIds = testSet;
                 end
-                numSpeakers = length(speakerIds);
                 
                 for speaker = speakerIds
                     % Get gender of current speaker.
@@ -254,14 +289,46 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                     for file = listOfAudioFiles
                         [~, filename] = fileparts( file{:} );
                         processedFileName = ...
-                            [speaker{:}, '_', filename, '_', gender, '.wav'];
+                            [speaker{:}, '_', filename, '_', gender, '.mat'];
                         pathToFile = fullfile(pathToAudioFiles, processedFileName);
                         
                         if ~exist( pathToFile, 'file' )
+                            disp(['GenderRecognitionKS::Rendering file ', ...
+                                processedFileName, ' ...']);
+                            
                             % Add audio file to simulator.
                             set( sim.Sources{1}.AudioBuffer, ...
-                                'File', fullfile(pathToGridCorpus, speaker{:}, file{:}) );    
+                                'File', fullfile(pathToGridCorpus, speaker{:}, file{:}) );
                             sim.init();
+                            
+                            earSignals = double( sim.getSignal() );
+                            earSignals = earSignals( 1 : 44100, : );
+                            
+                            % Resample ear signals to 16kHz.
+                            earSignals = resample( earSignals, 16000, 44100 );
+                            
+                            % Divide 1s ear signals into 2 500ms blocks and
+                            % perform feature extraction.                            
+                            features = [];
+                            
+                            for segIdx = 1 : 2               
+                                startIdx = (segIdx - 1) * 8000 + 1;
+                                endIdx = startIdx + 8000 - 1;
+                                
+                                % Perform feature extraction.
+                                managerObj.processSignal( earSignals(startIdx : endIdx, :) );
+                                
+                                ratemap = 0.5 .* ( dataObj.ratemap{1}.Data(:) + ...
+                                    dataObj.ratemap{2}.Data(:) );
+                                pitch = dataObj.pitch{1}.Data(:);
+                                spectralFeatures = dataObj.spectralFeatures{1}.Data(:);
+                                
+                                features = [features; ...
+                                    obj.processBlock( ratemap, pitch, spectralFeatures ) ];
+                            end
+                            
+                            % Save features.
+                            save( pathToFile, 'features', '-v7.3' );                            
                         end
                     end
                 end
