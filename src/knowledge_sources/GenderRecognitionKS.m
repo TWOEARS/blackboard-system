@@ -103,35 +103,21 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
         function features = processBlock( ratemap, pitch, spectralFeatures )
             % PROCESSBLOCK
             
-            % Get NaNs from pitch estimation.
-            nanIdxs = isnan( pitch(:, 1) );
-            numNans = sum(nanIdxs);
+            % Compute formant map.
+            formantMap = zeros( size(ratemap) );
+            formantMap(:, 2 : end - 1) = 0.5 .* (ratemap(:, 3 : end) - ...
+                ratemap(:, 1 : end - 2));
+            formantMap(:, 1) = ratemap(:, 2) - ratemap(:, 1);
+            formantMap(:, end) = ratemap(:, end) - ratemap(:, end - 1);
             
-            if numNans / size( ratemap, 1 ) > 0.75
-                % No harmonic parts in signal.
-                features = [];
-            else
-                % Get "non-nan" idxs.
-                prRatemap = ratemap( ~nanIdxs, : );
-                prPitch = pitch( ~nanIdxs, : );
-                prSpectralFeatures = spectralFeatures( ~nanIdxs, : );
-                
-                % Compute formant map.
-                formantMap = zeros( size(prRatemap) );
-                formantMap(:, 2 : end - 1) = 0.5 .* (prRatemap(:, 3 : end) - ...
-                    prRatemap(:, 1 : end - 2));
-                formantMap(:, 1) = prRatemap(:, 2) - prRatemap(:, 1);
-                formantMap(:, end) = prRatemap(:, end) - prRatemap(:, end - 1);
-                
-                rawFeatures = [formantMap, prPitch(:, 1), ...
-                    prSpectralFeatures(:, 1 : 5), prSpectralFeatures(:, 7 : end)];
-                
-                % Compute statistical parameters of the extracted features.
-                features = [mean(rawFeatures), var(rawFeatures), ...
-                    skewness(rawFeatures), kurtosis(rawFeatures)];
-            end
-        end        
-    end    
+            rawFeatures = [formantMap, pitch(:, 2), ...
+                spectralFeatures(:, 1 : 5), spectralFeatures(:, 7 : end)];
+            
+            % Compute statistical parameters of the extracted features.
+            features = [mean(rawFeatures), std(rawFeatures), ...
+                skewness(rawFeatures), kurtosis(rawFeatures)];
+        end
+    end
 
     methods ( Access = public )
         function obj = GenderRecognitionKS()
@@ -217,7 +203,8 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                 'rm_wSizeSec', 0.02, ...
                 'rm_hSizeSec', 0.01, ...
                 'rm_wname', 'hann', ...
-                'p_pitchRangeHz', [50, 600] );
+                'p_pitchRangeHz', [50, 600], ...
+                'p_confThresPerc', 0.33 );
             
             requests = {'ratemap', 'pitch', 'spectralFeatures'};
             
