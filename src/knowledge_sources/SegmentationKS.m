@@ -165,7 +165,7 @@ classdef SegmentationKS < AuditoryFrontEndDepKS
                 cell2mat(obj.reqHashs), '.mat'];
             try
                 % Load available models and add them to object props
-                models = load(xml.dbGetFile(fullfile(obj.dataPath, obj.name, filename)));
+                models = load(db.getFile(fullfile(obj.dataPath, obj.name, filename)));
             catch
                 error(['No trained models are available for this ', ...
                        'KS. Please ensure to run KS training first.']);

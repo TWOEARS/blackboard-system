@@ -62,7 +62,7 @@ classdef GmmLocationKS < AuditoryFrontEndDepKS
             strModels = fullfile(obj.dataPath, sprintf('GMM_%s_itd-ild_%ddeg_%dchannels_%dmix_Norm.mat', preset, azRes, nChannels, nMix));
             
             % Load localisation models
-            load(xml.dbGetFile(strModels));
+            load(db.getFile(strModels));
             obj.GMMs = C.gmmFinal;
             obj.normFactors = C.featNorm;
             obj.angles = C.azimuths;

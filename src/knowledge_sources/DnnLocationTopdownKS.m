@@ -83,7 +83,7 @@ classdef DnnLocationTopdownKS < AuditoryFrontEndDepKS
                     '%s/LearnedDNNs_%s_ild-cc_%ddeg_%dchannels/DNN_%s_%ddeg_%dchannels_channel%d_%dlayers.mat', ...
                     obj.dataPath, preset, azRes, nChannels, preset, azRes, nChannels, c, nHiddenLayers);
                 % Load localisation module
-                load(xml.dbGetFile(strModels));
+                load(db.getFile(strModels));
                 obj.DNNs{c} = C.NNs;
                 obj.normFactors{c} = C.normFactors;
             end
