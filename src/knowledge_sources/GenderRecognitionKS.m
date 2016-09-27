@@ -216,17 +216,27 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
         end
 
         function execute( obj )
-            % Get features for current signal block.
-            ratemap = obj.getNextSignalBlock( 1, ...
-                obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
-            pitch = obj.getNextSignalBlock( 2, ...
-                obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
-            spectralFeatures = obj.getNextSignalBlock( 3, ...
-                obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
-            
-            % Assemble feature vector and perform dimensionality reduction.
-            features = obj.processBlock(ratemap, pitch, spectralFeatures);            
-            features = features * obj.classificationModel.pcaMatrix;
+                % Get features for current signal block.
+                ratemap = obj.getNextSignalBlock( 1, ...
+                    obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
+                pitch = obj.getNextSignalBlock( 2, ...
+                    obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
+                spectralFeatures = obj.getNextSignalBlock( 3, ...
+                    obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
+                
+                % Assemble feature vector and perform dimensionality reduction.
+                features = obj.processBlock(ratemap{1}, pitch{1}, spectralFeatures{1});
+                features = features * obj.classificationModel.pcaMatrix;
+                
+                % Compute activations and perform classification.
+                activations = obj.classificationModel.gmm.posterior( features );
+                
+                [~, probabilities] = ...
+                    obj.classificationModel.classifier.predict( activations );
+                
+                disp(['GenderRecognitionKS [Male: ', ...
+                    num2str(probabilities(1)), '% / Female: ', ...
+                    num2str(probabilities(2)), '%]']);
         end
     end
     
@@ -244,7 +254,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             [featuresValidation, labelsValidation] = obj.getFeatureSet( pathToTestData );
             
             % Initialize parameter grid-search.
-            [pcaExplainedVariance, gmmNumMixtures] = ndgrid(0.5 : 0.1 : 0.9, 2 : 16);
+            [pcaExplainedVariance, gmmNumMixtures] = ndgrid(0.5 : 0.1 : 0.9, 4 : 16);
             modelParameters = [pcaExplainedVariance(:), gmmNumMixtures(:)];
             numParameters = size(modelParameters, 1);
             
