@@ -27,6 +27,8 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
         basePath                % Path where extracted features and trained
                                 % classifiers should be stored.
         pathToDataset           % Path to audio data for training and test.
+        pathToModels
+        pcaMatrix
     end
     
     properties ( Constant, Hidden )
@@ -117,6 +119,32 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             features = [mean(rawFeatures), std(rawFeatures), ...
                 skewness(rawFeatures), kurtosis(rawFeatures)];
         end
+        
+        function [features, labels] = getFeatureSet( pathToFeatures )
+            % GETFEATURESET
+            
+            filesFeaturesMale = fullfile( 'male', getFiles( ...
+                fullfile(pathToFeatures, 'male'), 'mat' ) );
+            filesFeaturesFemale = fullfile( 'female', getFiles( ...
+                fullfile(pathToFeatures, 'female'), 'mat' ) );
+            numFeatures = [length( filesFeaturesMale ), ...
+                length( filesFeaturesFemale )];
+            featureFiles = [filesFeaturesMale, filesFeaturesFemale];
+            
+            features = zeros(2 * sum(numFeatures), 312);
+            labels = [zeros(2 * numFeatures(1), 1); ...
+                ones(2 * numFeatures(2), 1)];
+            
+            for fileIdx = 1 : sum(numFeatures)
+                % Load current file.
+                f = load( fullfile(pathToFeatures, ...
+                    featureFiles{fileIdx}) );
+                
+                startIdx = (fileIdx - 1) * 2 + 1;
+                endIdx = startIdx + 1;
+                features(startIdx : endIdx, :) = f.features;
+            end
+        end
     end
 
     methods ( Access = public )
@@ -158,15 +186,25 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                 mkdir( obj.basePath );
             end
             
-            % Get path where audio files rendered are stored.
+            % Get paths where audio files and models are stored.
             obj.pathToDataset = fullfile( obj.basePath, 'data' );
+            obj.pathToModels = fullfile( obj.basePath, 'models' );
             
             if ~exist( obj.pathToDataset, 'dir' )
                 mkdir( obj.pathToDataset );
+            end
+            
+            if ~exist( obj.pathToModels, 'dir' )
+                mkdir( obj.pathToModels );
             end            
             
-            obj.downloadGridCorpus();
-            obj.generateDataset();
+            % Check if model has already been trained. If not, training is
+            % executed automatically.
+            if ~exist( fullfile(obj.pathToModels, 'bestModel.mat'), 'file' )
+                obj.downloadGridCorpus();
+                obj.generateDataset();
+                obj.train();
+            end
         end
 
         function [bExecute, bWait] = canExecute( obj )
@@ -186,6 +224,97 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
     end
     
     methods ( Access = private )
+        function train( obj )
+            % TRAIN
+            
+            disp('GenderRecognitionKS::Training classifiers ...');
+            
+            % Get datasets for training and validation.
+            pathToTrainingData = fullfile( obj.pathToDataset, 'train' );
+            [featuresTraining, labelsTraining] = obj.getFeatureSet( pathToTrainingData );
+            
+            pathToTestData = fullfile( obj.pathToDataset, 'test' );
+            [featuresValidation, labelsValidation] = obj.getFeatureSet( pathToTestData );
+            
+            % Initialize parameter grid-search.
+            [pcaExplainedVariance, gmmNumMixtures] = ndgrid(0.5 : 0.1 : 1, 2 : 32);
+            modelParameters = [pcaExplainedVariance(:), gmmNumMixtures(:)];
+            numParameters = size(modelParameters, 1);
+            
+            validationErrors = zeros( size(modelParameters, 2), 1 );
+            models = cell( size(modelParameters, 2), 1 );
+            
+            for parameterIdx = 1 : numParameters
+                % Check if model has already been trained.
+                modelName = ['mdl_', num2str(modelParameters(parameterIdx, 1)), ...
+                    '_', num2str(modelParameters(parameterIdx, 2)), '.mat'];
+                if ~exist( fullfile(obj.pathToModels, modelName), 'file' );
+                
+                % Perform dimensionality reduction with PCA.
+                [lambda, eigenVectors] = pca( featuresTraining );
+                
+                explainedVariance = cumsum(lambda) ./ max(cumsum(lambda));
+                [~, maxIdx] = max( explainedVariance > modelParameters(parameterIdx, 1) );
+                
+                model.pcaMatrix = eigenVectors(:, 1 : maxIdx);
+                
+                transformedFeaturesTraining = featuresTraining * model.pcaMatrix;
+                transformedFeaturesValidation = featuresValidation * model.pcaMatrix;
+                
+                try
+                    model.gmm = fitgmdist( transformedFeaturesTraining, ...
+                        modelParameters(parameterIdx, 2), ...
+                        'RegularizationValue', 1E-3, ...
+                        'options', statset('MaxIter', 250));
+                    
+                    activationsTraining = ...
+                        model.gmm.posterior( transformedFeaturesTraining );
+                    
+                    model.classifier = fitclinear( ...
+                        activationsTraining, labelsTraining, ...
+                        'Learner', 'logistic', ...
+                        'Regularization', 'lasso', ...
+                        'BatchSize', 128 );
+                    
+                    % Evaluate model.
+                    activationsValidation = ...
+                        model.gmm.posterior( transformedFeaturesValidation );
+                    
+                    predictedLabels = predict( model.classifier, activationsValidation );
+                    
+                    currentValidationError = ...
+                        100 * (1 - (sum(predictedLabels == labelsValidation) / ...
+                        size(transformedFeaturesValidation, 1)));
+                    
+                    model.validationError = currentValidationError;
+                catch
+                    model.pcaMatrix = [];
+                    model.gmm = [];
+                    model.classifier = [];
+                    model.validationError = NaN;
+                end
+                
+                models{parameterIdx} = model;
+                validationErrors(parameterIdx) = model.validationError;
+                
+                save( fullfile(obj.pathToModels, modelName), 'model', '-v7.3' );
+                else
+                    file = load( fullfile(obj.pathToModels, modelName) );
+                    
+                    models{parameterIdx} = file.model;
+                    validationErrors(parameterIdx) = file.model.validationError;
+                end
+                
+                disp([ '[', num2str(parameterIdx), '/', num2str(numParameters), ']', ...
+                    ' P: ', ...
+                    num2str(100 * modelParameters(parameterIdx, 1)), ...
+                    ' % explained variance, ', ...
+                    num2str(modelParameters(parameterIdx, 2)), ...
+                    ' mixtures :: ', ' Validation error ', ...
+                    num2str(model.validationError), '%']);
+            end
+        end
+        
         function generateDataset( obj )
             % GENERATEDATASET
             
@@ -257,6 +386,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                     % Get gender of current speaker.
                     if any( strcmp(speaker{:}, femaleSpeakers) )
                         gender = 'female';
+                        continue;
                     else
                         gender = 'male';
                     end
