@@ -28,7 +28,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                                 % classifiers should be stored.
         pathToDataset           % Path to audio data for training and test.
         pathToModels
-        pcaMatrix
+        classificationModel
     end
     
     properties ( Constant, Hidden )
@@ -204,6 +204,9 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                 obj.downloadGridCorpus();
                 obj.generateDataset();
                 obj.train();
+            else
+                file = load( fullfile(obj.pathToModels, 'bestModel.mat') );
+                obj.classificationModel = file.model;
             end
         end
 
@@ -219,7 +222,11 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             pitch = obj.getNextSignalBlock( 2, ...
                 obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
             spectralFeatures = obj.getNextSignalBlock( 3, ...
-                obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );            
+                obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
+            
+            % Assemble feature vector and perform dimensionality reduction.
+            features = obj.processBlock(ratemap, pitch, spectralFeatures);            
+            features = features * obj.classificationModel.pcaMatrix;
         end
     end
     
@@ -237,7 +244,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             [featuresValidation, labelsValidation] = obj.getFeatureSet( pathToTestData );
             
             % Initialize parameter grid-search.
-            [pcaExplainedVariance, gmmNumMixtures] = ndgrid(0.5 : 0.1 : 1, 2 : 32);
+            [pcaExplainedVariance, gmmNumMixtures] = ndgrid(0.5 : 0.1 : 0.9, 2 : 16);
             modelParameters = [pcaExplainedVariance(:), gmmNumMixtures(:)];
             numParameters = size(modelParameters, 1);
             
@@ -300,8 +307,9 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                 save( fullfile(obj.pathToModels, modelName), 'model', '-v7.3' );
                 else
                     file = load( fullfile(obj.pathToModels, modelName) );
+                    model = file.model;
                     
-                    models{parameterIdx} = file.model;
+                    models{parameterIdx} = model;
                     validationErrors(parameterIdx) = file.model.validationError;
                 end
                 
@@ -313,6 +321,11 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                     ' mixtures :: ', ' Validation error ', ...
                     num2str(model.validationError), '%']);
             end
+            
+            % Get best performing model.
+            [~, bestIdx] = min(validationErrors);
+            model = models{bestIdx};
+            save( fullfile(obj.pathToModels, 'bestModel.mat'), 'model', '-v7.3' );            
         end
         
         function generateDataset( obj )
