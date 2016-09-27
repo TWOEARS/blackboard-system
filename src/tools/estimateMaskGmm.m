@@ -107,7 +107,7 @@ for k = 1:nMix
     else
         var_k = repmat(diag(gmm.covars(:,:,k)), 1, nFrames);
     end
-    
+
     Px_y(:,:,k) = probabilityMat(data, mu_k, var_k);
     Cx_y(:,:,k) = cumulativeProbMat(data, mu_k, var_k);
 end
@@ -117,23 +117,33 @@ end
 function p = probability(x, x_mu, x_var)
 invs = 1./sqrt(x_var);
 z = invs.*(x-x_mu);
-p = normpdf(z).*invs;
+p = normPdf(z).*invs;
 
 
 %--------------------------------------------------------------------------
 function P = probabilityMat(X, X_mu, X_var)
 Invs = 1./sqrt(X_var);
 Z = (X-X_mu).*Invs;
-P = normpdf(Z).*Invs;
+P = normPdf(Z).*Invs;
 
 
 %--------------------------------------------------------------------------
 function p = cumulativeProb(x, x_mu, x_var)
 z = (x-x_mu)./sqrt(x_var);
-p = normcdf(z);
+p = normCdf(z);
 
 
 %--------------------------------------------------------------------------
 function C= cumulativeProbMat(X, X_mu, X_var)
 Z = (X-X_mu)./sqrt(X_var);
-C = normcdf(Z);
+C = normCdf(Z);
+
+
+%--------------------------------------------------------------------------
+function p = normCdf(x)
+p = 0.5 * erfc(-x/sqrt(2));
+
+
+%--------------------------------------------------------------------------
+function y = normPdf(x, mu, sigma)
+y = exp(-0.5 * x.^2) ./ sqrt(2*pi);
