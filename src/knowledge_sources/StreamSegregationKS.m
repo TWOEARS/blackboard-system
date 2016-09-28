@@ -7,6 +7,8 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
         blockSize
         useFixedAzimuths = false;
         fixedAzimuths = [];
+        useFixedNoSrcs = false;
+        fixedNoSrcs = [];
     end
     
     methods ( Access = public )
@@ -64,7 +66,12 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             obj.fixedAzimuths = newFixedAzimuths;
             obj.useFixedAzimuths = ~isempty( newFixedAzimuths );
         end
-        
+
+        function setFixedNoSrcs( obj, newFixedNoSrcs )
+            obj.fixedNoSrcs = newFixedNoSrcs;
+            obj.useFixedNoSrcs = ~isempty( newFixedNoSrcs );
+        end
+
         function setBlocksize( obj, newBlocksize )
             obj.blockSize = newBlocksize;
         end
@@ -88,22 +95,45 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             % Check if azimuth angles are fixed and compute soft-masks.
             if obj.useFixedAzimuths
                 numAzimuths = length( obj.fixedAzimuths );
-                likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
                 refAzm = zeros( size( obj.fixedAzimuths ) );
-                
                 for azimuthIdx = 1 : numAzimuths
                     % Get relative azimuths -- obj.fixedAzimuths thus contains absolute
                     % azimuths
                     headRelativeAzimuth = wrapTo180( obj.fixedAzimuths(azimuthIdx) - ...
                         lookDirection );
                     refAzm(azimuthIdx) = headRelativeAzimuth;
-                    
-                    likelihoods(:, :, azimuthIdx) = ...
-                        obj.observationModel.computeLikelihood( ...
-                        itds, ilds, headRelativeAzimuth / 180 * pi );
                 end
             else
-                % TODO: Add interface to DnnLocalsationKS here...
+                locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
+                assert( numel( locHypos.data ) == 1 );
+                locData = locHypos.data;
+                if obj.useFixedNoSrcs
+                    numAzimuths = obj.fixedNoSrcs;
+                else
+                    numAzimuths = 0;
+                    error( 'find a number of sources hypothesis' );
+                end
+                refAzm = zeros( 1, numAzimuths );
+                [locPeaks, locPeaksIdxs] = findpeaks( ...
+                    [locData.sourcesDistribution(end) ...
+                     locData.sourcesDistribution ...
+                     locData.sourcesDistribution(1)] );
+                locPeaksIdxs = locPeaksIdxs - 1;
+                assert( ...
+                    all( locPeaksIdxs > 0 ) && ...
+                    all( locPeaksIdxs <= numel( locData.sourcesDistribution ) ) );
+                [~, locPeaksSortedAzmIdxs] = sort( locPeaks, 'descend' );
+                locSortedAzmIdxs = locPeaksIdxs(locPeaksSortedAzmIdxs);
+                for azimuthIdx = 1 : numAzimuths
+                    refAzm(azimuthIdx) = wrapTo180( ...
+                          locData.azimuths(locSortedAzmIdxs(azimuthIdx)) );
+                end
+            end
+            likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
+            for azimuthIdx = 1 : numAzimuths
+                likelihoods(:, :, azimuthIdx) = ...
+                    obj.observationModel.computeLikelihood( ...
+                    itds, ilds, refAzm(azimuthIdx) / 180 * pi );
             end
             
             % Normalize likelihoods and put hypotheses on the blackboard.
@@ -124,6 +154,8 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
             end
+            notify( obj, 'KsFiredEvent', ...
+                BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end    
 end
