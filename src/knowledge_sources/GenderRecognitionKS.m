@@ -180,8 +180,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             
             % Get path to stored features and models. If such a directory
             % does not exist, it will be created.
-            obj.basePath = fullfile( db.tmp(), 'learned_models', ...
-                'GenderRecognitionKS' );
+            obj.basePath = fullfile( db.tmp(), 'GenderRecognitionKS' );
             
             if ~exist( obj.basePath, 'dir' )
                 mkdir( obj.basePath );
@@ -201,13 +200,16 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             
             % Check if model has already been trained. If not, training is
             % executed automatically.
-            if ~exist( fullfile(obj.pathToModels, 'bestModel.mat'), 'file' )
+            try
+                pathToBestModel = db.getFile( ...
+                    '/learned_models/GenderRecognitionKS/models/bestModel.mat' );
+                
+                file = load( pathToBestModel );
+                obj.classificationModel = file.model;
+            catch
                 obj.downloadGridCorpus();
                 obj.generateDataset();
                 obj.train();
-            else
-                file = load( fullfile(obj.pathToModels, 'bestModel.mat') );
-                obj.classificationModel = file.model;
             end
         end
 
