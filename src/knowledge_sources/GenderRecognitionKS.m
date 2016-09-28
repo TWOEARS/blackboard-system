@@ -29,6 +29,7 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
         pathToDataset           % Path to audio data for training and test.
         pathToModels
         classificationModel
+        modelType = 'lda';
     end
     
     properties ( Constant, Hidden )
@@ -180,7 +181,8 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             
             % Get path to stored features and models. If such a directory
             % does not exist, it will be created.
-            obj.basePath = fullfile( db.tmp(), 'GenderRecognitionKS' );
+            obj.basePath = fullfile( db.tmp(), 'learned_models', ...
+                'GenderRecognitionKS' );
             
             if ~exist( obj.basePath, 'dir' )
                 mkdir( obj.basePath );
@@ -201,8 +203,16 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             % Check if model has already been trained. If not, training is
             % executed automatically.
             try
+                switch obj.modelType
+                    case 'gmm_logistic'
+                        modelName = 'model_gmm_logistic.mat';
+                    case 'lda'
+                        modelName = 'model_lda.mat';
+                end
+                
                 pathToBestModel = db.getFile( ...
-                    '/learned_models/GenderRecognitionKS/models/bestModel.mat' );
+                    ['/learned_models/GenderRecognitionKS/models/', ...
+                    modelName] );
                 
                 file = load( pathToBestModel );
                 obj.classificationModel = file.model;
@@ -228,13 +238,20 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                     obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
                 
                 % Assemble feature vector and perform dimensionality reduction.
-                features = obj.processBlock(ratemap{1}, pitch{1}, spectralFeatures{1});
+                features = obj.processBlock(ratemap{1}, pitch{1}, ...
+                    spectralFeatures{1});
                 features = features * obj.classificationModel.pcaMatrix;
                 
                 % Compute activations and perform classification.
-                activations = obj.classificationModel.gmm.posterior( features );                
-                [label, probabilities] = ...
-                    obj.classificationModel.classifier.predict( activations );
+                switch obj.modelType
+                    case 'gmm_logistic'
+                        activations = obj.classificationModel.gmm.posterior( features );
+                        [label, probabilities] = ...
+                            obj.classificationModel.classifier.predict( activations );
+                    case 'lda'
+                        [label, probabilities] = ...
+                            obj.classificationModel.classifier.predict( features );
+                end
                 
                 genderHyp = GenderHypothesis( label, probabilities );
                 obj.blackboard.addData( 'genderHypotheses', ...
@@ -259,91 +276,156 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             [featuresValidation, labelsValidation] = ...
                 obj.getFeatureSet( pathToTestData );
             
-            % Initialize parameter grid-search.
-            [pcaExplainedVariance, gmmNumMixtures] = ...
-                ndgrid(0.5 : 0.1 : 0.9, 4 : 16);
-            modelParameters = [pcaExplainedVariance(:), gmmNumMixtures(:)];
-            numParameters = size(modelParameters, 1);
-            
-            validationErrors = zeros( size(modelParameters, 2), 1 );
-            models = cell( size(modelParameters, 2), 1 );
-            
-            for parameterIdx = 1 : numParameters
-                % Check if model has already been trained.
-                modelName = ['mdl_', num2str(modelParameters(parameterIdx, 1)), ...
-                    '_', num2str(modelParameters(parameterIdx, 2)), '.mat'];
-                if ~exist( fullfile(obj.pathToModels, modelName), 'file' );
-                
-                % Perform dimensionality reduction with PCA.
-                [lambda, eigenVectors] = pca( featuresTraining );
-                
-                explainedVariance = cumsum(lambda) ./ max(cumsum(lambda));
-                [~, maxIdx] = ...
-                    max( explainedVariance > modelParameters(parameterIdx, 1) );
-                
-                model.pcaMatrix = eigenVectors(:, 1 : maxIdx);
-                
-                transformedFeaturesTraining = featuresTraining * model.pcaMatrix;
-                transformedFeaturesValidation = featuresValidation * model.pcaMatrix;
-                
-                try
-                    model.gmm = fitgmdist( transformedFeaturesTraining, ...
-                        modelParameters(parameterIdx, 2), ...
-                        'RegularizationValue', 1E-3, ...
-                        'options', statset('MaxIter', 250));
+            switch obj.modelType
+                case 'gmm_logistic'
+                    % Initialize parameter grid-search.
+                    [pcaExplainedVariance, gmmNumMixtures] = ...
+                        ndgrid(0.65 : 0.05 : 0.75, 4 : 24);
+                    modelParameters = [pcaExplainedVariance(:), gmmNumMixtures(:)];
+                    numParameters = size(modelParameters, 1);
                     
-                    activationsTraining = ...
-                        model.gmm.posterior( transformedFeaturesTraining );
+                    validationErrors = zeros( size(modelParameters, 2), 1 );
+                    models = cell( size(modelParameters, 2), 1 );
                     
-                    model.classifier = fitclinear( ...
-                        activationsTraining, labelsTraining, ...
-                        'Learner', 'logistic', ...
-                        'Regularization', 'lasso', ...
-                        'BatchSize', 128 );
+                    for parameterIdx = 1 : numParameters
+                        % Check if model has already been trained.
+                        modelName = ['mdl_gmm_logistic_', ...
+                            num2str(modelParameters(parameterIdx, 1)), ...
+                            '_', num2str(modelParameters(parameterIdx, 2)), '.mat'];
+                        if ~exist( fullfile(obj.pathToModels, modelName), 'file' );
+                            
+                            % Perform dimensionality reduction with PCA.
+                            [lambda, eigenVectors] = pca( featuresTraining );
+                            
+                            explainedVariance = cumsum(lambda) ./ max(cumsum(lambda));
+                            [~, maxIdx] = ...
+                                max( explainedVariance > modelParameters(parameterIdx, 1) );
+                            
+                            model.pcaMatrix = eigenVectors(:, 1 : maxIdx);
+                            
+                            transformedFeaturesTraining = featuresTraining * model.pcaMatrix;
+                            transformedFeaturesValidation = featuresValidation * model.pcaMatrix;
+                            
+                            try
+                                model.gmm = fitgmdist( transformedFeaturesTraining, ...
+                                    modelParameters(parameterIdx, 2), ...
+                                    'RegularizationValue', 1E-3, ...
+                                    'options', statset('MaxIter', 250));
+                                
+                                activationsTraining = ...
+                                    model.gmm.posterior( transformedFeaturesTraining );
+                                
+                                model.classifier = fitclinear( ...
+                                    activationsTraining, labelsTraining, ...
+                                    'Learner', 'logistic', ...
+                                    'Regularization', 'lasso', ...
+                                    'BatchSize', 128 );
+                                
+                                % Evaluate model.
+                                activationsValidation = ...
+                                    model.gmm.posterior( transformedFeaturesValidation );
+                                
+                                predictedLabels = predict( model.classifier, activationsValidation );
+                                
+                                currentValidationError = ...
+                                    100 * (1 - (sum(predictedLabels == labelsValidation) / ...
+                                    size(transformedFeaturesValidation, 1)));
+                                
+                                model.validationError = currentValidationError;
+                            catch
+                                model.pcaMatrix = [];
+                                model.gmm = [];
+                                model.classifier = [];
+                                model.validationError = NaN;
+                            end
+                            
+                            models{parameterIdx} = model;
+                            validationErrors(parameterIdx) = model.validationError;
+                            
+                            save( fullfile(obj.pathToModels, modelName), 'model', '-v7.3' );
+                        else
+                            file = load( fullfile(obj.pathToModels, modelName) );
+                            model = file.model;
+                            
+                            models{parameterIdx} = model;
+                            validationErrors(parameterIdx) = file.model.validationError;
+                        end
+                        
+                        disp([ '[', num2str(parameterIdx), '/', num2str(numParameters), ']', ...
+                            ' P: ', ...
+                            num2str(100 * modelParameters(parameterIdx, 1)), ...
+                            ' % explained variance, ', ...
+                            num2str(modelParameters(parameterIdx, 2)), ...
+                            ' mixtures ::', ' Validation error ', ...
+                            num2str(model.validationError), '%']);
+                    end
                     
-                    % Evaluate model.
-                    activationsValidation = ...
-                        model.gmm.posterior( transformedFeaturesValidation );
+                    % Get best performing model.
+                    [~, bestIdx] = min(validationErrors);
+                    model = models{bestIdx};
+                    save( fullfile(obj.pathToModels, 'model_gmm_logistic.mat'), 'model', '-v7.3' );
+                case 'lda'
+                    pcaExplainedVariance = 0.1 : 0.01 : 0.99;
+                    numParameters = length( pcaExplainedVariance );
                     
-                    predictedLabels = predict( model.classifier, activationsValidation );
+                    validationErrors = zeros( numParameters, 1 );
+                    models = cell( numParameters, 1 );
                     
-                    currentValidationError = ...
-                        100 * (1 - (sum(predictedLabels == labelsValidation) / ...
-                        size(transformedFeaturesValidation, 1)));
+                    for parIdx = 1 : numParameters
+                        modelName = ['mdl_lda_', ...
+                            num2str(pcaExplainedVariance(parIdx)), '.mat'];
+                        
+                        if ~exist( fullfile(obj.pathToModels, modelName), 'file' );
+                            % Perform dimensionality reduction with PCA.
+                            [lambda, eigenVectors] = pca( featuresTraining );
+                            
+                            explainedVariance = cumsum(lambda) ./ max(cumsum(lambda));
+                            [~, maxIdx] = ...
+                                max( explainedVariance > pcaExplainedVariance(parIdx) );
+                            
+                            model.pcaMatrix = eigenVectors(:, 1 : maxIdx);
+                            
+                            transformedFeaturesTraining = featuresTraining * model.pcaMatrix;
+                            transformedFeaturesValidation = featuresValidation * model.pcaMatrix;
+                            
+                            model.classifier = fitcdiscr( ...
+                                transformedFeaturesTraining, labelsTraining );
+                            
+                            predictedLabels = predict( model.classifier, ...
+                                transformedFeaturesValidation );
+                            
+                            currentValidationError = ...
+                                100 * (1 - (sum(predictedLabels == labelsValidation) / ...
+                                size(transformedFeaturesValidation, 1)));
+                            
+                            model.validationError = currentValidationError;
+                            
+                            models{parIdx} = model;
+                            validationErrors(parIdx) = model.validationError;
+                            
+                            save( fullfile(obj.pathToModels, modelName), 'model', '-v7.3' );
+                        else
+                            file = load( fullfile(obj.pathToModels, modelName) );
+                            model = file.model;
+                            
+                            models{parIdx} = model;
+                            validationErrors(parIdx) = file.model.validationError;
+                        end
+                        
+                        disp([ '[', num2str(parIdx), '/', num2str(numParameters), ']', ...
+                            ' P: ', ...
+                            num2str(100 * pcaExplainedVariance(parIdx)), ...
+                            ' % explained variance :: Validation error ', ...
+                            num2str(model.validationError), '%']);
+                    end
                     
-                    model.validationError = currentValidationError;
-                catch
-                    model.pcaMatrix = [];
-                    model.gmm = [];
-                    model.classifier = [];
-                    model.validationError = NaN;
-                end
-                
-                models{parameterIdx} = model;
-                validationErrors(parameterIdx) = model.validationError;
-                
-                save( fullfile(obj.pathToModels, modelName), 'model', '-v7.3' );
-                else
-                    file = load( fullfile(obj.pathToModels, modelName) );
-                    model = file.model;
-                    
-                    models{parameterIdx} = model;
-                    validationErrors(parameterIdx) = file.model.validationError;
-                end
-                
-                disp([ '[', num2str(parameterIdx), '/', num2str(numParameters), ']', ...
-                    ' P: ', ...
-                    num2str(100 * modelParameters(parameterIdx, 1)), ...
-                    ' % explained variance, ', ...
-                    num2str(modelParameters(parameterIdx, 2)), ...
-                    ' mixtures :: ', ' Validation error ', ...
-                    num2str(model.validationError), '%']);
+                    % Get best performing model.
+                    [~, bestIdx] = min(validationErrors);
+                    model = models{bestIdx};
+                    save( fullfile(obj.pathToModels, 'model_lda.mat'), 'model', '-v7.3' );
+                otherwise
+                    error('Model not supported.');
             end
-            
-            % Get best performing model.
-            [~, bestIdx] = min(validationErrors);
-            model = models{bestIdx};
-            save( fullfile(obj.pathToModels, 'bestModel.mat'), 'model', '-v7.3' );            
         end
         
         function generateDataset( obj )
