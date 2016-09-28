@@ -21,11 +21,12 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             p.addOptional( 'BlockSize', defaultBlockSize, ...
                 @(x) validateattributes(x, {'numeric'}, ...
                 {'scalar', 'real', 'positive'}) );
+            p.addOptional( 'FixedAzms', [] );
             
             if nargin == 1
                 p.parse( parameterFile );
             else
-                p.parse( parameterFile, varargin{1} );
+                p.parse( parameterFile, varargin{:} );
             end
             
             % Read training parameters and load corresponding observation
@@ -47,9 +48,9 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             % If fixed azimuth angles should be used, this has to be
             % specified as additional input arguments, where each input
             % represents an azimuth angle in degrees.
-            if nargin > 2
+            if ~isempty( p.Results.FixedAzms )
                 obj.useFixedAzimuths = true;
-                obj.fixedAzimuths = cell2mat( varargin(2 : end) );
+                obj.fixedAzimuths = p.Results.FixedAzms;
             end
             
             % Assign block size.
@@ -57,6 +58,15 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             
             % Load observation model for the specified set of parameters.
             obj.observationModel = ObservationModel( trainingParameters );
+        end
+        
+        function setFixedAzimuths( obj, newFixedAzimuths )
+            obj.fixedAzimuths = newFixedAzimuths;
+            obj.useFixedAzimuths = ~isempty( newFixedAzimuths );
+        end
+        
+        function setBlocksize( obj, newBlocksize )
+            obj.blockSize = newBlocksize;
         end
         
         function [bExecute, bWait] = canExecute(obj)
@@ -72,37 +82,45 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 obj.blockSize, false );
             
             % Get current look direction.
-            lookDirection = obj.blackboardSystem.robotConnect.getCurrentHeadOrientation();
+            lookDirection = obj.blackboard.getLastData( 'headOrientation' );
+            lookDirection = lookDirection.data;
             
             % Check if azimuth angles are fixed and compute soft-masks.
             if obj.useFixedAzimuths
                 numAzimuths = length( obj.fixedAzimuths );
                 likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
+                refAzm = zeros( size( obj.fixedAzimuths ) );
                 
                 for azimuthIdx = 1 : numAzimuths
-                    % Get absolute azimuth.
-                    absoluteAzimuth = wrapTo180( obj.fixedAzimuths(azimuthIdx) - ...
+                    % Get relative azimuths -- obj.fixedAzimuths thus contains absolute
+                    % azimuths
+                    headRelativeAzimuth = wrapTo180( obj.fixedAzimuths(azimuthIdx) - ...
                         lookDirection );
+                    refAzm(azimuthIdx) = headRelativeAzimuth;
                     
                     likelihoods(:, :, azimuthIdx) = ...
                         obj.observationModel.computeLikelihood( ...
-                        itds, ilds, absoluteAzimuth / 180 * pi );
+                        itds, ilds, headRelativeAzimuth / 180 * pi );
                 end
             else
                 % TODO: Add interface to DnnLocalsationKS here...
             end
             
             % Normalize likelihoods and put hypotheses on the blackboard.
-            likelihoodSum = squeeze( sum(permute(likelihoods, [3 2 1])) )';
+            likelihoodSum = squeeze( sum(permute(likelihoods, [3 2 1]),1) )';
+            likelihoodSum(likelihoodSum == 0) = 1; % do not divide by 0
             softMasks = bsxfun( @rdivide, likelihoods, likelihoodSum );
             numSoftMasks = size( softMasks, 3 );
             
+            afeData = obj.getAFEdata();
+            cfHz = afeData(2).cfHz;
+            hopSize = 1 / afeData(2).FsHz;
+
             for hypIdx = 1 : numSoftMasks
                 % Add segmentation hypothesis to the blackboard
                 segHyp = SegmentationHypothesis( ['Source ', num2str(hypIdx)], ...
                     'SoundSource', squeeze(softMasks(:, :, hypIdx)), ...
-                    obj.blackboardSystem.dataConnect.managerObject.Data.itd{1}.cfHz, ...
-                    1 / obj.blackboardSystem.dataConnect.managerObject.Data.itd{1}.FsHz );
+                    cfHz, hopSize, refAzm(hypIdx) );
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, true, obj.trigger.tmIdx);
             end
