@@ -232,14 +232,15 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                 features = features * obj.classificationModel.pcaMatrix;
                 
                 % Compute activations and perform classification.
-                activations = obj.classificationModel.gmm.posterior( features );
-                
-                [~, probabilities] = ...
+                activations = obj.classificationModel.gmm.posterior( features );                
+                [label, probabilities] = ...
                     obj.classificationModel.classifier.predict( activations );
                 
-                disp(['GenderRecognitionKS [Male: ', ...
-                    num2str(probabilities(1)), '% / Female: ', ...
-                    num2str(probabilities(2)), '%]']);
+                genderHyp = GenderHypothesis( label, probabilities );
+                obj.blackboard.addData( 'genderHypotheses', ...
+                    genderHyp, true, obj.trigger.tmIdx );
+                notify( obj, 'KsFiredEvent', ...
+                    BlackboardEventData(obj.trigger.tmIdx) );
         end
     end
     
@@ -251,13 +252,16 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             
             % Get datasets for training and validation.
             pathToTrainingData = fullfile( obj.pathToDataset, 'train' );
-            [featuresTraining, labelsTraining] = obj.getFeatureSet( pathToTrainingData );
+            [featuresTraining, labelsTraining] = ...
+                obj.getFeatureSet( pathToTrainingData );
             
             pathToTestData = fullfile( obj.pathToDataset, 'test' );
-            [featuresValidation, labelsValidation] = obj.getFeatureSet( pathToTestData );
+            [featuresValidation, labelsValidation] = ...
+                obj.getFeatureSet( pathToTestData );
             
             % Initialize parameter grid-search.
-            [pcaExplainedVariance, gmmNumMixtures] = ndgrid(0.5 : 0.1 : 0.9, 4 : 16);
+            [pcaExplainedVariance, gmmNumMixtures] = ...
+                ndgrid(0.5 : 0.1 : 0.9, 4 : 16);
             modelParameters = [pcaExplainedVariance(:), gmmNumMixtures(:)];
             numParameters = size(modelParameters, 1);
             
@@ -274,7 +278,8 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                 [lambda, eigenVectors] = pca( featuresTraining );
                 
                 explainedVariance = cumsum(lambda) ./ max(cumsum(lambda));
-                [~, maxIdx] = max( explainedVariance > modelParameters(parameterIdx, 1) );
+                [~, maxIdx] = ...
+                    max( explainedVariance > modelParameters(parameterIdx, 1) );
                 
                 model.pcaMatrix = eigenVectors(:, 1 : maxIdx);
                 
