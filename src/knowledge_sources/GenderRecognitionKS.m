@@ -180,7 +180,8 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
             
             % Get path to stored features and models. If such a directory
             % does not exist, it will be created.
-            obj.basePath = fullfile( db.tmp(), 'GenderRecognitionKS' );
+            obj.basePath = fullfile( db.tmp(), 'learned_models', ...
+                'GenderRecognitionKS' );
             
             if ~exist( obj.basePath, 'dir' )
                 mkdir( obj.basePath );
