@@ -4,17 +4,43 @@ classdef SegmentIdentityKS < AuditoryFrontEndDepKS
         modelname;
         model;                 % classifier model
         featureCreator;
+        blockCreator;
     end
 
     methods
-        function obj = SegmentIdentityKS( modelName, modelDir )
+        function obj = SegmentIdentityKS( modelName, modelDir, ppRemoveDc )
             modelFileName = [modelDir filesep modelName];
             v = load( [modelFileName '.model.mat'] );
-            if ~isa( v.featureCreator, 'featureCreators.Base' )
-                error( 'Loaded model''s featureCreator must implement featureCreators.Base.' );
+            if ~isa( v.featureCreator, 'FeatureCreators.Base' )
+                error( 'Loaded model''s featureCreator must implement FeatureCreators.Base.' );
             end
-            obj = obj@AuditoryFrontEndDepKS( v.featureCreator.getAFErequests() );
+            afeRequests = v.featureCreator.getAFErequests();
+%             if nargin > 3 && pp_bNormalizeRMS
+%                 for ii = 1 : numel( afeRequests )
+%                     afeRequests{ii}.params.replaceParameters( ...
+%                                    genParStruct( 'pp_bNormalizeRMS', pp_bNormalizeRMS ) );
+%                 end
+%             end
+            if nargin > 2 && ppRemoveDc
+                for ii = 1 : numel( afeRequests )
+                    afeRequests{ii}.params.replaceParameters( ...
+                                   genParStruct( 'pp_bRemoveDC', ppRemoveDc ) );
+                end
+            end
+            obj = obj@AuditoryFrontEndDepKS( afeRequests );
             obj.featureCreator = v.featureCreator;
+            if isfield(v, 'blockCreator')
+                if ~isa( v.blockCreator, 'BlockCreators.Base' )
+                    error( 'Loaded model''s block creator must implement BeatureCreators.Base.' );
+                end
+            elseif isfield(v, 'blockSize_s')
+                v.blockCreator = BlockCreators.StandardBlockCreator( v.blockSize_s, 0.5/3 );
+            else
+                % for models missing a block creator instance; let's hope
+                % 0.5s was the block length used.
+                v.blockCreator = BlockCreators.StandardBlockCreator( 0.5, 0.5/3 );
+            end
+            obj.blockCreator = v.blockCreator;
             obj.model = v.model;
             obj.modelname = modelName;
             obj.invocationMaxFrequency_Hz = 4;
@@ -37,30 +63,35 @@ classdef SegmentIdentityKS < AuditoryFrontEndDepKS
         
         function execute( obj )
             afeData = obj.getAFEdata();
-            afeData = obj.featureCreator.cutDataBlock( afeData, ...
-                obj.timeSinceTrigger );
+            afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
             
             mask = obj.blackboard.getLastData('segmentationHypotheses', ...
                 obj.trigger.tmIdx);
             % create masked copy of afeData
-            for idx_mask = 1 : numel(mask.data)
-                afeData_masked = obj.maskAFEData( afeData, ...
-                    mask.data(idx_mask).softMask, ...
-                    mask.data(idx_mask).cfHz, ...
-                    mask.data(idx_mask).hopSize );
+            d = [];
+            score = {};
+            estSrcAzm = [];
+            for ii = 1 : numel(mask.data)
+                afeData_masked = SegmentIdentityKS.maskAFEData( afeData, ...
+                    mask.data(ii).softMask, ...
+                    mask.data(ii).cfHz, ...
+                    mask.data(ii).hopSize );
                 
                 obj.featureCreator.setAfeData( afeData_masked );
                 x = obj.featureCreator.constructVector();
-                [d, score] = obj.model.applyModel( x{1} );
-                bbprintf(obj, '[SegmentIdentitiyKS:] source %i: %s with %i%% probability.\n', ...
-                     idx_mask, obj.modelname, int16(score(1)*100) );
-                identHyp = IdentityHypothesis( ...
-                    obj.modelname, score(1), d(1), ...
-                    obj.featureCreator.labelBlockSize_s );
-                obj.blackboard.addData( 'identityHypotheses', ...
-                    identHyp, true, obj.trigger.tmIdx );
+                [d(ii), score{ii}] = obj.model.applyModel( x{1} );
+                estSrcAzm(ii) = mask.data(ii).refAzm;
+                bbprintf(obj, '[SegmentIdentitiyKS:] source %i at %i°: %s with %i%% score.\n', ...
+                     ii, estSrcAzm(ii), obj.modelname, int16(score{ii}(1)*100) );
             end
-
+            [score, maxScoreIdx] = max( cellfun( @(c)(c(1)), score ) );
+            d = d(maxScoreIdx);
+            identHyp = IdentityHypothesis( ...
+                obj.modelname, score, d, obj.blockCreator.blockSize_s );
+            obj.blackboard.addData( 'identityHypotheses', ...
+                identHyp, true, obj.trigger.tmIdx );
+            % TODO: use joint LocIdHypo or add azm to IdHypo (then also
+            % plot azm)
             notify( obj, 'KsFiredEvent', ...
                 BlackboardEventData( obj.trigger.tmIdx ) );
         end
