@@ -79,7 +79,7 @@ classdef ConfusionSolvingKS < AbstractKS
                 % Visualisation
                 if ~isempty(obj.blackboardSystem.locVis)
                     obj.blackboardSystem.locVis.setPosteriors(...
-                        confHyp.azimuths+confHyp.headOrientation-90, post);
+                        confHyp.azimuths+confHyp.headOrientation, post);
                 end
             end
             confHyp.setSeenByConfusionSolvingKS;

@@ -96,7 +96,7 @@ classdef RotationKS < AbstractKS
             % Visualisation
             if ~isempty(obj.blackboardSystem.locVis)
                 obj.blackboardSystem.locVis.setHeadRotation(...
-                    obj.robot.getCurrentHeadOrientation-90);
+                    obj.robot.getCurrentHeadOrientation);
             end
         end
     end

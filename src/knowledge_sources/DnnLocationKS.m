@@ -160,7 +160,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             % Visualisation
             if ~isempty(obj.blackboardSystem.locVis)
                 obj.blackboardSystem.locVis.setPosteriors(...
-                    obj.angles+currentHeadOrientation-90, prob_AFN_F);
+                    obj.angles+currentHeadOrientation, prob_AFN_F);
             end
         end
 
