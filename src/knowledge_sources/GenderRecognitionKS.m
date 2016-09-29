@@ -229,39 +229,44 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
         end
 
         function execute( obj )
-                % Get features for current signal block.
-                ratemap = obj.getNextSignalBlock( 1, ...
-                    obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
-                pitch = obj.getNextSignalBlock( 2, ...
-                    obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
-                spectralFeatures = obj.getNextSignalBlock( 3, ...
-                    obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
-                
-                % Assemble feature vector and perform dimensionality reduction.
-                features = obj.processBlock(ratemap{1}, pitch{1}, ...
-                    spectralFeatures{1});
-                features = features * obj.classificationModel.pcaMatrix;
-                
-                % Compute activations and perform classification.
-                switch obj.modelType
-                    case 'gmm_logistic'
-                        activations = obj.classificationModel.gmm.posterior( features );
-                        [label, probabilities] = ...
-                            obj.classificationModel.classifier.predict( activations );
-                    case 'lda'
-                        [label, probabilities] = ...
-                            obj.classificationModel.classifier.predict( features );
-                end
-                
+            % Get features for current signal block.
+            ratemap = obj.getNextSignalBlock( 1, ...
+                obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
+            pitch = obj.getNextSignalBlock( 2, ...
+                obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
+            spectralFeatures = obj.getNextSignalBlock( 3, ...
+                obj.BLOCK_SIZE_SEC, obj.BLOCK_SIZE_SEC, false );
+
+            % Assemble feature vector and perform dimensionality reduction.
+            features = obj.processBlock(ratemap{1}, pitch{1}, ...
+                spectralFeatures{1});
+            features = features * obj.classificationModel.pcaMatrix;
+
+            % Compute activations and perform classification.
+            switch obj.modelType
+                case 'gmm_logistic'
+                    activations = obj.classificationModel.gmm.posterior( features );
+                    [label, probabilities] = ...
+                        obj.classificationModel.classifier.predict( activations );
+                case 'lda'
+                    [label, probabilities] = ...
+                        obj.classificationModel.classifier.predict( features );
+            end
+
 %                 disp(['GenderRecognitionKS [Male: ', ...
 %                     num2str(probabilities(1)), '% / Female: ', ...
 %                     num2str(probabilities(2)), '%]']);
-                
-                genderHyp = GenderHypothesis( label, probabilities );
-                obj.blackboard.addData( 'genderHypotheses', ...
-                    genderHyp, true, obj.trigger.tmIdx );
-                notify( obj, 'KsFiredEvent', ...
-                    BlackboardEventData(obj.trigger.tmIdx) );
+
+            genderHyp = GenderHypothesis( label, probabilities );
+            obj.blackboard.addData( 'genderHypotheses', ...
+                genderHyp, true, obj.trigger.tmIdx );
+            notify( obj, 'KsFiredEvent', ...
+                BlackboardEventData(obj.trigger.tmIdx) );
+
+            % Visualisation
+            if ~isempty(obj.blackboardSystem.genderVis)
+                obj.blackboardSystem.genderVis.draw(genderHyp);
+            end
         end
     end
     

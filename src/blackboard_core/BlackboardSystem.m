@@ -10,6 +10,7 @@ classdef BlackboardSystem < handle
         % ksVisualisers = containers.Map; % for visualising KSs
         locVis;     % for visualising localisation
         afeVis;     % for visualising AFE
+        genderVis;     % for visualising gender recognition
     end
 
     methods
@@ -43,6 +44,10 @@ classdef BlackboardSystem < handle
         
         function setAfeVis(obj, afeVis)
             obj.afeVis = afeVis;
+        end
+        
+        function setGenderVis(obj, genderVis)
+            obj.genderVis = genderVis;
         end
         
         function setRobotConnect( obj, robotConnect )
