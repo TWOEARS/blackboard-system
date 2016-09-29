@@ -253,6 +253,10 @@ classdef GenderRecognitionKS < AuditoryFrontEndDepKS
                             obj.classificationModel.classifier.predict( features );
                 end
                 
+%                 disp(['GenderRecognitionKS [Male: ', ...
+%                     num2str(probabilities(1)), '% / Female: ', ...
+%                     num2str(probabilities(2)), '%]']);
+                
                 genderHyp = GenderHypothesis( label, probabilities );
                 obj.blackboard.addData( 'genderHypotheses', ...
                     genderHyp, true, obj.trigger.tmIdx );
