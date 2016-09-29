@@ -75,6 +75,11 @@ classdef AuditoryFrontEndKS < AbstractKS
                 mod(obj.robotInterfaceObj.getCurrentHeadOrientation(), 360));
             % Trigger event
             notify(obj, 'KsFiredEvent');
+            
+            % Visualisation
+            if ~isempty(obj.blackboardSystem.afeVis)
+                obj.blackboardSystem.afeVis.draw(obj.managerObject.Data);
+            end
         end
 
         %% KS utilities

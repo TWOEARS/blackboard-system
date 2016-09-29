@@ -6,6 +6,10 @@ classdef BlackboardSystem < handle
         scheduler;
         robotConnect;
         dataConnect;
+        
+        % ksVisualisers = containers.Map; % for visualising KSs
+        locVis;     % for visualising localisation
+        afeVis;     % for visualising AFE
     end
 
     methods
@@ -18,6 +22,29 @@ classdef BlackboardSystem < handle
             obj.scheduler = Scheduler( obj.blackboardMonitor );
         end
 
+        % Set blackboard visualiser
+        function setVisualiser(obj, visualiser)
+            obj.scheduler.setVisualiser(visualiser);
+        end
+        
+%         % Add a visualiser for a KS
+%         function addKsVisualiser(obj, ksName, vis)
+%             obj.ksVisualisers(ksName) = vis;
+%         end
+%         
+%         % Set KS visualisers
+%         function setKsVisualisers(obj, ksVisualisers)
+%             obj.ksVisualisers = ksVisualisers;
+%         end
+        
+        function setLocVis(obj, locVis)
+            obj.locVis = locVis;
+        end
+        
+        function setAfeVis(obj, afeVis)
+            obj.afeVis = afeVis;
+        end
+        
         function setRobotConnect( obj, robotConnect )
             obj.robotConnect = robotConnect;
         end

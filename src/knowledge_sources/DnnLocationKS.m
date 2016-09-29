@@ -62,6 +62,8 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             requests{1}.params = param;
             requests{2}.name = 'ild';
             requests{2}.params = param;
+            requests{3}.name = 'ratemap';
+            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.invocationMaxFrequency_Hz = 10;
@@ -83,6 +85,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 obj.normFactors{c} = C.normFactors;
             end
             obj.angles = C.azimuths;
+            
         end
 
 
@@ -153,6 +156,12 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             obj.blackboard.addData( ...
                 'sourcesAzimuthsDistributionHypotheses', aziHyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
+            
+            % Visualisation
+            if ~isempty(obj.blackboardSystem.locVis)
+                obj.blackboardSystem.locVis.setPosteriors(...
+                    obj.angles+currentHeadOrientation-90, prob_AFN_F);
+            end
         end
 
     end
