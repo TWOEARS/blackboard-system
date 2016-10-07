@@ -70,7 +70,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             obj.nChannels = nChannels;
             obj.freqRange = freqRange;
             
-            % Load localiastion DNNs
+            % Load localisation DNNs
             obj.DNNs = cell(nChannels, 1);
             obj.normFactors = cell(nChannels, 1);
 
