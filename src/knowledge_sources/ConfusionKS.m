@@ -64,6 +64,7 @@ classdef ConfusionKS < AbstractKS
                 notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
             end
             aziHyp.setSeenByConfusionKS;
+            
         end
     end
 end

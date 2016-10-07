@@ -76,6 +76,17 @@ classdef ConfusionSolvingKS < AbstractKS
                 obj.blackboard.addData('perceivedAzimuths', ploc, false, ...
                     obj.trigger.tmIdx);
                 notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
+                
+                % Visualisation
+                if ~isempty(obj.blackboardSystem.locVis)
+                    if isa(obj.blackboardSystem.robotConnect, 'simulator.SimulatorConvexRoom')
+                        initHeadOrientation = 90;
+                    else
+                        initHeadOrientation = 0;
+                    end
+                    obj.blackboardSystem.locVis.setPosteriors(...
+                        confHyp.azimuths+confHyp.headOrientation-initHeadOrientation, post);
+                end
             end
             confHyp.setSeenByConfusionSolvingKS;
         end
