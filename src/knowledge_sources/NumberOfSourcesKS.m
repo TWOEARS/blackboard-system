@@ -73,7 +73,7 @@ classdef NumberOfSourcesKS < AuditoryFrontEndDepKS
             x = obj.featureCreator.constructVector();
             [d, score] = obj.model.applyModel( x{1} );
             bbprintf(obj, '[NumberOfSourcesKS:] %s detecting %i% sources.\n', ...
-                     obj.modelname, int16(score(1)) );
+                     obj.modelname, int16(d(1)) );
             identHyp = NumberOfSourcesHypothesis( ...
                 obj.modelname, score(1), d(1), obj.blockCreator.blockSize_s );
             obj.blackboard.addData( 'NumberOfSourcesHypotheses', identHyp, true, obj.trigger.tmIdx );
