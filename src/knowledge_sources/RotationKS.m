@@ -95,13 +95,8 @@ classdef RotationKS < AbstractKS
             
             % Visualisation
             if ~isempty(obj.blackboardSystem.locVis)
-                if isa(obj.blackboardSystem.robotConnect, 'simulator.SimulatorConvexRoom')
-                    initHeadOrientation = 90;
-                else
-                    initHeadOrientation = 0;
-                end
                 obj.blackboardSystem.locVis.setHeadRotation(...
-                    obj.robot.getCurrentHeadOrientation-initHeadOrientation);
+                    obj.robot.getCurrentHeadOrientation);
             end
         end
     end
