@@ -146,7 +146,8 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
 
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
-            bExecute = true;
+            bExecute = (obj.blackboard.currentSoundTimeIdx - ...
+                obj.lastExecutionTime_s) >= obj.blockSize;
             bWait = false;
         end
 
@@ -229,7 +230,7 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
             end
             
             % add data to blackboard
-            obj.blackboard.addData('ReverbenceHypotheses', ...
+            obj.blackboard.addData('ReverberanceHypotheses', ...
               ReverbHyp, true, obj.trigger.tmIdx);
             obj.blackboard.addData('ClarityHypotheses', ...
               ClarityHyp, true, obj.trigger.tmIdx);
@@ -239,7 +240,7 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
               LEVHyp, true, obj.trigger.tmIdx);
             
             % plotting  
-            figure(1)
+            figure
             timescale = [0,nSamples/fs];
             freqscale = [1,nChannels]; 
             for k=1:nSources
