@@ -14,28 +14,16 @@ classdef HeadTurningModulationKS < AbstractKS
 % === PROPERTIES [BEG] === %
 % ======================== %
 properties (SetAccess = public)
-    head_position = 0;
- 
     bbs = [];
 
     data = [];
  
     current_time = 0;
 
-    % MotorOrderKS;
-    % HTMFocusKS;
-    
     RIR; % Robot_Internal_Representation class
     MSOM; % Multimodal_Self_Organizing_Map class
     MFI; % Multimodal_Fusion_&_Inference class
-    % MotorOrderKS;
-    % HTMFocusKS; % Head_Turning_Modulation_Focus class
     EMKS; % Environmental_Map class
-    % ObjectDetectionKS;
-    % ALKS;
-    % VLKS;
-    % ACKS;
-    % VCKS;
 
     statistics = [];
 
@@ -48,18 +36,12 @@ properties (SetAccess = public)
 
     iStep = 0;
 
-    save = false;
-    load = false;
-    continue_simulation = false;
+    % save = false;
+    % load = false;
+    % continue_simulation = false;
 
 end
 
-
-% properties (SetAccess = public, GetAccess = public)
-%     cpt = 0;
-%     last_movement = 0;
-%     theta_hist = [];
-% end
 % ======================== %
 % === PROPERTIES [END] === %
 % ======================== %
@@ -79,19 +61,6 @@ function obj = HeadTurningModulationKS (bbs)
     obj.MSOM = MultimodalSelfOrganizingMap();
     obj.MFI = MultimodalFusionAndInference(obj);
     obj.RIR = RobotInternalRepresentation(obj);
-    
-    % obj.HTMFocusKS = HTMFocusKS(obj);
-    % obj.MotorOrderKS = MotorOrderKS(obj, obj.HTMFocusKS);
-    
-    % obj.EMKS = EnvironmentalMapKS(obj);
-
-    % obj.ALKS = AudioLocalizationKS(obj);
-    % obj.VLKS = VisualLocalizationKS(obj);
-
-    % obj.ACKS = AudioClassificationExpertsKS(obj);
-    % obj.VCKS = VisualClassificationExpertsKS(obj);
-
-    % obj.ObjectDetectionKS = ObjectDetectionKS(obj);
 
 end
 
@@ -101,7 +70,7 @@ function [b, wait] = canExecute (obj)
     wait = false;
 end
 
-function finished = isFinished(obj)
+function finished = isFinished (obj)
     finished = obj.finished;
 end
 
@@ -110,7 +79,7 @@ function execute (obj)
     
     fprintf('\nHead Turning Modulation KS evaluation\n');
 
-    obj.cpt = obj.cpt + 1;
+    % obj.cpt = obj.cpt + 1;
 
     object_detection = obj.blackboard.getLastData('objectDetectionHypothese').data;
     object_detection = object_detection(1); % --- 1st value: 1(create object) or 2(update object)
@@ -119,7 +88,7 @@ function execute (obj)
     % obj.current_object = obj.ObjectDetectionKS.decision(2, end); 
     obj.current_object_hist(end+1) = obj.current_object; % --- Update history of sources
 
-    data = getClassifiersOutput(obj);
+    obj.data(:, end+1) = getClassifiersOutput(obj);
     audio_theta = getLocalisationOutput();
 
    if object_detection == 1 % --- Create new object
@@ -130,7 +99,7 @@ function execute (obj)
         % obj.degradeData(audio_theta, iStep); % --- Remove visual components if object is NOT in field of view
         obj.MSOM.idx_data = 1; % --- Update status of MSOM learning
 
-        obj.RIR.updateData(data, audio_theta); % --- Updating the RIR observed data
+        obj.RIR.updateData(); % --- Updating the RIR observed data
         obj.RIR.addObject(); % --- Add the object
         setObject(obj, obj.current_object, 'presence', true); % --- The object is present but not necessarily facing the robot
         % setObject(obj, 0, 'presence', true);
@@ -141,21 +110,22 @@ function execute (obj)
         % theta = obj.ALKS.hyp_hist(end); % --- Grab the audio localization output
 
         % obj.degradeData(theta, iStep); % --- Remove visual components if object is NOT in field of view
-        obj.RIR.updateData(data, audio_theta); % --- Updating the RIR observed data
+        obj.RIR.updateData(); % --- Updating the RIR observed data
         obj.RIR.updateObject(); % --- Update the current object
         obj.MSOM.idx_data = obj.MSOM.idx_data+1;
         setObject(obj, obj.current_object, 'presence', true); % --- The object is present but not necessarily facing the robot
 
     % elseif ~create_new && do_nothing % --- silence phase
     elseif object_detection == 0 % --- silence phase
-        if obj.RIR.nb_objects > 0 && getObject(obj, obj.current_object_hist(end-1), 'presence') && obj.current_object_hist(end-1) ~= 0
-            setObject(obj, obj.current_object_hist(end-1), 'presence', false);
-            o = obj.RIR.getEnv().objects{obj.current_object_hist(end-1)}.theta_hist(1);
-            obj.RIR.getEnv().objects{obj.current_object_hist(end-1)}.theta_hist(end+1) = o;
-            obj.RIR.getEnv().objects{obj.current_object_hist(end-1)}.theta = o;
-            % obj.RIR.getLastObj().presence = false;
+        if obj.RIR.nb_objects > 0
+            idx = obj.current_object_hist(end-1);
+            if idx ~= 0 && getObject(obj, idx, 'presence')
+                setObject(obj, idx, 'presence', false);
+                obj.RIR.getEnv().objects{idx}.updateAngle('init');
+                % obj.RIR.getLastObj().presence = false;
+            end
         end
-        obj.RIR.updateData(obj.data(:, iStep), -1);
+        obj.RIR.updateData(obj.data(:, iStep));
     end
 
     % --- Update all objects
