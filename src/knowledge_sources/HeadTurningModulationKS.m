@@ -22,20 +22,20 @@ properties (SetAccess = public)
  
     current_time = 0;
 
-    MotorOrderKS;
-    HTMFocusKS;
+    % MotorOrderKS;
+    % HTMFocusKS;
     
     RIR; % Robot_Internal_Representation class
     MSOM; % Multimodal_Self_Organizing_Map class
     MFI; % Multimodal_Fusion_&_Inference class
-    MotorOrderKS;
-    HTMFocusKS; % Head_Turning_Modulation_Focus class
+    % MotorOrderKS;
+    % HTMFocusKS; % Head_Turning_Modulation_Focus class
     EMKS; % Environmental_Map class
-    ObjectDetectionKS;
-    ALKS;
-    VLKS;
-    ACKS;
-    VCKS;
+    % ObjectDetectionKS;
+    % ALKS;
+    % VLKS;
+    % ACKS;
+    % VCKS;
 
     statistics = [];
 
@@ -74,24 +74,24 @@ function obj = HeadTurningModulationKS (bbs)
     obj.bbs = bbs;
     obj.invocationMaxFrequency_Hz = inf;
     
-    initializeParameters(obj);
+    initializeParameters();
 
     obj.MSOM = MultimodalSelfOrganizingMap();
     obj.MFI = MultimodalFusionAndInference(obj);
     obj.RIR = RobotInternalRepresentation(obj);
     
-    obj.HTMFocusKS = HTMFocusKS(obj);
-    obj.MotorOrderKS = MotorOrderKS(obj, obj.HTMFocusKS);
+    % obj.HTMFocusKS = HTMFocusKS(obj);
+    % obj.MotorOrderKS = MotorOrderKS(obj, obj.HTMFocusKS);
     
-    obj.EMKS = EnvironmentalMapKS(obj);
+    % obj.EMKS = EnvironmentalMapKS(obj);
 
-    obj.ALKS = AudioLocalizationKS(obj);
-    obj.VLKS = VisualLocalizationKS(obj);
+    % obj.ALKS = AudioLocalizationKS(obj);
+    % obj.VLKS = VisualLocalizationKS(obj);
 
-    obj.ACKS = AudioClassificationExpertsKS(obj);
-    obj.VCKS = VisualClassificationExpertsKS(obj);
+    % obj.ACKS = AudioClassificationExpertsKS(obj);
+    % obj.VCKS = VisualClassificationExpertsKS(obj);
 
-    obj.ObjectDetectionKS = ObjectDetectionKS(obj);
+    % obj.ObjectDetectionKS = ObjectDetectionKS(obj);
 
 end
 
@@ -112,10 +112,11 @@ function execute (obj)
 
     obj.cpt = obj.cpt + 1;
 
-    object_detection = obj.blackboard.getLastData('objectDetectionHypothese').data; % Is a new object present in the scene?
-
-    object_detection = obj.ObjectDetectionKS.decision(1, end); % --- 1st value: 1(create object) or 2(update object)
-    obj.current_object = obj.ObjectDetectionKS.decision(2, end); % --- 2nd value: id of the object. ≠ from focus!
+    object_detection = obj.blackboard.getLastData('objectDetectionHypothese').data;
+    object_detection = object_detection(1); % --- 1st value: 1(create object) or 2(update object)
+    obj.current_object = object_detection(2); % --- 2nd value: id of the object. ≠ from focus!
+    % object_detection = obj.ObjectDetectionKS.decision(1, end); 
+    % obj.current_object = obj.ObjectDetectionKS.decision(2, end); 
     obj.current_object_hist(end+1) = obj.current_object; % --- Update history of sources
 
     data = getClassifiersOutput(obj);
