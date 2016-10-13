@@ -160,74 +160,82 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
             % Get features of current signal block
             afeData = obj.getAFEdata();
             adapt = afeData(1);
-            adapt_l = adapt{1}.getSignalBlock(obj.blockSize, ...
+            adaptL = adapt{1}.getSignalBlock(obj.blockSize, ...
                 obj.timeSinceTrigger);
-            adapt_r = adapt{2}.getSignalBlock(obj.blockSize, ...
+            adaptR = adapt{2}.getSignalBlock(obj.blockSize, ...
                 obj.timeSinceTrigger);  
             itd = afeData(2).getSignalBlock(obj.blockSize, ...
                 obj.timeSinceTrigger);
               
-            % Some lengths and sizes  
-            [nSamples, nChannels] = size(adapt_l);
+            % === Some lengths, sizes, and selections ===
+
+            [nSamples, nChannels] = size(adaptL);
             nSources = length(segHyp);
             fs = adapt{1}.FsHz;
-            
             cf = adapt{1}.cfHz;
             % select frequency bands for Reverberance and Clarity calculation
             cfSplitSelect = cf >= obj.cfSplitMin & cf <= obj.cfSplitMax;
-            cfSplitK = sum(cfSplitSelect);
             % select frequency bands for low frequency level calculation
             cfLowSelect = cf >= obj.cfLowMin & cf <= obj.cfLowMax;
-            cfLowK = sum(cfLowSelect);
             % select frequency bands for ITD fluctuations
             cfITDSelect = cf >= obj.cfITDMin & cf <= obj.cfITDMax;
             
-            % apply masks to generate streams
-            adapt_seg_l = zeros([nSamples, nChannels, nSources]);
-            adapt_seg_r = zeros([nSamples, nChannels, nSources]);  
-            ITDstd = zeros(nSources,1);
-            for k=1:nSources
-              % resample soft mask and
-              resSegHyp = interp1( ...
-                (0.5:1:size(segHyp(k).softMask,1)-0.5)*segHyp(k).hopSize, ...
-                segHyp(k).softMask, ...
-                (0:1:nSamples-1)/fs, ...
-                'nearest', ...
-                0 ); 
-              % apply on left and right ear channel
-              adapt_seg_l(:,:,k) = resSegHyp.*adapt_l;
-              adapt_seg_r(:,:,k) = resSegHyp.*adapt_r;
-              % weighted standard deviation of ITD of all streams
-              w = segHyp(k).softMask(:,cfITDSelect);
-              W = sum(w(:));    
-              ITDmean = sum(sum(w.*itd(:,cfITDSelect)))/W;
-              ITDstd = sqrt( sum(w.*(itd(:,cfITDSelect)-ITDmean).^2)/W );
+            % === Masking the binaural streams ===
+            
+            % merge masks of sound sources
+            srcSegHyp = 0;
+            for k=2:nSources
+              srcSegHyp = srcSegHyp + segHyp(k).softMask;
             end
+            % negate mask for background
+            bgSegHyp = 1 - srcSegHyp;   
+            % resample mask
+            srcSegHypRes = interp1( ...
+              (0.5:1:size(srcSegHyp,1)-0.5)*segHyp(k).hopSize, ...
+              srcSegHyp, ...
+              (0:1:nSamples-1)/fs, ...
+              'nearest', ...
+              'extrap');
+            % truncate mask (due to resampling errors)
+            srcSegHypRes = min(max(srcSegHypRes,0),1);
+            % negate mask for background
+            bgSegHypRes = 1 - srcSegHypRes;
+            % apply on left and right ear channel
+            srcAdaptSegL = srcSegHypRes.*adaptL;
+            srcAdaptSegR = srcSegHypRes.*adaptR;
+            % apply on left and right ear channel
+            bgAdaptSegL = bgSegHypRes.*adaptL;
+            bgAdaptSegR = bgSegHypRes.*adaptR;            
+  
+            % === ITD fluctuaction ===
+            
+            % weighted standard deviation of sources stream
+            w = srcSegHyp(:,cfITDSelect);
+            W = sum(w(:));    
+            srcItdMean = sum(sum(w.*itd(:,cfITDSelect)))/W;
+            srcItdStd = sqrt( sum(w.*(itd(:,cfITDSelect)-srcItdMean).^2)/W );
+            % weighted standard deviation of background stream
+            w = bgSegHyp(:,cfITDSelect);
+            W = sum(w(:));    
+            bgItdMean = sum(sum(w.*itd(:,cfITDSelect)))/W;
+            bgItdStd = sqrt(sum(w.*(itd(:,cfITDSelect)-bgItdMean).^2)/W );
+                        
+            % === Compute Features ===
             
             % compute Reverberance after Schuitman et al., (Eq. 11/12)
-            ReverbHyp = 1/cfSplitK/nSamples.*sum(sum(sqrt(...
-              adapt_seg_l(:,cfSplitSelect,1).^2 + adapt_seg_r(:,cfSplitSelect,1).^2 ...
+            ReverbHyp = mean(mean(sqrt( bgAdaptSegL(:,cfSplitSelect).^2 ...
+              + bgAdaptSegR(:,cfSplitSelect).^2 )));
+            % compute Clarity after Schuitman et al., (Eq. 14/15)
+            ClarityHyp = mean(mean(sqrt( srcAdaptSegL(:,cfSplitSelect).^2 ...
+              + srcAdaptSegR(:,cfSplitSelect).^2 )));
+            % low frequency level
+            LevelLow = mean(mean(sqrt(...
+              srcAdaptSegL(:,cfLowSelect).^2 + srcAdaptSegR(:,cfLowSelect).^2 ...
               )));
-
-            ClarityHyp = zeros(nSources-1, 1);
-            ASWHyp = zeros(nSources-1,1);
-            LEVHyp = zeros(nSources-1,1);
-            for k=2:nSources
-              % compute Clarity after Schuitman et al., (Eq. 14/15)
-              ClarityHyp(k-1) = 1/cfSplitK/nSamples.*sum(sum(sqrt(...
-                adapt_seg_l(:,cfSplitSelect,k).^2 + adapt_seg_r(:,cfSplitSelect,k).^2 ...
-                )));
-              % low frequency level
-              LevelLow = 1/cfLowK/nSamples.*sum(sum(sqrt(...
-                adapt_seg_l(:,cfLowSelect,k).^2 + adapt_seg_r(:,cfLowSelect,k).^2 ...
-                )));
-              % compute Apparent Source Width after Schuitman et al., (Eq. 18)
-              ASWHyp(k-1) = obj.ASWalpha*LevelLow + ...
-                log10(1+obj.ASWbeta*ITDstd(k)*10^3);
-              % compute Listener Envelopment after Schuitman et al., (Eq. 23)
-              LEVHyp(k-1) = obj.LEValpha*ReverbHyp + ...
-                log10(1+obj.LEVbeta*ITDstd(1)*10^3);                              
-            end
+            % compute Apparent Source Width after Schuitman et al., (Eq. 18)
+            ASWHyp = obj.ASWalpha*LevelLow + log10(1+obj.ASWbeta*srcItdStd*10^3);
+            % compute Listener Envelopment after Schuitman et al., (Eq. 23)
+            LEVHyp = obj.LEValpha*ReverbHyp + log10(1+obj.LEVbeta*bgItdStd*10^3); 
             
             % add data to blackboard
             obj.blackboard.addData('ReverberanceHypotheses', ...
@@ -243,15 +251,22 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
             figure
             timescale = [0,nSamples/fs];
             freqscale = [1,nChannels]; 
-            for k=1:nSources
-              subplot (2, nSources, k)
-              imagesc(timescale, freqscale, adapt_seg_l(:,:,k).');
-%               title(sprintf('Estimated Azimuth: %3.2f deg', ...
-%                 aziHyp(k).sourceAzimuth/pi*180));
-              ylabel('Auditory Band');
-              xlabel('time/s');
-              subplot (2, nSources, nSources+k)
-              imagesc(timescale, freqscale, adapt_seg_r(:,:,k).');
+            
+            subplot(3, 2, 1)
+            imagesc(timescale, freqscale, srcSegHypRes.');
+            subplot(3, 2, 3)
+            imagesc(timescale, freqscale, srcAdaptSegL.');
+            subplot(3, 2, 5)
+            imagesc(timescale, freqscale, srcAdaptSegR.');
+            subplot(3, 2, 2)
+            imagesc(timescale, freqscale, bgSegHypRes.');
+            subplot(3, 2, 4)
+            imagesc(timescale, freqscale, bgAdaptSegL.');
+            subplot(3, 2, 6)
+            imagesc(timescale, freqscale, bgAdaptSegR.');
+            
+            for k=1:6
+              subplot(3, 2, k)
               ylabel('Auditory Band');
               xlabel('time/s');
             end
