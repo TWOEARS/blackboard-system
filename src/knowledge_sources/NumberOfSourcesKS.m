@@ -10,7 +10,7 @@ classdef NumberOfSourcesKS < AuditoryFrontEndDepKS
     methods
         function obj = NumberOfSourcesKS( modelName, modelDir, ppRemoveDc )
             modelFileName = [modelDir filesep modelName];
-            v = load( [modelFileName '.model.mat'] );
+            v = load( db.getFile( [modelFileName '.model.mat'] ) );
             if ~isa( v.featureCreator, 'FeatureCreators.Base' )
                 error( 'Loaded model''s featureCreator must implement FeatureCreators.Base.' );
             end
