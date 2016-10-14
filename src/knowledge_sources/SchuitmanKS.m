@@ -76,10 +76,10 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
             % Check inputshypotheses
             p = inputParser();
             defaultNumChannels = 32;
-            defaultWindowSize = 0.02;
+            defaultWindowSize = 0.025;
             defaultHopSize = 0.01;
             defaultFLow = 80;
-            defaultFHigh = 8000;
+            defaultFHigh = 5000;
             defaultBlockSize = 1;
             defaultBVerbose = false;
 
@@ -146,8 +146,7 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
 
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
-            bExecute = (obj.blackboard.currentSoundTimeIdx - ...
-                obj.lastExecutionTime_s) >= obj.blockSize;
+            bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
         end
 
@@ -155,8 +154,6 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
             % set hypotheses from segmentation
             segHyp = obj.blackboard.getData( ...
                 'segmentationHypotheses', obj.trigger.tmIdx).data;            
-            aziHyp = obj.blackboard.getData( ...
-                'sourceAzimuthHypotheses', obj.trigger.tmIdx).data;  
             % Get features of current signal block
             afeData = obj.getAFEdata();
             adapt = afeData(1);
@@ -166,6 +163,7 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
                 obj.timeSinceTrigger);  
             itd = afeData(2).getSignalBlock(obj.blockSize, ...
                 obj.timeSinceTrigger);
+            itd(end,:) = [];
               
             % === Some lengths, sizes, and selections ===
 
@@ -184,7 +182,7 @@ classdef SchuitmanKS < AuditoryFrontEndDepKS
             
             % merge masks of sound sources
             srcSegHyp = 0;
-            for k=2:nSources
+            for k=1:nSources
               srcSegHyp = srcSegHyp + segHyp(k).softMask;
             end
             % negate mask for background
