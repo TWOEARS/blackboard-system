@@ -1,4 +1,4 @@
-classdef DnnLocationKS < AuditoryFrontEndDepKS
+classdef DnnLocationCaffeKS < AuditoryFrontEndDepKS
     % DnnLocationKS calculates posterior probabilities for each azimuth angle and
     % generates SourcesAzimuthsDistributionHypothesis when provided with spatial
     % observation
@@ -23,7 +23,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = DnnLocationKS(preset, highFreq, lowFreq, azRes)
+        function obj = DnnLocationCaffeKS(preset, highFreq, lowFreq, azRes)
             if nargin < 1
                 % Default preset is 'MCT-DIFFUSE'. For localisation in the
                 % front hemifield only, use 'MCT-DIFFUSE-FRONT'
@@ -70,8 +70,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             obj.nChannels = nChannels;
             obj.freqRange = freqRange;
             
-            % Load localisation DNNs
-            obj.DNNs = cell(nChannels, 1);
+            % Load localiastion DNN
             obj.normFactors = cell(nChannels, 1);
 
             nHiddenLayers = 2;
@@ -81,13 +80,22 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                     obj.dataPath, preset, azRes, nChannels, preset, azRes, nChannels, c, nHiddenLayers);
                 % Load localisation module
                 load(db.getFile(strModels));
-                obj.DNNs{c} = C.NNs;
                 obj.normFactors{c} = C.normFactors;
             end
+            strModel_dir = sprintf( ...
+                    '%s/LearnedDNNs_%s_ild-cc_%ddeg_%dchannels/caffe', ...
+                    obj.dataPath, ...
+                    preset, azRes, nChannels);
+            strModel_net = sprintf( ...
+                    'DNN_%s_%ddeg_%dchannels.prototxt', ...
+                    preset, azRes, nChannels);
+            strModel_weights = sprintf( ...
+                    'DNN_%s_%ddeg_%dchannels.caffemodel', ...
+                    preset, azRes, nChannels);
+            obj.DNNs = CaffeModel(...
+                strModel_dir, strModel_net, strModel_weights);
             obj.angles = C.azimuths;
-            
         end
-
 
         function [bExecute, bWait] = canExecute(obj)
             %afeData = obj.getAFEdata();
@@ -122,21 +130,26 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             nAzimuths = numel(obj.angles);
             numChans = length(obj.channels);
             post = zeros(nFrames, nAzimuths, numChans);
-            yy = zeros(nFrames, nAzimuths);
+            
+            % prep input for caffe
+            testFeatures_list = {};
+            blob_names_in = {};
             for n = 1:numChans
                 ch = obj.channels(n);
                 testFeatures = [ild(:,ch) squeeze(cc(:,ch,:))];
-
+                
                 % Normalise features
                 testFeatures = testFeatures - ...
                     repmat(obj.normFactors{ch}(1,:),[size(testFeatures,1) 1]);
                 testFeatures = testFeatures ./ ...
                     sqrt(repmat(obj.normFactors{ch}(2,:),[size(testFeatures,1) 1]));
-
-                obj.DNNs{ch}.testing = 1;
-                obj.DNNs{ch} = nnff(obj.DNNs{ch}, testFeatures, yy);
-                post(:,:,n) = obj.DNNs{ch}.a{end} + eps;
-                obj.DNNs{ch}.testing = 0;
+                
+                testFeatures_list{n} = testFeatures';
+                blob_names_in{n} = ['data_nidx_', num2str(n-1)];
+            end
+            [~, score] = obj.DNNs.applyModel({testFeatures_list, blob_names_in});
+            for n = 1:numChans
+                post(:,:,n) = score.(['softmax_nidx_', num2str(n-1)])' + eps;
             end
 
             % Average posterior distributions over frequency
@@ -159,8 +172,13 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             
             % Visualisation
             if ~isempty(obj.blackboardSystem.locVis)
+                if isa(obj.blackboardSystem.robotConnect, 'simulator.SimulatorConvexRoom')
+                    initHeadOrientation = 90;
+                else
+                    initHeadOrientation = 0;
+                end
                 obj.blackboardSystem.locVis.setPosteriors(...
-                    obj.angles+currentHeadOrientation, prob_AFN_F);
+                    obj.angles+currentHeadOrientation-initHeadOrientation, prob_AFN_F);
             end
         end
 
