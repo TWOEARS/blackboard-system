@@ -78,10 +78,9 @@ classdef AuditoryFrontEndKS < AbstractKS
             
             % Visualisation
             if ~isempty(obj.blackboardSystem.afeVis)
-                % Visualise every t sec
-                t = obj.blackboardSystem.afeVis.updateTime;
-                if obj.lastExecutionTime_s > 0 && mod(obj.lastExecutionTime_s, t) < obj.timeStep
-                    obj.blackboardSystem.afeVis.draw(obj.managerObject.Data);
+                t = obj.lastExecutionTime_s + obj.timeStep;
+                if mod(t, obj.blackboardSystem.afeVis.updateTime) < obj.timeStep
+                    obj.blackboardSystem.afeVis.draw(obj.managerObject.Data, t);
                 end
             end
         end
