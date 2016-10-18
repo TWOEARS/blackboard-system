@@ -56,7 +56,7 @@ classdef AuditoryFrontEndKS < AbstractKS
 
         %% KS logic
         function [bExecute, bWait] = canExecute(obj)
-            bExecute = ~obj.robotInterfaceObj.isFinished();
+            bExecute = obj.robotInterfaceObj.isActive();
             bWait = false;
         end
 
