@@ -110,8 +110,10 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 if obj.useFixedNoSrcs
                     numAzimuths = obj.fixedNoSrcs;
                 else
-                    numAzimuths = 0;
-                    error( 'find a number of sources hypothesis' );
+                    nsrcsHypos = obj.blackboard.getLastData( 'NumberOfSourcesHypotheses' );
+                    assert( numel( nsrcsHypos.data ) == 1 );
+                    numAzimuths = max( nsrcsHypos.data.n, 1 );
+                    % segregating into 0 streams seems pointless
                 end
                 refAzm = zeros( 1, numAzimuths );
                 [locPeaks, locPeaksIdxs] = findpeaks( ...
