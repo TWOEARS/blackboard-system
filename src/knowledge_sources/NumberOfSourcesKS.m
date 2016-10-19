@@ -15,12 +15,6 @@ classdef NumberOfSourcesKS < AuditoryFrontEndDepKS
                 error( 'Loaded model''s featureCreator must implement FeatureCreators.Base.' );
             end
             afeRequests = v.featureCreator.getAFErequests();
-%             if nargin > 2 && pp_bNormalizeRMS
-%                 for ii = 1 : numel( afeRequests )
-%                     afeRequests{ii}.params.replaceParameters( ...
-%                                    genParStruct( 'pp_bNormalizeRMS', pp_bNormalizeRMS ) );
-%                 end
-%             end
             if nargin > 2 && ppRemoveDc
                 for ii = 1 : numel( afeRequests )
                     afeRequests{ii}.params.replaceParameters( ...
@@ -46,7 +40,6 @@ classdef NumberOfSourcesKS < AuditoryFrontEndDepKS
         end
         
         function setInvocationFrequency( obj, newInvocationFrequency_Hz )
-            % Youssef @Ivo: wieso nicht im Abstract Class?
             obj.invocationMaxFrequency_Hz = newInvocationFrequency_Hz;
         end
         
@@ -72,10 +65,11 @@ classdef NumberOfSourcesKS < AuditoryFrontEndDepKS
             obj.featureCreator.setAfeData( afeData );
             x = obj.featureCreator.constructVector();
             [d, score] = obj.model.applyModel( x{1} );
+            d = round( d(1) );
             bbprintf(obj, '[NumberOfSourcesKS:] %s detecting %i% sources.\n', ...
-                     obj.modelname, int16(d(1)) );
+                     obj.modelname, int16(d) );
             identHyp = NumberOfSourcesHypothesis( ...
-                obj.modelname, score(1), d(1), obj.blockCreator.blockSize_s );
+                obj.modelname, score(1), d, obj.blockCreator.blockSize_s );
             obj.blackboard.addData( 'NumberOfSourcesHypotheses', identHyp, true, obj.trigger.tmIdx );
             notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
