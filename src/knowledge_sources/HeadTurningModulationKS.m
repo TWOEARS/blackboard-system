@@ -41,7 +41,6 @@ properties (SetAccess = public)
     % continue_simulation = false;
 
 end
-
 % ======================== %
 % === PROPERTIES [END] === %
 % ======================== %

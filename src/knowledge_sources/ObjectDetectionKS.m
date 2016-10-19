@@ -59,6 +59,8 @@ end
 % function [create_new, do_nothing] = simulationStatus (obj, iStep)
 function execute (obj)
 
+    % theta_a = 
+
     theta_a = obj.ALKS.getAudioLocalization();
     if theta_a == -1
         obj.decision(:, end+1) = [0 ; 0];
