@@ -11,7 +11,7 @@ classdef IdentityKS < AuditoryFrontEndDepKS
         function obj = IdentityKS( modelName, modelDir, ppRemoveDc )
             modelFileName = [modelDir filesep modelName];
             v = load( [modelFileName '.model.mat'] );
-            if ~isa( v.featureCreator, 'FeatureCreators.Base' )
+            if ~isa( v.featureCreator, 'featureCreators.Base' )
                 error( 'Loaded model''s featureCreator must implement FeatureCreators.Base.' );
             end
             afeRequests = v.featureCreator.getAFErequests();
