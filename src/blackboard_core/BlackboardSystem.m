@@ -245,7 +245,7 @@ classdef BlackboardSystem < handle
 
         %% System Execution
         function run( obj )
-            while ~obj.robotConnect.isFinished()
+            while obj.robotConnect.isActive()
                 obj.scheduler.processAgenda();
                 notify( obj.scheduler, 'AgendaEmpty' );
             end

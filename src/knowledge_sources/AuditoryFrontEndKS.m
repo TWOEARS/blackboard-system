@@ -9,7 +9,7 @@ classdef AuditoryFrontEndKS < AbstractKS
                                         % holds the signal buffer (data obj)
         robotInterfaceObj;              % Scene simulator object
         timeStep = (512.0 / 44100.0);   % basic time step, i.e. update rate
-        bufferSize_s = 2;              % 
+        bufferSize_s = 10;              % 
         afeFs = 44100;                  % sample rate of AFE. If different from 
                                         % robotInterfaceObj.SampleRate, resampling is done
     end
@@ -56,7 +56,7 @@ classdef AuditoryFrontEndKS < AbstractKS
 
         %% KS logic
         function [bExecute, bWait] = canExecute(obj)
-            bExecute = ~obj.robotInterfaceObj.isFinished();
+            bExecute = obj.robotInterfaceObj.isActive();
             bWait = false;
         end
 
@@ -78,7 +78,10 @@ classdef AuditoryFrontEndKS < AbstractKS
             
             % Visualisation
             if ~isempty(obj.blackboardSystem.afeVis)
-                obj.blackboardSystem.afeVis.draw(obj.managerObject.Data);
+                t = obj.lastExecutionTime_s + obj.timeStep;
+                if mod(t, obj.blackboardSystem.afeVis.updateTime) < obj.timeStep
+                    obj.blackboardSystem.afeVis.draw(obj.managerObject.Data, t);
+                end
             end
         end
 
