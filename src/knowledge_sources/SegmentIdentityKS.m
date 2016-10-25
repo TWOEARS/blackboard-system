@@ -1,4 +1,4 @@
-classdef SegmentIdentityKS < AuditoryFrontEndDepKS
+classdef SegmentIdentityKS < AbstractAMLTTPKS
     
     properties (SetAccess = private)
         modelname;
@@ -9,56 +9,8 @@ classdef SegmentIdentityKS < AuditoryFrontEndDepKS
 
     methods
         function obj = SegmentIdentityKS( modelName, modelDir, ppRemoveDc )
-            modelFileName = [modelDir filesep modelName];
-            v = load( [modelFileName '.model.mat'] );
-            if ~isa( v.featureCreator, 'FeatureCreators.Base' )
-                error( 'Loaded model''s featureCreator must implement FeatureCreators.Base.' );
-            end
-            afeRequests = v.featureCreator.getAFErequests();
-%             if nargin > 3 && pp_bNormalizeRMS
-%                 for ii = 1 : numel( afeRequests )
-%                     afeRequests{ii}.params.replaceParameters( ...
-%                                    genParStruct( 'pp_bNormalizeRMS', pp_bNormalizeRMS ) );
-%                 end
-%             end
-            if nargin > 2 && ppRemoveDc
-                for ii = 1 : numel( afeRequests )
-                    afeRequests{ii}.params.replaceParameters( ...
-                                   genParStruct( 'pp_bRemoveDC', ppRemoveDc ) );
-                end
-            end
-            obj = obj@AuditoryFrontEndDepKS( afeRequests );
-            obj.featureCreator = v.featureCreator;
-            if isfield(v, 'blockCreator')
-                if ~isa( v.blockCreator, 'BlockCreators.Base' )
-                    error( 'Loaded model''s block creator must implement BeatureCreators.Base.' );
-                end
-            elseif isfield(v, 'blockSize_s')
-                v.blockCreator = BlockCreators.StandardBlockCreator( v.blockSize_s, 0.5/3 );
-            else
-                % for models missing a block creator instance; let's hope
-                % 0.5s was the block length used.
-                v.blockCreator = BlockCreators.StandardBlockCreator( 0.5, 0.5/3 );
-            end
-            obj.blockCreator = v.blockCreator;
-            obj.model = v.model;
-            obj.modelname = modelName;
-            obj.invocationMaxFrequency_Hz = 4;
-        end
-        
-        function setInvocationFrequency( obj, newInvocationFrequency_Hz )
-            obj.invocationMaxFrequency_Hz = newInvocationFrequency_Hz;
-        end
-        
-        %% utility function for printing the obj
-        function s = char( obj )
-            s = [char@AuditoryFrontEndDepKS( obj ), '[', obj.modelname, ']'];
-        end
-        
-        %% execute functionality
-        function [b, wait] = canExecute( obj )
-            b = true;
-            wait = false;
+            obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
+            obj.setInvocationFrequency(4);
         end
         
         function execute( obj )
@@ -81,7 +33,7 @@ classdef SegmentIdentityKS < AuditoryFrontEndDepKS
                 x = obj.featureCreator.constructVector();
                 [d(ii), score{ii}] = obj.model.applyModel( x{1} );
                 estSrcAzm(ii) = mask.data(ii).refAzm;
-                bbprintf(obj, '[SegmentIdentitiyKS:] source %i at %i°: %s with %i%% score.\n', ...
+                bbprintf(obj, '[SegmentIdentitiyKS:] source %i at %iï¿½: %s with %i%% score.\n', ...
                      ii, estSrcAzm(ii), obj.modelname, int16(score{ii}(1)*100) );
             end
             [score, maxScoreIdx] = max( cellfun( @(c)(c(1)), score ) );

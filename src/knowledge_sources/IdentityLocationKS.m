@@ -1,4 +1,4 @@
-classdef IdentityLocationKS < IdentityKS
+classdef IdentityLocationKS < AbstractAMLTTPKS
     
     properties (SetAccess = private)
         classnames;
@@ -7,12 +7,17 @@ classdef IdentityLocationKS < IdentityKS
 
     methods
         function obj = IdentityLocationKS( modelName, modelDir )
-            obj = obj@IdentityKS( modelName, modelDir );
+            obj = obj@AbstractAMLTTPKS( modelName, modelDir );
             modelFileName = fullfile(modelDir, modelName);
             v = load( [modelFileName '.model.mat'] );
             obj.classnames = v.classnames;
             obj.azimuths = v.azimuths;
             obj.model.initNet(v.modelDir, v.fname_net_def, v.fname_weights);
+        end
+        
+        function initModel(obj, inputContent)
+            % skip check for Models.Base
+            obj.model = inputContent.model;
         end
         
         function execute( obj )
