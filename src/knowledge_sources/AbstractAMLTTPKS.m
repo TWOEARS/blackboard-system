@@ -7,7 +7,7 @@ classdef AbstractAMLTTPKS < AuditoryFrontEndDepKS
         blockCreator;
     end
     
-    methods (Abstract)
+    methods (Abstract, Access = protected)
         % a method through which the derived classes implement application
         % of features to the internal model instance given an AFE data block
         amlttpExecute( obj, afeBlock )
