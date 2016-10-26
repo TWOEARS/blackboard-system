@@ -8,8 +8,10 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
             obj.setInvocationFrequency(4);
         end
-        
-        function execute( obj )
+    end
+    
+    methods (Access = protected)
+        function prepAFEData( obj )    
             afeData = obj.getAFEdata();
             afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
             
@@ -18,6 +20,9 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
             afeData = DataProcs.DnnLocKsWrapper.addLocData( afeData, locHypos.data );
             
             obj.featureCreator.setAfeData( afeData );
+        end
+        
+        function amlttpExecute( obj )
             x = obj.featureCreator.constructVector();
             [d, score] = obj.model.applyModel( x{1} );
             d = round( d(1) );
@@ -26,7 +31,6 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
             identHyp = NumberOfSourcesHypothesis( ...
                 obj.modelname, score(1), d, obj.blockCreator.blockSize_s );
             obj.blackboard.addData( 'NumberOfSourcesHypotheses', identHyp, true, obj.trigger.tmIdx );
-            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end
 end

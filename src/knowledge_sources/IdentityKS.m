@@ -9,12 +9,10 @@ classdef IdentityKS < AbstractAMLTTPKS
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
             obj.setInvocationFrequency(4);
         end
-        
-        function execute( obj )
-            afeData = obj.getAFEdata();
-            afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
-            
-            obj.featureCreator.setAfeData( afeData );
+    end
+    
+    methods (Access = protected)
+        function amlttpExecute( obj )
             x = obj.featureCreator.constructVector();
             [d, score] = obj.model.applyModel( x{1} );
             
@@ -23,7 +21,6 @@ classdef IdentityKS < AbstractAMLTTPKS
             identHyp = IdentityHypothesis( ...
                 obj.modelname, score(1), d(1), obj.blockCreator.blockSize_s );
             obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
-            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end
 end

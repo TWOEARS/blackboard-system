@@ -72,5 +72,23 @@ classdef AbstractAMLTTPKS < AuditoryFrontEndDepKS
             b = true;
             wait = false;
         end
+        
+        function execute( obj )
+            % calls KS-specific execute imeplementations and notifies the blackboard system 
+            obj.prepAFEData();
+            obj.amlttpExecute();
+            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+        end
+    end
+    
+    methods (Access = protected)
+        function prepAFEData( obj )    
+            afeData = obj.getAFEdata();
+            afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
+            obj.featureCreator.setAfeData( afeData );
+        end
+        
+        function amlttpExecute( obj )
+        end
     end
 end

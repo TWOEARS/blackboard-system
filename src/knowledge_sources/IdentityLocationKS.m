@@ -21,15 +21,16 @@ classdef IdentityLocationKS < AbstractAMLTTPKS
         end
         
         function execute( obj )
-            afeData = obj.getAFEdata();
-            afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
-            
-            obj.featureCreator.setAfeData( afeData );
+
+        end
+    end
+    
+    methods (Access = protected)
+        function amlttpExecute( obj )
             x = obj.featureCreator.constructVector();
             
             [blobs_in, blobs_in_names] = obj.reshape2Blob( x{1}, x{2} );
             [d, score] = obj.model.applyModel( {blobs_in, blobs_in_names} );
-            
             blobs_out_names = fieldnames(score);
             score_blob = score.(blobs_out_names{1}); % use only first one
             d_blob = d.(blobs_out_names{1}); % use only first one
@@ -47,12 +48,9 @@ classdef IdentityLocationKS < AbstractAMLTTPKS
                     currentHeadOrientation, ...
                     obj.azimuths, loc_probs, loc_decisions );
                 obj.blackboard.addData( 'identityHypotheses', hyp, true, obj.trigger.tmIdx );
-                notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
             end % classnames
         end
-    end
     
-    methods (Access = protected)        
         function [x_feat, feature_type_names] = reshape2Blob(obj, x, featureNames)
             % twoears2Blob  reshape feature and ground truth vectors into 4-D Blob for caffe
             %   For the feature vector x it expects a shape of (N x D)

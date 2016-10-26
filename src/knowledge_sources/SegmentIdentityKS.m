@@ -12,8 +12,13 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
             obj.setInvocationFrequency(4);
         end
+    end
+    
+    methods (Access = protected)
+        function prepAFEData( obj )
+        end
         
-        function execute( obj )
+        function amlttpExecute( obj )
             afeData = obj.getAFEdata();
             afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
             
@@ -44,8 +49,6 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
                 identHyp, true, obj.trigger.tmIdx );
             % TODO: use joint LocIdHypo or add azm to IdHypo (then also
             % plot azm)
-            notify( obj, 'KsFiredEvent', ...
-                BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end
     
