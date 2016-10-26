@@ -14,14 +14,8 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
         end
     end
     
-    methods (Access = protected)
-        function prepAFEData( obj )
-        end
-        
-        function amlttpExecute( obj )
-            afeData = obj.getAFEdata();
-            afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
-            
+    methods (Access = protected)        
+        function amlttpExecute( obj, afeBlock )
             mask = obj.blackboard.getLastData('segmentationHypotheses', ...
                 obj.trigger.tmIdx);
             % create masked copy of afeData
@@ -29,12 +23,12 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
             score = {};
             estSrcAzm = [];
             for ii = 1 : numel(mask.data)
-                afeData_masked = SegmentIdentityKS.maskAFEData( afeData, ...
+                afeBlock_masked = SegmentIdentityKS.maskAFEData( afeBlock, ...
                     mask.data(ii).softMask, ...
                     mask.data(ii).cfHz, ...
                     mask.data(ii).hopSize );
                 
-                obj.featureCreator.setAfeData( afeData_masked );
+                obj.featureCreator.setAfeData( afeBlock_masked );
                 x = obj.featureCreator.constructVector();
                 [d(ii), score{ii}] = obj.model.applyModel( x{1} );
                 estSrcAzm(ii) = mask.data(ii).refAzm;

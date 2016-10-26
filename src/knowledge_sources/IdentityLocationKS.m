@@ -19,14 +19,11 @@ classdef IdentityLocationKS < AbstractAMLTTPKS
             % skip check for Models.Base
             obj.model = inputContent.model;
         end
-        
-        function execute( obj )
-
-        end
     end
     
     methods (Access = protected)
-        function amlttpExecute( obj )
+        function amlttpExecute( obj, afeBlock )
+            obj.featureCreator.setAfeData( afeBlock );
             x = obj.featureCreator.constructVector();
             
             [blobs_in, blobs_in_names] = obj.reshape2Blob( x{1}, x{2} );

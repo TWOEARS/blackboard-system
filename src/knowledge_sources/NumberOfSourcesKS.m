@@ -10,19 +10,14 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
         end
     end
     
-    methods (Access = protected)
-        function prepAFEData( obj )    
-            afeData = obj.getAFEdata();
-            afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
-            
+    methods (Access = protected)        
+        function amlttpExecute( obj, afeBlock )
             locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
             assert( numel( locHypos.data ) == 1 );
-            afeData = DataProcs.DnnLocKsWrapper.addLocData( afeData, locHypos.data );
+            afeBlock = DataProcs.DnnLocKsWrapper.addLocData( afeBlock, locHypos.data );
             
-            obj.featureCreator.setAfeData( afeData );
-        end
-        
-        function amlttpExecute( obj )
+            obj.featureCreator.setAfeData( afeBlock );
+            
             x = obj.featureCreator.constructVector();
             [d, score] = obj.model.applyModel( x{1} );
             d = round( d(1) );

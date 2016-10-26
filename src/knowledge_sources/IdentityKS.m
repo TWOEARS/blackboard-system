@@ -12,7 +12,8 @@ classdef IdentityKS < AbstractAMLTTPKS
     end
     
     methods (Access = protected)
-        function amlttpExecute( obj )
+        function amlttpExecute( obj, afeBlock )
+            obj.featureCreator.setAfeData( afeBlock );
             x = obj.featureCreator.constructVector();
             [d, score] = obj.model.applyModel( x{1} );
             

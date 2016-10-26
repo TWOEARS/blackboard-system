@@ -6,7 +6,13 @@ classdef AbstractAMLTTPKS < AuditoryFrontEndDepKS
         featureCreator;
         blockCreator;
     end
-
+    
+    methods (Abstract)
+        % a method through which the derived classes implement application
+        % of features to the internal model instance given an AFE data block
+        amlttpExecute( obj, afeBlock )
+    end
+    
     methods
         function obj = AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc )
             modelFileName = [modelDir filesep modelName];
@@ -75,20 +81,20 @@ classdef AbstractAMLTTPKS < AuditoryFrontEndDepKS
         
         function execute( obj )
             % calls KS-specific execute imeplementations and notifies the blackboard system 
-            obj.prepAFEData();
-            obj.amlttpExecute();
+            afeBlock = obj.cutAFEBlock();
+            obj.amlttpExecute( afeBlock );
             notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+        end
+        
+        function delete( obj )
         end
     end
     
     methods (Access = protected)
-        function prepAFEData( obj )    
+        function afeData = cutAFEBlock( obj )
+            %% cut and retrieve most recent block of AFE data
             afeData = obj.getAFEdata();
             afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
-            obj.featureCreator.setAfeData( afeData );
-        end
-        
-        function amlttpExecute( obj )
         end
     end
 end
