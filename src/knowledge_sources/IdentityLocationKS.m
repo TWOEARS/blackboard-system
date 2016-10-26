@@ -1,4 +1,4 @@
-classdef IdentityLocationKS < IdentityKS
+classdef IdentityLocationKS < AbstractAMLTTPKS
     
     properties (SetAccess = private)
         classnames;
@@ -7,7 +7,7 @@ classdef IdentityLocationKS < IdentityKS
 
     methods
         function obj = IdentityLocationKS( modelName, modelDir )
-            obj = obj@IdentityKS( modelName, modelDir );
+            obj = obj@AbstractAMLTTPKS( modelName, modelDir );
             modelFileName = fullfile(modelDir, modelName);
             v = load( [modelFileName '.model.mat'] );
             obj.classnames = v.classnames;
@@ -15,16 +15,19 @@ classdef IdentityLocationKS < IdentityKS
             obj.model.initNet(v.modelDir, v.fname_net_def, v.fname_weights);
         end
         
-        function execute( obj )
-            afeData = obj.getAFEdata();
-            afeData = obj.blockCreator.cutDataBlock( afeData, obj.timeSinceTrigger );
-            
-            obj.featureCreator.setAfeData( afeData );
+        function initModel(obj, inputContent)
+            % skip check for Models.Base
+            obj.model = inputContent.model;
+        end
+    end
+    
+    methods (Access = protected)
+        function amlttpExecute( obj, afeBlock )
+            obj.featureCreator.setAfeData( afeBlock );
             x = obj.featureCreator.constructVector();
             
             [blobs_in, blobs_in_names] = obj.reshape2Blob( x{1}, x{2} );
             [d, score] = obj.model.applyModel( {blobs_in, blobs_in_names} );
-            
             blobs_out_names = fieldnames(score);
             score_blob = score.(blobs_out_names{1}); % use only first one
             d_blob = d.(blobs_out_names{1}); % use only first one
@@ -42,12 +45,9 @@ classdef IdentityLocationKS < IdentityKS
                     currentHeadOrientation, ...
                     obj.azimuths, loc_probs, loc_decisions );
                 obj.blackboard.addData( 'identityHypotheses', hyp, true, obj.trigger.tmIdx );
-                notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
             end % classnames
         end
-    end
     
-    methods (Access = protected)        
         function [x_feat, feature_type_names] = reshape2Blob(obj, x, featureNames)
             % twoears2Blob  reshape feature and ground truth vectors into 4-D Blob for caffe
             %   For the feature vector x it expects a shape of (N x D)
