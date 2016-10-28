@@ -76,7 +76,10 @@ classdef AuditoryFrontEndKS < AbstractKS
             % Trigger event
             notify(obj, 'KsFiredEvent');
             
-            % Visualisation
+        end
+
+        %% Visualisation
+        function visualise(obj)
             if ~isempty(obj.blackboardSystem.afeVis)
                 t = obj.lastExecutionTime_s + obj.timeStep;
                 if mod(t, obj.blackboardSystem.afeVis.updateTime) < obj.timeStep
@@ -84,7 +87,7 @@ classdef AuditoryFrontEndKS < AbstractKS
                 end
             end
         end
-
+        
         %% KS utilities
         function createProcsForDepKS(obj, auditoryFrontEndDepKs)
             for z = 1:length( auditoryFrontEndDepKs.requests )

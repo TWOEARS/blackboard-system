@@ -8,7 +8,6 @@ classdef SourcesAzimuthsDistributionHypothesis < Hypothesis
         headOrientation;               % Head orientation angle
         seenByConfusionKS = false;
         seenByConfusionSolvingKS = false;
-        seenByHeadRotationKS = false;
         seenByLocalisationDecisionKS = false;
     end
 

@@ -39,7 +39,7 @@ classdef HeadRotationKS < AbstractKS
 
             % Get the most likely source direction
             ploc = obj.blackboard.getData( ...
-                'perceivedAzimuths', obj.trigger.tmIdx).data;
+                'locationHypothesis', obj.trigger.tmIdx).data;
             [post,idx] = max(ploc.sourcesPosteriors);
             % confHyp.azimuths are relative to the current head orientation
             azSrc = wrapTo180(ploc.sourceAzimuths(idx));
@@ -77,8 +77,10 @@ classdef HeadRotationKS < AbstractKS
                           headRotateAngle, obj.robot.getCurrentHeadOrientation);
             
             obj.rotationScheduled = false;
-            
-            % Visualisation
+        end
+        
+        % Visualisation
+        function visualise(obj)
             if ~isempty(obj.blackboardSystem.locVis)
                 obj.blackboardSystem.locVis.setHeadRotation(...
                     obj.robot.getCurrentHeadOrientation);

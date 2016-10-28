@@ -4,7 +4,7 @@ classdef LocalisationDecisionKS < AbstractKS
     % triggered.
 
     properties (SetAccess = private)
-        postThreshold = 0.05;      % Distribution probability threshold for a valid
+        postThreshold = 0.1;      % Distribution probability threshold for a valid
                                    % SourcesAzimuthsDistributionHypothesis
         bSolveConfusion = true;    % Invoke ConfusionSolvingKS
         prevTimeIdx = 0;
@@ -45,10 +45,10 @@ classdef LocalisationDecisionKS < AbstractKS
             aziHyp = obj.blackboard.getData( ...
                 'sourcesAzimuthsDistributionHypotheses', obj.trigger.tmIdx).data;
             
-            % If the first block, simply use the current block
+            % If the first block, make a decision based only on the current block
             if obj.prevTimeIdx == 0
-                ploc = PerceivedAzimuth(aziHyp.headOrientation, ...
-                    aziHyp.azimuths, aziHyp.sourcesDistribution);
+                
+                post = aziHyp.sourcesDistribution;
                 
             elseif obj.prevTimeIdx < obj.trigger.tmIdx
                 
@@ -56,39 +56,44 @@ classdef LocalisationDecisionKS < AbstractKS
                 % integrate with previous Location Hypothesis
                 prevHyp = obj.blackboard.getData( ...
                     'locationHypothesis', obj.prevTimeIdx).data;
-                headRotation = wrapTo180(prevHyp.headOrientation-aziHyp.headOrientation);
+                headRotation = wrapTo180(aziHyp.headOrientation-prevHyp.headOrientation);
                 prevPost = prevHyp.sourcesPosteriors;
                 currPost = aziHyp.sourcesDistribution;
-                if headRotation ~= 0
-                    locIdx = currPost > obj.postThreshold;
-                    if sum(locIdx) > 1
-                        [currPost, prevPost] = removeFrontBackConfusion(...
-                            aziHyp.azimuths, currPost, ...
-                            prevPost, headRotation);
+                locIdx = currPost > obj.postThreshold;
+                if sum(locIdx) > 0
+                    if headRotation ~= 0
+                        % Only if the new location hypothesis contains strong
+                        % directional sources, do the removal
+                        [prevPost,currPost] = removeFrontBackConfusion(...
+                            prevHyp.sourceAzimuths, prevPost, ...
+                            currPost, headRotation);
+                        % Changed int16 to round here, which seems to cause problem
+                        % with circshift in the next line
+                        idxDelta = round(headRotation / ...
+                            (aziHyp.azimuths(1) - aziHyp.azimuths(2)));
+                        prevPost = circshift(prevPost, idxDelta);
                     end
-                    % Changed int16 to round here, which seems to cause problem
-                    % with circshift in the next line
-                    idxDelta = round(headRotation / ...
-                        (aziHyp.azimuths(2) - aziHyp.azimuths(1)));
-                    prevPost = circshift(prevPost, idxDelta);
+                else
+                    % The new hypothesis doesn't seem to contain strong
+                    % directional source. Skip it
+                    currPost = 0;
                 end
-                
+                    
                 % Take the average of the sources distribution before head
                 % rotation and predictd distribution after head rotation
-                post = 0.5 .* currPost + 0.5 .* prevPost;
+                post = 0.4 .* currPost + 0.6 .* prevPost;
                 post = post ./ sum(post);
-                if min(size(post)) > 1
-                    disp(size(post));
-                end
-                ploc = LocationHypothesis(aziHyp.headOrientation, ...
+            end
+            
+            % Add Location Hypothesis to Blackboard
+            ploc = LocationHypothesis(aziHyp.headOrientation, ...
                     aziHyp.azimuths, post);
-            end
-                
-            % Visualisation
-            if ~isempty(obj.blackboardSystem.locVis)
-                obj.blackboardSystem.locVis.setPosteriors(...
-                    ploc.sourceAzimuths+ploc.headOrientation, ploc.sourcesPosteriors);
-            end
+            obj.blackboard.addData('locationHypothesis', ploc, false, ...
+                obj.trigger.tmIdx);
+            obj.prevTimeIdx = obj.trigger.tmIdx;
+            aziHyp.seenByLocalisationDecisionKS;
+            
+            
             
             % Request head rotation to solve front-back confusion
             bRotateHead = false;
@@ -97,7 +102,7 @@ classdef LocalisationDecisionKS < AbstractKS
                 locIdx = ploc.sourcesPosteriors > obj.postThreshold;
                 numLoc = sum(locIdx);
                 % Assume a confusion when more than 1 valid location
-                if numLoc > 1
+                if numLoc > 1 || (ploc.relativeAzimuth > 150 && ploc.relativeAzimuth < 210)
                     bRotateHead = true;
                 end
             end
@@ -107,11 +112,16 @@ classdef LocalisationDecisionKS < AbstractKS
                 notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
             end
             
-            % Add percieved azimuths to Blackboard
-            obj.blackboard.addData('locationHypothesis', ploc, false, ...
-                obj.trigger.tmIdx);
-            obj.prevTimeIdx = obj.trigger.tmIdx;
-            aziHyp.seenByLocalisationDecisionKS;
+        end
+        
+        % Visualisation
+        function visualise(obj)
+            if ~isempty(obj.blackboardSystem.locVis)
+                ploc = obj.blackboard.getData( ...
+                'locationHypothesis', obj.trigger.tmIdx).data;
+                obj.blackboardSystem.locVis.setPosteriors(...
+                    ploc.sourceAzimuths+ploc.headOrientation, ploc.sourcesPosteriors);
+            end
         end
     end
 end

@@ -81,6 +81,10 @@ classdef AbstractKS < handle & matlab.mixin.Heterogeneous
             s =  mcobj.Name;
         end
         
+        
+        %% Default empty visualisation
+        function visualise(obj)
+        end
     end
     
     methods (Sealed)
