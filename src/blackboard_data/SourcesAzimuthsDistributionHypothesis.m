@@ -8,6 +8,8 @@ classdef SourcesAzimuthsDistributionHypothesis < Hypothesis
         headOrientation;               % Head orientation angle
         seenByConfusionKS = false;
         seenByConfusionSolvingKS = false;
+        seenByHeadRotationKS = false;
+        seenByLocalisationDecisionKS = false;
     end
 
     methods
@@ -22,6 +24,12 @@ classdef SourcesAzimuthsDistributionHypothesis < Hypothesis
         end
         function obj = setSeenByConfusionSolvingKS(obj)
             obj.seenByConfusionSolvingKS = true;
+        end
+        function obj = setSeenByHeadRotationKS(obj)
+            obj.seenByHeadRotationKS = true;
+        end
+        function obj = setSeenByLocalisationDecisionKS(obj)
+            obj.seenByLocalisationDecisionKS = true;
         end
     end
 

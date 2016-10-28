@@ -56,15 +56,9 @@ classdef ConfusionSolvingKS < AbstractKS
             % rotation and predictd distribution from after head rotation
             post = (post1 + post2);
             post = post ./ sum(post);
-            %figure
-            %hold off;
-            %plot(confHyp.azimuths, confHyp.sourcesDistribution, 'o--');
-            %hold on;
-            %plot(confHyp.azimuths, predictedDistribution, 'go--');
-            %plot(confHyp.azimuths, post, 'ro--');
-            %legend('Dist before rotation', 'Dist after rotation', 'Average dist');
+
             [maxPost,idx] = max(post);
-            if maxPost > obj.postThreshold;
+            if maxPost > obj.postThreshold
                 % Apply exponential interpolation to refine peak position
                 delta = interpolateParabolic(post,idx);
                 deltaAz = abs(diff(confHyp.azimuths(1:2)));

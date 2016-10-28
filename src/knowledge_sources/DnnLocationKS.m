@@ -152,16 +152,11 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             % Create a new location hypothesis
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             aziHyp = SourcesAzimuthsDistributionHypothesis( ...
-                currentHeadOrientation, obj.angles, prob_AFN_F);
+                currentHeadOrientation, obj.angles(:), prob_AFN_F(:));
             obj.blackboard.addData( ...
                 'sourcesAzimuthsDistributionHypotheses', aziHyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
             
-            % Visualisation
-            if ~isempty(obj.blackboardSystem.locVis)
-                obj.blackboardSystem.locVis.setPosteriors(...
-                    obj.angles+currentHeadOrientation, prob_AFN_F);
-            end
         end
 
     end

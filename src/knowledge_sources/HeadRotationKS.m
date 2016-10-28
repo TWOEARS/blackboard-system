@@ -1,5 +1,5 @@
-classdef RotationKS < AbstractKS
-    % RotationKS decides how much to rotate the robot head
+classdef HeadRotationKS < AbstractKS
+    % HeadRotationKS decides how to rotate the robot head
 
     properties (SetAccess = private)
         rotationScheduled = false;    % To avoid repetitive head rotations
@@ -9,7 +9,7 @@ classdef RotationKS < AbstractKS
     end
 
     methods
-        function obj = RotationKS(robot)
+        function obj = HeadRotationKS(robot)
             obj = obj@AbstractKS();
             obj.invocationMaxFrequency_Hz = inf;
             obj.robot = robot;
@@ -38,14 +38,22 @@ classdef RotationKS < AbstractKS
         function execute(obj)
 
             % Get the most likely source direction
-            confHyp = obj.blackboard.getData('confusionHypotheses', ...
-                obj.trigger.tmIdx).data;
-            [~,idx] = max(confHyp.sourcesDistribution);
+            ploc = obj.blackboard.getData( ...
+                'perceivedAzimuths', obj.trigger.tmIdx).data;
+            [post,idx] = max(ploc.sourcesPosteriors);
             % confHyp.azimuths are relative to the current head orientation
-            azSrc = wrapTo180(confHyp.azimuths(idx));
+            azSrc = wrapTo180(ploc.sourceAzimuths(idx));
             
             % We want to turn the head toward the most likely source
-            % direction
+            % direction, but if not a strong source, make a random rotation
+            if post < 0.2
+                if rand(1) < 0.5
+                    azSrc = obj.minRotationAngle;
+                else
+                    azSrc = -obj.minRotationAngle;
+                end
+            end
+            
             if azSrc > 0
                 % Source is at the left side of current head orientation
                 headRotateAngle = obj.minRotationAngle;
@@ -64,7 +72,7 @@ classdef RotationKS < AbstractKS
             % Rotate head with a relative angle
             obj.robot.rotateHead(headRotateAngle, 'relative');
 
-            bbprintf(obj, ['[RotationKS:] Commanded head to rotate about ', ...
+            bbprintf(obj, ['[HeadRotationKS:] Commanded head to rotate about ', ...
                            '%d degrees. New head orientation: %.0f degrees\n'], ...
                           headRotateAngle, obj.robot.getCurrentHeadOrientation);
             

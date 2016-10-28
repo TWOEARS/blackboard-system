@@ -9,10 +9,6 @@ classdef ConfusionKS < AbstractKS
         bSolveConfusion = true;    % Invoke ConfusionSolvingKS
     end
 
-    events
-        ConfusedLocations
-    end
-
     methods
         function obj = ConfusionKS(bSolveConfusion)
             obj = obj@AbstractKS();
@@ -36,21 +32,20 @@ classdef ConfusionKS < AbstractKS
         function execute(obj)
             aziHyp = obj.blackboard.getData( ...
                 'sourcesAzimuthsDistributionHypotheses', obj.trigger.tmIdx).data;
+            
             % Generates location hypotheses if posterior distribution > threshold
             locIdx = aziHyp.sourcesDistribution > obj.postThreshold;
             numLoc = sum(locIdx);
+            
             if numLoc > 1 && obj.bSolveConfusion
-                % Assume there is a confusion when there are more than 1
-                % valid location
-                % cf = ConfusionHypothesis(aziHyp.blockNo, aziHyp.headOrientation, ...
-                %         aziHyp.azimuths(locIdx), aziHyp.sourcesDistribution(locIdx));
+                % Assume a confusion when more than 1 valid location
                 obj.blackboard.addData('confusionHypotheses', ...
                     aziHyp, false, obj.trigger.tmIdx);
                 notify(obj, 'ConfusedLocations', BlackboardEventData(obj.trigger.tmIdx));
+                
             elseif numLoc > 0
-                % Assuming no confusion by using the index with the highest probability
-                [maxPost,locIdx] = max(aziHyp.sourcesDistribution);
                 % No confusion, generate Perceived Azimuth
+                [maxPost,locIdx] = max(aziHyp.sourcesDistribution);
                 
                 % Apply exponential interpolation to refine peak position
                 delta = interpolateParabolic(aziHyp.sourcesDistribution,locIdx);
@@ -62,9 +57,16 @@ classdef ConfusionKS < AbstractKS
                 obj.blackboard.addData('perceivedAzimuths', ploc, false, ...
                     obj.trigger.tmIdx);
                 notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
+                
+                % Visualisation
+                if ~isempty(obj.blackboardSystem.locVis)
+                    obj.blackboardSystem.locVis.setPosteriors(...
+                        aziHyp.azimuths+aziHyp.headOrientation, ...
+                        aziHyp.sourcesDistribution);
+                end
             end
-            aziHyp.setSeenByConfusionKS;
             
+            aziHyp.setSeenByConfusionKS;
         end
     end
 end
