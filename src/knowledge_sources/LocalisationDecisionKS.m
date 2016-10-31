@@ -6,6 +6,7 @@ classdef LocalisationDecisionKS < AbstractKS
     properties (SetAccess = private)
         postThreshold = 0.1;      % Distribution probability threshold for a valid
                                    % SourcesAzimuthsDistributionHypothesis
+        leakItFactor = 0.3;       % Importance of presence [0,1]
         bSolveConfusion = true;    % Invoke ConfusionSolvingKS
         prevTimeIdx = 0;
     end
@@ -59,8 +60,7 @@ classdef LocalisationDecisionKS < AbstractKS
                 headRotation = wrapTo180(aziHyp.headOrientation-prevHyp.headOrientation);
                 prevPost = prevHyp.sourcesPosteriors;
                 currPost = aziHyp.sourcesDistribution;
-                locIdx = currPost > obj.postThreshold;
-                if sum(locIdx) > 0
+                if sum(currPost > obj.postThreshold) > 0
                     if headRotation ~= 0
                         % Only if the new location hypothesis contains strong
                         % directional sources, do the removal
@@ -77,11 +77,18 @@ classdef LocalisationDecisionKS < AbstractKS
                     % The new hypothesis doesn't seem to contain strong
                     % directional source. Skip it
                     currPost = 0;
+                    if headRotation ~= 0
+                        % If a head rotation is done, needs to circshift
+                        % previous information
+                        idxDelta = round(headRotation / ...
+                            (aziHyp.azimuths(1) - aziHyp.azimuths(2)));
+                        prevPost = circshift(prevPost, idxDelta);
+                    end
                 end
                     
                 % Take the average of the sources distribution before head
                 % rotation and predictd distribution after head rotation
-                post = 0.4 .* currPost + 0.6 .* prevPost;
+                post = obj.leakItFactor .* currPost + (1-obj.leakItFactor) .* prevPost;
                 post = post ./ sum(post);
             end
             
@@ -99,10 +106,9 @@ classdef LocalisationDecisionKS < AbstractKS
             bRotateHead = false;
             if obj.bSolveConfusion
                 % Generates location hypotheses if posterior distribution > threshold
-                locIdx = ploc.sourcesPosteriors > obj.postThreshold;
-                numLoc = sum(locIdx);
                 % Assume a confusion when more than 1 valid location
-                if numLoc > 1 || (ploc.relativeAzimuth > 150 && ploc.relativeAzimuth < 210)
+                if sum(ploc.sourcesPosteriors > obj.postThreshold) > 1 ...
+                        || (ploc.relativeAzimuth > 150 && ploc.relativeAzimuth < 210)
                     bRotateHead = true;
                 end
             end
