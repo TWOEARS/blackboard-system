@@ -116,7 +116,8 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 afe = obj.getAFEdata;
                 obj.channels = find(afe(1).cfHz >= obj.freqRange(1) & afe(1).cfHz <= obj.freqRange(2));
             end
-            
+
+
             % Compute posterior distributions for each frequency channel and time frame
             [nFrames] = size(ild,1);
             nAzimuths = numel(obj.angles);
@@ -139,15 +140,36 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 obj.DNNs{ch}.testing = 0;
             end
 
-            % Average posterior distributions over frequency
-            prob_AF = exp(squeeze(nanSum(log(post),3)));
+            % Get segregation mask
+            segHyp = obj.blackboard.getData( ...
+                'sourceSegregationHypothesis', obj.trigger.tmIdx);
+            if isempty(segHyp) 
+                % Average posterior distributions over frequency
+                prob_AF = exp(squeeze(nanSum(log(post),3)));
 
+                % Normalise each frame such that probabilities sum up to one
+                prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
 
-            % Normalise each frame such that probabilities sum up to one
-            prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
+                % Average posterior distributions over time
+                prob_AFN_F = nanMean(prob_AFN, 1);
 
-            % Average posterior distributions over time
-            prob_AFN_F = nanMean(prob_AFN, 1);
+            else
+                mask = segHyp.data.mask;
+                % Integrate over time-frequency by applying the mask
+                mask2 = reshape(mask', size(mask,2), 1, size(mask,1));
+
+                % Integrate probabilities across all frequency channel
+                prob_AF = exp(squeeze(nanSum(bsxfun(@times,log(post),mask2),3)));
+
+                % Normalize such that probabilities sum up to one for each frame
+                prob_AFN = transpose(prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]));
+
+                % Integrate across all frames
+                %prob_AFN_F = nanmean(prob_AFN,2);
+                mask3 = sum(mask);
+                prob_AFN_F = nanSum(bsxfun(@times,prob_AFN,mask3./sum(mask3)),2);
+            
+            end
 
             % Create a new location hypothesis
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
