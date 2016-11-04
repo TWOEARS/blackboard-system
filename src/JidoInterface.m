@@ -253,8 +253,10 @@ classdef JidoInterface < simulator.RobotInterface
         %         posY : y position
         %        theta : robot base orientation in the world frame
         
-            % NEED UPDATING
-            error('NOT IMPLEMENTED YET');
+            p = obj.jido.NavigationState();
+            posX = p.NavigationState.position.x;
+            posY = p.NavigationState.position.y;
+            theta = p.NavigationState.position.orientation;
         end
         
         
