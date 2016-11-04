@@ -1,10 +1,6 @@
 classdef SegmentIdentityKS < AbstractAMLTTPKS
     
     properties (SetAccess = private)
-        modelname;
-        model;                 % classifier model
-        featureCreator;
-        blockCreator;
     end
 
     methods
@@ -30,19 +26,15 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
                 
                 obj.featureCreator.setAfeData( afeBlock_masked );
                 x = obj.featureCreator.constructVector();
-                [d(ii), score{ii}] = obj.model.applyModel( x{1} );
-                estSrcAzm(ii) = mask.data(ii).refAzm;
-                bbprintf(obj, '[SegmentIdentitiyKS:] source %i at %i�: %s with %i%% score.\n', ...
-                     ii, estSrcAzm(ii), obj.modelname, int16(score{ii}(1)*100) );
+                [d, score] = obj.model.applyModel( x{1} );
+                estSrcAzm = mask.data(ii).refAzm;
+                bbprintf(obj, '[SegmentIdentitiyKS:] source %i at %i deg azm: %s with %i%% score.\n', ...
+                     ii, estSrcAzm, obj.modelname, int16(score(1)*100) );
+                identHyp = IdentityHypothesis( obj.modelname, ...
+                         score(1), d, obj.blockCreator.blockSize_s, estSrcAzm );
+                obj.blackboard.addData( 'identityHypotheses', ...
+                     identHyp, true, obj.trigger.tmIdx );
             end
-            [score, maxScoreIdx] = max( cellfun( @(c)(c(1)), score ) );
-            d = d(maxScoreIdx);
-            identHyp = IdentityHypothesis( ...
-                obj.modelname, score, d, obj.blockCreator.blockSize_s );
-            obj.blackboard.addData( 'identityHypotheses', ...
-                identHyp, true, obj.trigger.tmIdx );
-            % TODO: use joint LocIdHypo or add azm to IdHypo (then also
-            % plot azm)
         end
     end
     

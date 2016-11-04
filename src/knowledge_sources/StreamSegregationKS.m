@@ -77,16 +77,18 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
         end
         
         function [bExecute, bWait] = canExecute(obj)
-            bExecute = obj.hasEnoughNewSignal( obj.blockSize );
+            bExecute = obj.blackboard.currentSoundTimeIdx > obj.blockSize;
+            % allow overlapped executions
+            % bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
         end
         
         function execute(obj)
             % Get binaural features.
-            itds = obj.getNextSignalBlock( 1, obj.blockSize, ...
-                obj.blockSize, false );
-            ilds = obj.getNextSignalBlock( 2, obj.blockSize, ...
-                obj.blockSize, false );
+            itds = obj.getSignalBlock( 1, ...
+                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
+            ilds = obj.getSignalBlock( 2, ...
+                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
             
             % Get current look direction.
             lookDirection = obj.blackboard.getLastData( 'headOrientation' );
@@ -118,7 +120,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 refAzm = zeros( 1, numAzimuths );
                 [locPeaks, locPeaksIdxs] = findpeaks( ...
                     [locData.sourcesDistribution(end) ...
-                     locData.sourcesDistribution ...
+                     locData.sourcesDistribution(:)' ...
                      locData.sourcesDistribution(1)] );
                 locPeaksIdxs = locPeaksIdxs - 1;
                 assert( ...
