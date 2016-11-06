@@ -14,25 +14,27 @@ classdef HeadTurningModulationKS < AbstractKS
 % === PROPERTIES [BEG] === %
 % ======================== %
 properties (SetAccess = public)
+    head_position = 0;
+ 
     bbs = [];
 
     data = [];
+    theta = [];
+    theta_v = [];
  
     current_time = 0;
+    
+    current_object = 0;
 
-    RIR; % Robot_Internal_Representation class
-    MSOM; % Multimodal_Self_Organizing_Map class
-    MFI; % Multimodal_Fusion_&_Inference class
-    EMKS; % Environmental_Map class
+    RIR; % Robot Internal Representation
+    MSOM; % Multimodal SelfOrganizing Map
+    MFI; % Multimodal Fusion & Inference
+
+    % EMKS; % Environmental_Map class
 
     statistics = [];
 
     sources = [];
-
-    current_object = 0;
-    current_object_hist = [];
-
-    info;
 
     iStep = 0;
 
@@ -55,12 +57,11 @@ function obj = HeadTurningModulationKS (bbs)
     obj.bbs = bbs;
     obj.invocationMaxFrequency_Hz = inf;
     
-    initializeParameters();
+    initializeParameters(obj);
 
     obj.MSOM = MultimodalSelfOrganizingMap();
     obj.MFI = MultimodalFusionAndInference(obj);
     obj.RIR = RobotInternalRepresentation(obj);
-
 end
 
 % === Execute functionality
@@ -69,7 +70,7 @@ function [b, wait] = canExecute (obj)
     wait = false;
 end
 
-function finished = isFinished (obj)
+function finished = isFinished(obj)
     finished = obj.finished;
 end
 
@@ -78,61 +79,46 @@ function execute (obj)
     
     fprintf('\nHead Turning Modulation KS evaluation\n');
 
-    % obj.cpt = obj.cpt + 1;
-
-    object_detection = obj.blackboard.getLastData('objectDetectionHypothese').data;
-    object_detection = object_detection(1); % --- 1st value: 1(create object) or 2(update object)
-    obj.current_object = object_detection(2); % --- 2nd value: id of the object. ≠ from focus!
-    % object_detection = obj.ObjectDetectionKS.decision(1, end); 
-    % obj.current_object = obj.ObjectDetectionKS.decision(2, end); 
-    obj.current_object_hist(end+1) = obj.current_object; % --- Update history of sources
+    obj.iStep = obj.iStep + 1;
 
     obj.data(:, end+1) = getClassifiersOutput(obj);
-    audio_theta = getLocalisationOutput();
+    obj.theta(end+1) = getLocalisationOutput(obj);
+    tmp = obj.blackboard.getLastData('audiovisualHypotheses').data;
+    obj.theta_v(end+1) = tmp('theta');
+    
+    object_detection = obj.blackboard.getData('objectDetectionHypotheses').data;
+    obj.current_object = object_detection.id_object;
 
-   if object_detection == 1 % --- Create new object
-        % theta = generateAngle(obj.gtruth{iStep, 1});
-        % audio_theta = obj.ALKS.hyp_hist(end); % --- Grab the audio localization output
-        %visual_theta = obj.VLKS.getVisualLocalization(); % --- Grab the visual localization output
-
-        % obj.degradeData(audio_theta, iStep); % --- Remove visual components if object is NOT in field of view
-        obj.MSOM.idx_data = 1; % --- Update status of MSOM learning
-
+    if ~obj.createNew() && ~obj.updateObject()
+        obj.setPresence(false);
+        obj.RIR.updateData();
+    else
+        obj.degradeData(obj.theta); % --- Remove visual components if object is NOT in field of view
         obj.RIR.updateData(); % --- Updating the RIR observed data
-        obj.RIR.addObject(); % --- Add the object
-        setObject(obj, obj.current_object, 'presence', true); % --- The object is present but not necessarily facing the robot
-        % setObject(obj, 0, 'presence', true);
-
-    % elseif ~create_new && ~do_nothing % --- update object
-    elseif object_detection == 2 % --- Update object
-        % theta = getObject(obj, obj.current_object, 'theta');
-        % theta = obj.ALKS.hyp_hist(end); % --- Grab the audio localization output
-
-        % obj.degradeData(theta, iStep); % --- Remove visual components if object is NOT in field of view
-        obj.RIR.updateData(); % --- Updating the RIR observed data
-        obj.RIR.updateObject(); % --- Update the current object
-        obj.MSOM.idx_data = obj.MSOM.idx_data+1;
-        setObject(obj, obj.current_object, 'presence', true); % --- The object is present but not necessarily facing the robot
-
-    % elseif ~create_new && do_nothing % --- silence phase
-    elseif object_detection == 0 % --- silence phase
-        if obj.RIR.nb_objects > 0
-            idx = obj.current_object_hist(end-1);
-            if idx ~= 0 && getObject(obj, idx, 'presence')
-                setObject(obj, idx, 'presence', false);
-                obj.RIR.getEnv().objects{idx}.updateAngle('init');
-                % obj.RIR.getLastObj().presence = false;
-            end
+        if obj.createNew()
+            obj.MSOM.idx_data = 1; % --- Update status of MSOM learning
+            obj.RIR.addObject(); % --- Add the object
+        elseif obj.updateObject()
+            obj.MSOM.idx_data = obj.MSOM.idx_data+1;
+            obj.RIR.updateObject(); % --- Update the current object
         end
-        obj.RIR.updateData(obj.data(:, iStep));
+        obj.setPresence(true);
     end
 
     % --- Update all objects
-    obj.updateTime();
-
     obj.RIR.updateObjects();
 
     obj.updateAngles();
+% 
+%     if sum(obj.data(getInfo('nb_audio_labels')+1:end, obj.iStep)) == 0
+%         obj.statistics.max_shm(iStep) = 0;
+%     end
+
+    % obj.retrieveMfiCategorization();
+
+    % obj.storeMsomWeights(iStep);
+
+    % obj.EMKS.updateMap();
 
 
     % if ~isempty(classifiers_output)
@@ -146,30 +132,64 @@ function execute (obj)
     %     playNotification();
     % end
 
+    keySet = {'detectedObjects'};
+    valueSet = {getObject(obj, 'all')};
+
+    observedObjectsHypotheses = containers.Map(keySet, valueSet);
+
+    obj.blackboard.addData('ObservedObjectsHypotheses', observedObjectsHypotheses,...
+                           false, obj.trigger.tmIdx);
+
     notify(obj, 'KsFiredEvent');
 % end
+end
+
+function setPresence (obj, bool)
+    if ~bool 
+        if obj.RIR.nb_objects > 0 
+            object_detection = obj.blackboard.getData('objectDetectionHypotheses').data;
+            idx = object_detection.id_object;
+            idx = idx(end-1);
+            if idx ~= 0 && getObject(obj, idx, 'presence')
+                setObject(obj, idx, 'presence', false);
+            end
+        end
+    else
+        object_detection = obj.blackboard.getLastData('objectDetectionHypotheses').data;
+        idx = object_detection.id_object;
+        setObject(obj, idx, 'presence', true); % --- The object is present but not necessarily facing the robot
+    end
+end
+
+function bool = createNew (obj)
+    object_detection = obj.blackboard.getLastData('objectDetectionHypotheses').data;
+    bool = object_detection.create_new;
+end
+
+function bool = updateObject (obj)
+    object_detection = obj.blackboard.getLastData('objectDetectionHypotheses').data;
+    bool = object_detection.update_object;
 end
 
 function updateTime (obj)
     obj.current_time = obj.blackboard.currentSoundTimeIdx;
 end
 
-
+% === Given the position of the head, updates the position of all the sources observed so far
 function updateAngles (obj)
-    if obj.current_object == 0
+    if obj.RIR.nb_objects == 0
         return;
     end
-    head_position = obj.RIR.head_position;
-    objects_id = 1:obj.RIR.nb_objects;
-    objects_id(obj.current_object) = [];
-    
-    if isempty(objects_id)
+    motor_order = obj.blackboard.getLastData('motorOrder');
+    if isempty(motor_order)
         return;
     end
-
-    for iObject = objects_id
-        previous_theta = getObject(obj, iObject, 'theta_hist');
-        theta = abs(head_position - previous_theta(end));
+    motor_order = motor_order.data('theta');
+    for iObject = 1:obj.RIR.nb_objects
+        theta_object = getObject(obj, iObject, 'theta');
+        
+        
+        theta = mod(360 - motor_order + theta_object(end), 360);
         obj.RIR.getEnv().objects{iObject}.updateAngle(theta);
     end
 end
@@ -203,6 +223,17 @@ end
 % end
 % === TO BE MODIFIED === %
 
+function degradeData (obj, theta)
+    if ~isInFieldOfView(theta)
+        obj.data(getInfo('nb_audio_labels')+1:end, obj.iStep) = 0;
+    end
 end
-    
+
 end
+% ===================== %
+% === METHODS [END] === % 
+% ===================== %
+end
+% =================== %
+% === END OF FILE === %
+% =================== %
