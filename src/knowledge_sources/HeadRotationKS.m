@@ -13,6 +13,7 @@ classdef HeadRotationKS < AbstractKS
             obj = obj@AbstractKS();
             obj.invocationMaxFrequency_Hz = inf;
             obj.robot = robot;
+            obj.unfocus();
         end
 
         function setMinimumRotationAngle(obj, angle)
