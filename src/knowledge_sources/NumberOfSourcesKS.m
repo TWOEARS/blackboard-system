@@ -8,11 +8,20 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
             obj.setInvocationFrequency(4);
         end
+        
+        function visualise(obj)
+            if ~isempty(obj.blackboardSystem.locVis)
+                nSrcsHyp = obj.blackboard.getData( ...
+                    'NumberOfSourcesHypotheses', obj.trigger.tmIdx).data;
+                obj.blackboardSystem.locVis.setNumberOfSourcesText(nSrcsHyp.n);
+            end
+        end
     end
     
     methods (Access = protected)        
         function amlttpExecute( obj, afeBlock )
-            locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
+%             locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
+            locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
             assert( numel( locHypos.data ) == 1 );
             afeBlock = DataProcs.DnnLocKsWrapper.addLocData( afeBlock, locHypos.data );
             
