@@ -6,7 +6,7 @@ classdef LocalisationDecisionKS < AbstractKS
     properties (SetAccess = private)
         postThreshold = 0.1;      % Distribution probability threshold for a valid
                                    % SourcesAzimuthsDistributionHypothesis
-        leakItFactor = 0.3;       % Importance of presence [0,1]
+        leakItFactor = 0.5;       % Importance of presence [0,1]
         bSolveConfusion = true;    % Invoke ConfusionSolvingKS
         prevTimeIdx = 0;
     end
@@ -74,9 +74,6 @@ classdef LocalisationDecisionKS < AbstractKS
                         prevPost = circshift(prevPost, idxDelta);
                     end
                 else
-                    % The new hypothesis doesn't seem to contain strong
-                    % directional source. Skip it
-                    currPost = 0;
                     if headRotation ~= 0
                         % If a head rotation is done, needs to circshift
                         % previous information
