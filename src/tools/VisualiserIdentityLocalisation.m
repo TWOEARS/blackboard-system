@@ -369,8 +369,8 @@ classdef VisualiserIdentityLocalisation < handle
         
         function obj = setNumberOfSourcesText(obj, ...
                 numSrcs)
-            angle = 60;
-            radius = obj.MARKER_RADIUS+120;
+            angle = 50;
+            radius = obj.MARKER_RADIUS+270;
             sn = sin(-2*pi*angle/360);
             cs = cos(-2*pi*angle/360);
             x2 = radius * sn;
@@ -381,7 +381,7 @@ classdef VisualiserIdentityLocalisation < handle
                 str = sprintf('%d source', numSrcs);
             end
             set(obj.TextHandle, ...
-                'Color', [0, 0, 0], ...
+                'Color', [0, 0, 0.7], ...
                 'Position', [x2, y2], ...
                 'FontSize', 17, ...
                 'String', str);
