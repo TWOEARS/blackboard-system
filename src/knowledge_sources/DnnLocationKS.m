@@ -113,7 +113,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             ratemap = obj.getNextSignalBlock( 3, obj.blockSize, obj.blockSize, false );
             ratemap = (ratemap{1} + ratemap{2}) ./ 2;
             frameEnergy = mean(ratemap,2);
-            fprintf('%E\n', frameEnergy);
+            %fprintf('%E\n', frameEnergy);
             validFrames = frameEnergy > obj.blackboard.energyThreshold;
             if sum(validFrames) < 2
                 return;
