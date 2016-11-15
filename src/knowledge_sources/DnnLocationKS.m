@@ -62,8 +62,8 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             requests{1}.params = param;
             requests{2}.name = 'ild';
             requests{2}.params = param;
-            %requests{3}.name = 'ratemap';
-            %requests{3}.params = param;
+            requests{3}.name = 'ratemap';
+            requests{3}.params = param;
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.invocationMaxFrequency_Hz = 10;
@@ -110,7 +110,14 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             mlag = 16; % only use -1 ms to 1 ms
             cc = cc(:,:,idx-mlag:idx+mlag);
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
-
+            ratemap = obj.getNextSignalBlock( 3, obj.blockSize, obj.blockSize, false );
+            ratemap = (ratemap{1} + ratemap{2}) ./ 2;
+            frameEnergy = mean(ratemap,2)
+            validFrames = frameEnergy > obj.blackboard.energyThreshold;
+            if sum(validFrames) < 2
+                return;
+            end
+            
             % Only consider those channels within obj.freqRange
             if isempty(obj.channels)
                 afe = obj.getAFEdata;
@@ -140,6 +147,9 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 obj.DNNs{ch}.testing = 0;
             end
 
+            % Only process valid frames
+            post = post(validFrames, :, :);
+            
             % Get segregation mask
             segHyp = obj.blackboard.getData( ...
                 'sourceSegregationHypothesis', obj.trigger.tmIdx);
@@ -155,6 +165,8 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
 
             else
                 mask = segHyp.data.mask;
+                mask = mask(:, validFrames);
+                
                 % Integrate over time-frequency by applying the mask
                 mask2 = reshape(mask', size(mask,2), 1, size(mask,1));
 

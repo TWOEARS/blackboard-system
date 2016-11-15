@@ -23,6 +23,10 @@ classdef BlackboardSystem < handle
             obj.scheduler = Scheduler( obj.blackboardMonitor );
         end
 
+        function setEnergyThreshold(obj, energyThreshold)
+            obj.blackboard.setEnergyThreshold(energyThreshold);
+        end
+        
         % Set blackboard visualiser
         function setVisualiser(obj, visualiser)
             obj.scheduler.setVisualiser(visualiser);
