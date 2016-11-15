@@ -114,10 +114,11 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             ratemap = (ratemap{1} + ratemap{2}) ./ 2;
             frameEnergy = mean(ratemap,2);
             %fprintf('%E\n', frameEnergy);
-            validFrames = frameEnergy > obj.blackboard.energyThreshold;
-            if sum(validFrames) < 2
-                return;
-            end
+            inactiveFrames = frameEnergy < obj.blackboard.energyThreshold;
+            
+            %if sum(validFrames) < 2
+            %    return;
+            %end
             
             % Only consider those channels within obj.freqRange
             if isempty(obj.channels)
@@ -149,24 +150,31 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             end
 
             % Only process valid frames
-            post = post(validFrames, :, :);
+            % post = post(validFrames, :, :);
             
             % Get segregation mask
             segHyp = obj.blackboard.getData( ...
                 'sourceSegregationHypothesis', obj.trigger.tmIdx);
+            
+            % Random probabilities for inactive frames
+            randProbs = randn(nFrames,nAzimuths).*0.005 + 1/nAzimuths;
+            
             if isempty(segHyp) 
                 % Average posterior distributions over frequency
                 prob_AF = exp(squeeze(nanSum(log(post),3)));
 
+                % Set inactive frames to random probabilities
+                prob_AF(inactiveFrames,:) = randProbs(inactiveFrames,:);
+                
                 % Normalise each frame such that probabilities sum up to one
                 prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
-
+                
                 % Average posterior distributions over time
                 prob_AFN_F = nanMean(prob_AFN, 1);
 
             else
                 mask = segHyp.data.mask;
-                mask = mask(:, validFrames);
+                %mask = mask(:, validFrames);
                 
                 % Integrate over time-frequency by applying the mask
                 mask2 = reshape(mask', size(mask,2), 1, size(mask,1));
@@ -174,6 +182,9 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 % Integrate probabilities across all frequency channel
                 prob_AF = exp(squeeze(nanSum(bsxfun(@times,log(post),mask2),3)));
 
+                % Set inactive frames to random probabilities
+                prob_AF(inactiveFrames,:) = randProbs(inactiveFrames,:);
+                
                 % Normalize such that probabilities sum up to one for each frame
                 prob_AFN = transpose(prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]));
 

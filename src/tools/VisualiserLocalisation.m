@@ -33,7 +33,7 @@ classdef VisualiserLocalisation < handle
         MarkerHandle
         BarHandle
         Hue = 50 % hue in HSV space, default is orangey yellow
-        ScaleFactor = 2
+        ScaleFactor = 2.5
     end
     
     methods
