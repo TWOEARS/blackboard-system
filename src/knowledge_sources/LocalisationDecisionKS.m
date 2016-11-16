@@ -16,12 +16,13 @@ classdef LocalisationDecisionKS < AbstractKS
     end
     
     methods
-        function obj = LocalisationDecisionKS(bSolveConfusion)
+        function obj = LocalisationDecisionKS(bSolveConfusion, leakItFactor)
             obj = obj@AbstractKS();
             obj.invocationMaxFrequency_Hz = inf;
             if nargin > 0
                 obj.bSolveConfusion = bSolveConfusion;
             end
+            obj.leakItFactor = leakItFactor;
         end
 
         function setPostThreshold(obj, t)
