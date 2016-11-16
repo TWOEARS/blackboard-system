@@ -112,7 +112,7 @@ classdef JidoInterface < simulator.RobotInterface
 %                 0.7612 .* (cell2mat(audioBuffer.Audio.right) ./ (2^31))]';
             sig = [cell2mat(audioBuffer.Audio.left); ...
                    cell2mat(audioBuffer.Audio.right)]';
-            %sig = sig ./ (2^31);
+            sig = sig ./ (2^31);
 
             % Get default buffer size of the audio stream server
             bufferSize = size(sig, 1);

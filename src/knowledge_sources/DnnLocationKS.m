@@ -15,9 +15,6 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
-        energyThreshold = 2E-3;     % ratemap energy threshold (cuberoot 
-                                    % compression) for detecting active 
-                                    % frames
         freqRange;                  % Frequency range to be considered
         channels = [];              % Frequency channels to be used
     end
