@@ -1,5 +1,5 @@
-classdef DnnLocationKS < AuditoryFrontEndDepKS
-    % DnnLocationKS calculates posterior probabilities for each azimuth angle and
+classdef SpeakerIdUbmKS < AuditoryFrontEndDepKS
+    % SpeakerIdUbmKS calculates posterior probabilities for each azimuth angle and
     % generates SourcesAzimuthsDistributionHypothesis when provided with spatial
     % observation
 
@@ -15,6 +15,9 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
+        energyThreshold = 2E-3;     % ratemap energy threshold (cuberoot 
+                                    % compression) for detecting active 
+                                    % frames
         freqRange;                  % Frequency range to be considered
         channels = [];              % Frequency channels to be used
     end
@@ -93,16 +96,12 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
-            bExecute = obj.blackboard.currentSoundTimeIdx > obj.blockSize;
-            % allow overlapped executions
-            % bExecute = obj.hasEnoughNewSignal( obj.blockSize );
+            bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
         end
-        
+
         function execute(obj)
-            % Get binaural features.
-            cc = obj.getSignalBlock( 1, ...
-                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
+            cc = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
             nlags = size(cc,3);
             if nlags > 37 % 37 lags when sampled at 16kHz
                 error('DnnLocationKS: requires sampling rate to be 16kHz (set in AuditoryFrontEndKS)');
@@ -110,18 +109,15 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             idx = ceil(nlags/2);
             mlag = 16; % only use -1 ms to 1 ms
             cc = cc(:,:,idx-mlag:idx+mlag);
-            ild = obj.getSignalBlock( 2, ...
-                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
-            ratemap = obj.getSignalBlock( 3, ...
-                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
+            ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
+            ratemap = obj.getNextSignalBlock( 3, obj.blockSize, obj.blockSize, false );
             ratemap = (ratemap{1} + ratemap{2}) ./ 2;
             frameEnergy = mean(ratemap,2);
             %fprintf('%E\n', frameEnergy);
-            inactiveFrames = frameEnergy < obj.blackboard.energyThreshold;
-            
-            %if sum(validFrames) < 2
-            %    return;
-            %end
+            validFrames = frameEnergy > obj.blackboard.energyThreshold;
+            if sum(validFrames) < 2
+                return;
+            end
             
             % Only consider those channels within obj.freqRange
             if isempty(obj.channels)
@@ -153,31 +149,24 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             end
 
             % Only process valid frames
-            % post = post(validFrames, :, :);
+            post = post(validFrames, :, :);
             
             % Get segregation mask
             segHyp = obj.blackboard.getData( ...
                 'sourceSegregationHypothesis', obj.trigger.tmIdx);
-            
-            % Random probabilities for inactive frames
-            randProbs = randn(nFrames,nAzimuths).*0.01 + 1/nAzimuths;
-            
             if isempty(segHyp) 
                 % Average posterior distributions over frequency
                 prob_AF = exp(squeeze(nanSum(log(post),3)));
 
-                % Set inactive frames to random probabilities
-                prob_AF(inactiveFrames,:) = randProbs(inactiveFrames,:);
-                
                 % Normalise each frame such that probabilities sum up to one
                 prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
-                
+
                 % Average posterior distributions over time
                 prob_AFN_F = nanMean(prob_AFN, 1);
 
             else
                 mask = segHyp.data.mask;
-                %mask = mask(:, validFrames);
+                mask = mask(:, validFrames);
                 
                 % Integrate over time-frequency by applying the mask
                 mask2 = reshape(mask', size(mask,2), 1, size(mask,1));
@@ -185,9 +174,6 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 % Integrate probabilities across all frequency channel
                 prob_AF = exp(squeeze(nanSum(bsxfun(@times,log(post),mask2),3)));
 
-                % Set inactive frames to random probabilities
-                prob_AF(inactiveFrames,:) = randProbs(inactiveFrames,:);
-                
                 % Normalize such that probabilities sum up to one for each frame
                 prob_AFN = transpose(prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]));
 
