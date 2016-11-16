@@ -11,7 +11,7 @@ classdef VisualiserAFE < handle
         hRightEar;
         hItd;
         hIld;
-        sigmax = 0.0001;
+        sigmax = 1E-9;
     end
     
     methods
@@ -22,7 +22,7 @@ classdef VisualiserAFE < handle
         
         function reset(obj)
 
-            obj.sigmax = 0.0001;
+            obj.sigmax = 1E-9;
             
             % Left ear signal
             subplot(2,2,3,'Parent',obj.drawHandle);

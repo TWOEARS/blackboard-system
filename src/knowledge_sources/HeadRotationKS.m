@@ -47,7 +47,7 @@ classdef HeadRotationKS < AbstractKS
             
             % We want to turn the head toward the most likely source
             % direction, but if not a strong source, make a random rotation
-            if post < 0.2
+            if post < 0.3
                 if rand(1) < 0.5
                     azSrc = obj.minRotationAngle;
                 else
@@ -61,6 +61,10 @@ classdef HeadRotationKS < AbstractKS
             else
                 % Source is at the right side
                 headRotateAngle = -obj.minRotationAngle;
+            end
+            
+            if post < 0.1
+                headRotateAngle = 0;
             end
             
             % Always make sure the head stays in the head turn limits

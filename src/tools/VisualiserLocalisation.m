@@ -191,7 +191,9 @@ classdef VisualiserLocalisation < handle
                 x(4) = obj.INNER_RADIUS*sn;
                 y(4) = obj.INNER_RADIUS*cs;
                 set(obj.BarHandle(i),'xdata',x,'ydata',y);
-                set(obj.BarHandle(i),'FaceColor',hsv2rgb([obj.Hue/360 0.96 (1.0-0.3*p(i))]));
+                hsv = [obj.Hue/360 0.96 (1.0-0.3*p(i))];
+                hsv(hsv>1) = 1;
+                set(obj.BarHandle(i),'FaceColor',hsv2rgb(hsv));
             end
             
             

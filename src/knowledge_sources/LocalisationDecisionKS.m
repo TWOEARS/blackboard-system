@@ -22,7 +22,9 @@ classdef LocalisationDecisionKS < AbstractKS
             if nargin > 0
                 obj.bSolveConfusion = bSolveConfusion;
             end
-            obj.leakItFactor = leakItFactor;
+            if nargin > 1
+                obj.leakItFactor = leakItFactor;
+            end
         end
 
         function setPostThreshold(obj, t)
