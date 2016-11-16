@@ -1,12 +1,25 @@
 classdef SegmentIdentityKS < AbstractAMLTTPKS
     
     properties (SetAccess = private)
+%         label_added = false;
     end
 
     methods
         function obj = SegmentIdentityKS( modelName, modelDir, ppRemoveDc )
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
             obj.setInvocationFrequency(4);
+        end
+            
+        % Visualisation
+        function visualise(obj)
+%             if ~isempty(obj.blackboardSystem.locVis)
+%                 idloc = obj.blackboard.getData( ...
+%                 'identityHypotheses', obj.trigger.tmIdx).data;
+%                 idxs = find(strcmp({idloc(:).label}, obj.modelname));
+%                 obj.blackboardSystem.locVis.setLocationIdentity(idloc(idxs).label, ...
+%                         idloc(idxs).p, idloc(idxs).d, idloc(idxs).loc);
+%                 end
+%             end
         end
     end
     
