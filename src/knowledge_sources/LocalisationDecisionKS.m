@@ -111,9 +111,10 @@ classdef LocalisationDecisionKS < AbstractKS
             end
             if bRotateHead
                 notify(obj, 'RotateHead', BlackboardEventData(obj.trigger.tmIdx));
-            else
-                notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
             end
+            %else
+            notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
+            %end
             
         end
         
