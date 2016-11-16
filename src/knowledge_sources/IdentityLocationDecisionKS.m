@@ -4,7 +4,7 @@ classdef IdentityLocationDecisionKS < AbstractKS
     end
 
     methods
-        function obj = IdentityLocationKS( modelName, modelDir )
+        function obj = IdentityLocationDecisionKS()
             obj@AbstractKS();
             obj.setInvocationFrequency(4);
         end
@@ -38,6 +38,7 @@ classdef IdentityLocationDecisionKS < AbstractKS
                     end
                 end
             end
+            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
     end
 end
