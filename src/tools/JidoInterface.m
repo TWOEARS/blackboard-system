@@ -259,6 +259,13 @@ classdef JidoInterface < simulator.RobotInterface
             theta = p.NavigationState.position.orientation;
         end
         
+        %% Returns the current state of the robot navigation system
+        function [message, statusId] = getNavigationState(obj)
+            navigationState = obj.jido.NavigationState();
+            message = navigationState.NavigationState.goal.text;
+            statusId = navigationState.NavigationState.goal.status;
+        end
+        
         
         %% Returns true if robot is active
         function b = isActive(obj)
