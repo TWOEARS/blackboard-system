@@ -7,7 +7,7 @@ classdef IdentityKS < AbstractAMLTTPKS
     methods
         function obj = IdentityKS( modelName, modelDir, ppRemoveDc )
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
-            obj.setInvocationFrequency(4);
+            obj.setInvocationFrequency(inf);
         end
     end
     

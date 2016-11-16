@@ -57,6 +57,8 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             
             % Assign block size.
             obj.blockSize = p.Results.BlockSize;
+
+            obj.invocationMaxFrequency_Hz = inf;
             
             % Load observation model for the specified set of parameters.
             obj.observationModel = ObservationModel( trainingParameters );

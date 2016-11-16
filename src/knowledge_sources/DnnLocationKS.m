@@ -93,12 +93,16 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             
             % Execute KS if a sufficient amount of data for one block has
             % been gathered
-            bExecute = obj.hasEnoughNewSignal( obj.blockSize );
+            bExecute = obj.blackboard.currentSoundTimeIdx > obj.blockSize;
+            % allow overlapped executions
+            % bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
         end
-
+        
         function execute(obj)
-            cc = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
+            % Get binaural features.
+            cc = obj.getSignalBlock( 1, ...
+                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
             nlags = size(cc,3);
             if nlags > 37 % 37 lags when sampled at 16kHz
                 error('DnnLocationKS: requires sampling rate to be 16kHz (set in AuditoryFrontEndKS)');
@@ -106,8 +110,10 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             idx = ceil(nlags/2);
             mlag = 16; % only use -1 ms to 1 ms
             cc = cc(:,:,idx-mlag:idx+mlag);
-            ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
-            ratemap = obj.getNextSignalBlock( 3, obj.blockSize, obj.blockSize, false );
+            ild = obj.getSignalBlock( 2, ...
+                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
+            ratemap = obj.getSignalBlock( 3, ...
+                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
             ratemap = (ratemap{1} + ratemap{2}) ./ 2;
             frameEnergy = mean(ratemap,2);
             %fprintf('%E\n', frameEnergy);

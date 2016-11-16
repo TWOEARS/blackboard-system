@@ -131,7 +131,7 @@ classdef JidoInterface < simulator.RobotInterface
             end
             
             % Get corresponding signal chunk
-            sig = sig(bufferSize - chunkLength + 1 : end, :);
+            sig = sig(end - chunkLength + 1 : end, :);
             
             % Get signal length
             durSamples = size(sig,1);

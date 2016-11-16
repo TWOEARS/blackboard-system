@@ -9,7 +9,7 @@ classdef CollectSegmentIdentityKS < AbstractKS
     methods
         function obj = CollectSegmentIdentityKS( maxObjectsAtLocation, classThresholds, generalThreshold )
             obj@AbstractKS();
-            obj.setInvocationFrequency(100);
+            obj.setInvocationFrequency(inf);
             if nargin < 1 || isempty( maxObjectsAtLocation )
                 maxObjectsAtLocation = inf; 
             end

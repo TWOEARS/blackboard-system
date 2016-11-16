@@ -7,7 +7,7 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
     methods
         function obj = SegmentIdentityKS( modelName, modelDir, ppRemoveDc )
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
-            obj.setInvocationFrequency(4);
+            obj.setInvocationFrequency(inf);
         end
             
         % Visualisation

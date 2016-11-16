@@ -6,7 +6,7 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
     methods
         function obj = NumberOfSourcesKS( modelName, modelDir, ppRemoveDc )
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
-            obj.setInvocationFrequency(4);
+            obj.setInvocationFrequency(inf);
         end
         
         function visualise(obj)
