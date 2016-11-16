@@ -1,12 +1,27 @@
 classdef CollectSegmentIdentityKS < AbstractKS
     
     properties (SetAccess = private)
+        maxObjectsAtLocation;
+        classThresholds;
+        generalThreshold;
     end
 
     methods
-        function obj = CollectSegmentIdentityKS()
+        function obj = CollectSegmentIdentityKS( maxObjectsAtLocation, classThresholds, generalThreshold )
             obj@AbstractKS();
             obj.setInvocationFrequency(100);
+            if nargin < 1 || isempty( maxObjectsAtLocation )
+                maxObjectsAtLocation = inf; 
+            end
+            if nargin < 2 || isempty( classThresholds )
+                classThresholds = struct();
+            end
+            if nargin < 3 || isempty( generalThreshold )
+                generalThreshold = 0.5;
+            end
+            obj.maxObjectsAtLocation = maxObjectsAtLocation;
+            obj.classThresholds = classThresholds;
+            obj.generalThreshold = generalThreshold;
         end
         
         function setInvocationFrequency( obj, newInvocationFrequency_Hz )
@@ -19,6 +34,63 @@ classdef CollectSegmentIdentityKS < AbstractKS
         end
         
         function execute(obj)
+            % get all identityHypotheses
+            idloc = obj.blackboard.getData( ...
+                                  'identityHypotheses', obj.trigger.tmIdx).data;
+            labels = {idloc.label};
+            ps = [idloc.p]; 
+            ds = [idloc.d];
+            locs = [idloc.loc];
+            [ps,maxorder] = sort( ps, 'Descend' );
+            labels = labels(maxorder);
+            ds = ds(maxorder);
+            locs = locs(maxorder);
+            % apply class-specific thresholds
+            for ii = 1 : numel( labels )
+                if isfield( obj.classThresholds, labels{ii} )
+                    thr = obj.classThresholds.(labels{ii});
+                else
+                    thr = obj.generalThreshold;
+                end
+                if ps(ii) >= thr
+                    ds(ii) = 1;
+                else
+                    ds(ii) = -1;
+                end
+            end
+            % sort into bins per location
+            uniqueLocs = unique( locs );
+            locMaxedObjects = cell( size( uniqueLocs ) );
+            for ll = 1 : numel( uniqueLocs )
+                hypsAtLoc = locs == uniqueLocs(ll);
+                locMaxedObjects{ll} = struct( ...
+                    'loc', {uniqueLocs(ll)},...
+                    'labels', {labels(hypsAtLoc)},...
+                    'ps', {ps(hypsAtLoc)},...
+                    'ds', {ds(hypsAtLoc)} );
+            end
+            % only allow n objects per location
+            for ll = 1 : numel( locMaxedObjects )
+                locObjs = locMaxedObjects{ll};
+                locObjs.labels(obj.maxObjectsAtLocation+1:end) = [];
+                locObjs.ps(obj.maxObjectsAtLocation+1:end) = [];
+                locObjs.ds(obj.maxObjectsAtLocation+1:end) = [];
+                locMaxedObjects{ll} = locObjs;
+            end
+            % create objectHypotheses
+            for ll = 1 : numel( locMaxedObjects )
+                locObjs = locMaxedObjects{ll};
+                for oo = 1 : numel( locObjs.labels )
+                    objectHyp = SingleBlockObjectHypothesis( ...
+                        locObjs.labels{oo}, ...
+                        locObjs.loc, ...
+                        locObjs.ps(oo), ...
+                        locObjs.ds(oo), ...
+                        idloc(1).concernsBlocksize_s );
+                    obj.blackboard.addData( 'singleBlockObjectHypotheses', ...
+                        objectHyp, true, obj.trigger.tmIdx );
+                end
+            end
             notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
             
@@ -26,70 +98,16 @@ classdef CollectSegmentIdentityKS < AbstractKS
         function visualise(obj)
             if ~isempty(obj.blackboardSystem.locVis)
                 idloc = obj.blackboard.getData( ...
-                'identityHypotheses', obj.trigger.tmIdx).data;
-                obj.blackboardSystem.locVis.setLocationIdentity({idloc(:).label}, ...
-                        {idloc(:).p}, {idloc(:).d}, {idloc(:).loc});
+                    'singleBlockObjectHypotheses', obj.trigger.tmIdx).data;
+                obj.blackboardSystem.locVis.setLocationIdentity(...
+                    {idloc(:).label}, {idloc(:).p}, {idloc(:).d}, {idloc(:).loc});
             end
         end
     end
     
     methods (Access = protected)        
-        function amlttpExecute( obj, afeBlock )
-            mask = obj.blackboard.getLastData('segmentationHypotheses', ...
-                obj.trigger.tmIdx);
-            % create masked copy of afeData
-            d = [];
-            score = {};
-            estSrcAzm = [];
-            for ii = 1 : numel(mask.data)
-                afeBlock_masked = SegmentIdentityKS.maskAFEData( afeBlock, ...
-                    mask.data(ii).softMask, ...
-                    mask.data(ii).cfHz, ...
-                    mask.data(ii).hopSize );
-                
-                obj.featureCreator.setAfeData( afeBlock_masked );
-                x = obj.featureCreator.constructVector();
-                [d, score] = obj.model.applyModel( x{1} );
-                estSrcAzm = mask.data(ii).refAzm;
-                bbprintf(obj, '[SegmentIdentitiyKS:] source %i at %i deg azm: %s with %i%% score.\n', ...
-                     ii, estSrcAzm, obj.modelname, int16(score(1)*100) );
-                identHyp = IdentityHypothesis( obj.modelname, ...
-                         score(1), d, obj.blockCreator.blockSize_s, estSrcAzm );
-                obj.blackboard.addData( 'identityHypotheses', ...
-                     identHyp, true, obj.trigger.tmIdx );
-            end
-        end
     end
     
     methods (Static)
-        function afeBlock = maskAFEData( afeData, mask, cfHz, maskHopSize )
-            afeBlock = containers.Map( 'KeyType', 'int32', 'ValueType', 'any' );
-            for afeKey = afeData.keys
-                afeSignal = afeData(afeKey{1});
-                if isa( afeSignal, 'cell' )
-                    for ii = 1 : numel( afeSignal )
-                        if isa( afeSignal{ii}, 'TimeFrequencySignal' ) || ...
-                                isa( afeSignal{ii}, 'CorrelationSignal' ) || ...
-                                isa( afeSignal{ii}, 'ModulationSignal' )
-                            afeSignalExtract{ii} = ...
-                                   afeSignal{ii}.maskSignalCopy( mask, cfHz, maskHopSize );
-                        else
-                            afeSignalExtract{ii} = afeSignal{ii};
-                        end
-                    end
-                else
-                    if isa( afeSignal, 'TimeFrequencySignal' ) || ...
-                            isa( afeSignal, 'CorrelationSignal' ) || ...
-                            isa( afeSignal, 'ModulationSignal' )
-                        afeSignalExtract = ...
-                                      afeSignal.maskSignalCopy( mask, cfHz, maskHopSize );
-                    else
-                        afeSignalExtract = afeSignal;
-                    end
-                end
-                afeBlock(afeKey{1}) = afeSignalExtract;
-                clear afeSignalExtract;
-            end
-        end
     end % static methods
 end

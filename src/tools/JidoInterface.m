@@ -34,7 +34,7 @@ classdef JidoInterface < simulator.RobotInterface
             userpath(pathToGenomix);
             
             % Set up genomix client
-            obj.client = genomix.client('jido-base:8080');
+            obj.client = genomix.client('jido-base.laas.fr:8080');
             
             % Load KEMAR module
             obj.kemar = obj.client.load('kemar');
