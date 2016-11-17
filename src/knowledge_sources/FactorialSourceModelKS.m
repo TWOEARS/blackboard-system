@@ -10,20 +10,19 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
-        energyThreshold = 2E-3;     % ratemap energy threshold (cuberoot 
-                                    % compression) for detecting active 
-                                    % frames
+        dataPath = fullfile('learned_models', 'FactorialSourceModelKS');
         freqRange;                  % Frequency range to be considered
         channels = [];              % Frequency channels to be used
+        sourceGMMs;
+        sourceList;
         gmm_x;                      % Target GMM
-        gmm_n;                      % Noise GMM
+        gmm_n;                      % Background GMM
         maskFloor = 0.5;            % Mask values below this floor are set to 0
         targetSource;
     end
 
     methods
         function obj = FactorialSourceModelKS(targetSource, highFreq, lowFreq)
-            
 
             defaultFreqRange = [80 8000];
             freqRange = defaultFreqRange;
@@ -62,34 +61,27 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             if exist('targetSource', 'var')
                 obj.targetSource = targetSource;
             else
-                obj.targetSource = 'target';
+                obj.targetSource = 'speech';
             end
             
-            sourcePreset = 'QU_ANECHOIC';
-            strSourceGMMs = fullfile('sourceGMMs', sprintf('Source_%s_ratemap', sourcePreset));
-            load(strSourceGMMs);
+            sourcePreset = 'JIDO-REC';
+            strSourceGMMs = fullfile(obj.dataPath, sprintf('%s_ratemap.mat', sourcePreset));
+            load(db.getFile(strSourceGMMs));
 
-            obj.gmm_x = C.sourceGMMs{strcmp(targetSource,C.sourceList)};
-
-            % Load the specific source model
-%              strResult = strcat(strResult, '_interfererKnown');
-%              gmm_n = C.sourceGMMs{strcmp(interfererSource,C.sourceList)};
-
-            % Pool all interferer models to form a universal background model
-            gmms_interferer = C.sourceGMMs(strcmp(targetSource,C.sourceList)==0);
-            gmm_n = gmms_interferer{1};
-            for n = 2:numel(gmms_interferer)
-                gmm_n.ncentres = gmm_n.ncentres + gmms_interferer{n}.ncentres;
-                gmm_n.priors = [gmm_n.priors gmms_interferer{n}.priors];
-                gmm_n.centres = [gmm_n.centres; gmms_interferer{n}.centres];
-                gmm_n.covars = [gmm_n.covars; gmms_interferer{n}.covars];
-            end
-            gmm_n.priors = gmm_n.priors ./ sum(gmm_n.priors);
-            gmm_n.nwts = gmm_n.ncentres + gmm_n.ncentres*gmm_n.nin*2;
-            obj.gmm_n = gmm_n;
+            obj.sourceGMMs = C.sourceGMMs;
+            obj.sourceList = C.sourceList;
+            obj.gmm_x = obj.sourceGMMs{strcmp(obj.targetSource, obj.sourceList)};
+            obj.gmm_n = C.UBM;
+            
         end
 
 
+        function setTargetSource(obj, targetSource)
+            obj.targetSource = targetSource;
+            obj.gmm_x = obj.sourceGMMs{strcmp(targetSource, obj.sourceList)};
+        end
+        
+        
         function [bExecute, bWait] = canExecute(obj)
             % Execute KS if a sufficient amount of data for one block has
             % been gathered

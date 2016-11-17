@@ -164,6 +164,7 @@ classdef Blackboard < handle
         function setEnergyThreshold(obj, energyThreshold)
             obj.energyThreshold = energyThreshold;
         end
+        
     end
     
 end
