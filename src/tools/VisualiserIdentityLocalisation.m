@@ -48,6 +48,7 @@ classdef VisualiserIdentityLocalisation < handle
         TextHandle
         TextHandle2
         TextHandles
+        idTextHandles
         Hue = 50 % hue in HSV space, default is orangey yellow
         ScaleFactor = 2
         tmIdx = -1
@@ -130,6 +131,10 @@ classdef VisualiserIdentityLocalisation < handle
                     col,'linestyle','none');
                 
                 obj.TextHandles(ii) = text(y1,y2, '', 'Color', col);
+            end
+            
+            for ii=1:13
+                obj.idTextHandles(ii) = text(y1,y2, '', 'Color', col);
             end
             
             % add probability bars
@@ -251,6 +256,16 @@ classdef VisualiserIdentityLocalisation < handle
                 'rotation', angle);
         end
         
+        function obj = plotIdTextIdxAtAngle(obj, ...
+                idx, label, angle, color, prob)
+            x2 = 400;
+            y2 = 450 + 20*idx;
+            set(obj.TextHandles(idx), ...
+                'Color', color, ...
+                'Position', [x2, y2], ...
+                'String', [label, ':', num2str(int16(prob*100)), '%']);
+        end
+        
         function obj = setHeadRotation(obj,val)
             if (nargin>0)
                 axes(obj.drawHandle);
@@ -340,6 +355,30 @@ classdef VisualiserIdentityLocalisation < handle
                         probs{idx}, ...
                         color,...
                         radius);
+                end
+            end
+        end
+        
+        function obj = setIdentity(obj, ...
+                labels, probs, ds)
+            
+            y2 = obj.MARKER_RADIUS;
+            y1 = obj.INNER_RADIUS;
+            color = [0.9 0.9 0.9];
+            
+            for ii=1:13
+                set(obj.idTextHandles(ii), ...
+                    'Color', color, ...
+                    'Position', [y1, y2], ...
+                    'String', '');
+            end
+            
+            for idx = 1:numel(labels)
+                if ds{idx} == 1
+                    color = obj.getIdentityColor(labels{idx});
+                    obj.plotIdTextIdxAtAngle(idx, ...
+                        labels{idx}, ...
+                        -45, color, probs{idx});
                 end
             end
         end
