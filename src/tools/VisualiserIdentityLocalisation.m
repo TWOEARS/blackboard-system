@@ -52,8 +52,6 @@ classdef VisualiserIdentityLocalisation < handle
         Hue = 50 % hue in HSV space, default is orangey yellow
         ScaleFactor = 2
         tmIdx = -1
-        labels_cur
-        labels
         locations
         probabilities
     end
@@ -69,8 +67,6 @@ classdef VisualiserIdentityLocalisation < handle
             end
             obj.BarHandle = zeros(1,obj.NumPosteriors);
             obj.reset();
-            obj.labels = {};
-            obj.labels_cur = {};
             obj.locations = [];
             obj.probabilities = [];
         end
@@ -200,11 +196,6 @@ classdef VisualiserIdentityLocalisation < handle
             end
         end
         
-        function obj = setLabels(obj, labels)
-           
-            obj.labels = labels;
-        end
-        
         function obj = plotMarkerAtAngle(obj,angle,hue)
             if nargin < 3
                 hue = 100;
@@ -261,7 +252,7 @@ classdef VisualiserIdentityLocalisation < handle
                 idx, label, prob)
             x2 = 450;
             y2 = 590 + obj.getIdentityRadius(label);
-            set(obj.TextHandles(idx), ...
+            set(obj.idTextHandles(idx), ...
                 'Color', obj.getIdentityColor(label), ...
                 'Position', [x2, y2], ...
                 'String', [num2str(int16(prob*100)), '% ', label]);
