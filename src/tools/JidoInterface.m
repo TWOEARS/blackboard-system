@@ -122,17 +122,19 @@ classdef JidoInterface < simulator.RobotInterface
                 obj.sampleIndex;
             obj.sampleIndex = audioBuffer.Audio.lastFrameIndex;
             
-            if sampleDifference > blockSizeSamples
-                earSignals = ...
-                    earSignals(end - blockSizeSamples + 1 : end, :);
-            else
-                earSignals = ...
-                    earSignals(end - sampleDifference + 1 : end, :);
+            if sampleDifference == 0
+                error(['Zero sample difference. Please check if ', ...
+                    'BASS is running correctly.']);
             end
+            
+            % Get truncated signals as new signal block.
+            signalLengthSamples = min(sampleDifference, ...
+                blockSizeSamples);
+            earSignals = earSignals(end - signalLengthSamples + 1 : end, :);
             
             % Get signal length
             durSamples = size(earSignals, 1);
-            durSec = durSamples / audioBuffer.Audio.sampleRate;
+            durSec = durSamples / obj.SampleRate;
             
             % Interpolate head orientation within frame.
             orientationTrajectory = linspace(obj.headOrientation, ...
