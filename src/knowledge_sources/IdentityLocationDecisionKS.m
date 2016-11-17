@@ -3,16 +3,22 @@ classdef IdentityLocationDecisionKS < AbstractKS
     properties (SetAccess = private)
         count = 0
         idMasksLoc % flag when set to true, location bins are masked by the identification decision
+        doVisualise % flag to enable visualisation directly from this KS
     end
 
     methods
-        function obj = IdentityLocationDecisionKS(idMasksLoc)
+        function obj = IdentityLocationDecisionKS(idMasksLoc, doVisualise)
             obj@AbstractKS();
             obj.setInvocationFrequency(4);
             if ~exist('idMasksLoc', 'var')
                 obj.idMasksLoc = false;
             else
                 obj.idMasksLoc = idMasksLoc;
+            end
+            if ~exist('doVisualise', 'var')
+                obj.doVisualise = true;
+            else
+                obj.doVisualise = doVisualise;
             end
         end
         
@@ -53,7 +59,7 @@ classdef IdentityLocationDecisionKS < AbstractKS
         end
         
         function visualise(obj)
-            if ~isempty(obj.blackboardSystem.locVis) && obj.count > 0
+            if obj.doVisualise && ~isempty(obj.blackboardSystem.locVis) && obj.count > 0
                 idloc = obj.blackboard.getData( ...
                     'identityHypotheses', obj.trigger.tmIdx).data;
                 obj.blackboardSystem.locVis.setLocationIdentity(...
