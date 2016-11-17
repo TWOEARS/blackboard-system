@@ -2,12 +2,24 @@ classdef IdentityLocationDecisionKS < AbstractKS
     
     properties (SetAccess = private)
         count = 0
+        idMasksLoc % flag when set to true, location bins are masked by the identification decision
+        doVisualise % flag to enable visualisation directly from this KS
     end
 
     methods
-        function obj = IdentityLocationDecisionKS()
+        function obj = IdentityLocationDecisionKS(idMasksLoc, doVisualise)
             obj@AbstractKS();
             obj.setInvocationFrequency(4);
+            if ~exist('idMasksLoc', 'var')
+                obj.idMasksLoc = false;
+            else
+                obj.idMasksLoc = idMasksLoc;
+            end
+            if ~exist('doVisualise', 'var')
+                obj.doVisualise = true;
+            else
+                obj.doVisualise = doVisualise;
+            end
         end
         
         function setInvocationFrequency( obj, newInvocationFrequency_Hz )
@@ -26,7 +38,7 @@ classdef IdentityLocationDecisionKS < AbstractKS
             obj.count = 0;
             for ii = 1:numel(idloc)
                 tmp = idloc(ii);
-                if tmp.d >= 1
+                if ~obj.idMasksLoc || tmp.d >= 1
                     locIdxs = find(tmp.azimuthDecisions>=1);
                     for locIdx = 1:numel(locIdxs)
                         hyp = IdentityHypothesis( tmp.label, ...
@@ -47,7 +59,7 @@ classdef IdentityLocationDecisionKS < AbstractKS
         end
         
         function visualise(obj)
-            if ~isempty(obj.blackboardSystem.locVis) && obj.count > 0
+            if obj.doVisualise && ~isempty(obj.blackboardSystem.locVis) && obj.count > 0
                 idloc = obj.blackboard.getData( ...
                     'identityHypotheses', obj.trigger.tmIdx).data;
                 obj.blackboardSystem.locVis.setLocationIdentity(...
