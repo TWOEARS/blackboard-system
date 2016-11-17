@@ -3,8 +3,8 @@ classdef JidoInterface < simulator.RobotInterface
     %   Detailed explanation goes here
     
     properties (GetAccess = public, SetAccess = private)
-        BlockSize               % Block size used by the audio stream 
-                                % server in samples.
+%         BlockSize               % Block size used by the audio stream 
+%                                 % server in samples.
         SampleRate              % Sample rate of the audio stream server 
                                 % in Hz.
         bIsFinished = false;    
@@ -53,8 +53,8 @@ classdef JidoInterface < simulator.RobotInterface
             % Get BASS status info
             audioObj = obj.bass.Audio();
             obj.SampleRate = audioObj.Audio.sampleRate;
-            obj.BlockSize = audioObj.Audio.nFramesPerChunk * ...
-                audioObj.Audio.nChunksOnPort;
+%             obj.BlockSize = audioObj.Audio.nFramesPerChunk * ...
+%                 audioObj.Audio.nChunksOnPort;
             obj.sampleIndex = audioObj.Audio.lastFrameIndex;
             
             % Get KEMAR properties
@@ -87,9 +87,6 @@ classdef JidoInterface < simulator.RobotInterface
             obj.bass.Acquire('-a', 'hw:1,0', p.Results.SampleRate, ...
                 p.Results.NumFramesPerChunk, ...
                 p.Results.NumChunksOnPort);
-            
-            % Update block size
-            %obj.BlockSize = round(numFramesPerChunk * p.Results.FrameSize);
         end
         
         
@@ -118,34 +115,20 @@ classdef JidoInterface < simulator.RobotInterface
             
             % Get default buffer size of the audio stream server and
             % compute block size in samples.
-            bufferSize = size(earSignals, 1);
             blockSizeSamples = round(durSec * obj.SampleRate);
             
             % Get difference of current time stamp.
-            sampleDifference = audioBuffer.Audio.lastFrameIndex - obj.sampleIndex;
+            sampleDifference = audioBuffer.Audio.lastFrameIndex - ...
+                obj.sampleIndex;
             obj.sampleIndex = audioBuffer.Audio.lastFrameIndex;
             
             if sampleDifference > blockSizeSamples
-                earSignals = earSignals(end - blockSizeSamples + 1 : end, :);
+                earSignals = ...
+                    earSignals(end - blockSizeSamples + 1 : end, :);
             else
-                earSignals = earSignals(end - sampleDifference + 1 : end, :);
+                earSignals = ...
+                    earSignals(end - sampleDifference + 1 : end, :);
             end
-            
-            %             % Convert desired chunk length into samples
-            %             if nargin == 2
-            %                 chunkLength = round(durSec * obj.SampleRate);
-            %             else
-            %                 chunkLength = bufferSize;
-            %             end
-            %
-            %             % Check if chunk length is smaller than buffer length
-            %             if chunkLength > bufferSize
-            %                 error(['Desired chunk length exceeds length of the ', ...
-            %                     'audio buffer.']);
-            %             end
-            %
-            %             % Get corresponding signal chunk
-            %             sig = sig(end - chunkLength + 1 : end, :);
             
             % Get signal length
             durSamples = size(earSignals, 1);
@@ -154,6 +137,7 @@ classdef JidoInterface < simulator.RobotInterface
             % Interpolate head orientation within frame.
             orientationTrajectory = linspace(obj.headOrientation, ...
                 obj.getCurrentHeadOrientation(), durSamples);
+            obj.headOrientation = obj.getCurrentHeadOrientation();
         end
   
         
