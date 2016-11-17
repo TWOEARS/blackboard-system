@@ -74,7 +74,7 @@ classdef IntegrateSegregatedIdentitiesKS < AbstractKS
                                   (1 - obj.leakFactor) * obj.integratedNsrcs;
             % create current map
             currentMap = struct();
-            absLocs = wrapTo360( locs + headOrientation );
+            absLocs = wrapTo360( locs + round( headOrientation ) );
             absLocs(absLocs == 0) = 360;
             for ii = 1 : numel( labels )
                 if ~isfield( currentMap, labels{ii} )
