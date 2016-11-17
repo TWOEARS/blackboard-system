@@ -8,7 +8,7 @@ classdef IdentityLocationHypothesis < IdentityHypothesis & SourcesAzimuthsDistri
         function obj = IdentityLocationHypothesis( label, ...,
                 p, d, blocksize_s, ...
                 headOrientation, azimuths, azimuthProbs, azimuthDecisions )
-            
+                
                 obj@IdentityHypothesis( label, ...,
                     p, d, blocksize_s );
                 obj@SourcesAzimuthsDistributionHypothesis( ...

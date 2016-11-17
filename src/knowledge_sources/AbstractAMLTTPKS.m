@@ -1,6 +1,6 @@
 classdef AbstractAMLTTPKS < AuditoryFrontEndDepKS
     
-    properties (SetAccess = private)
+    properties (SetAccess = protected)
         modelname;
         model;                 % classifier model
         featureCreator;
