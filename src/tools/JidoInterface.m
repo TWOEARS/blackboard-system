@@ -23,6 +23,7 @@ classdef JidoInterface < simulator.RobotInterface
     
     properties (Access = private)
         headOrientation
+        sampleIndex
     end
     
     methods (Access = public)
@@ -54,6 +55,7 @@ classdef JidoInterface < simulator.RobotInterface
             obj.SampleRate = audioObj.Audio.sampleRate;
             obj.BlockSize = audioObj.Audio.nFramesPerChunk * ...
                 audioObj.Audio.nChunksOnPort;
+            obj.sampleIndex = audioObj.Audio.lastFrameIndex;
             
             % Get KEMAR properties
             [obj.maxHeadLeft, obj.maxHeadRight] = getHeadTurnLimits(obj);
@@ -66,8 +68,8 @@ classdef JidoInterface < simulator.RobotInterface
         end
         
         
-        function configureAudioStreamServer(obj, sampleRate, frameSize, ...
-                bufferSizeSec)
+        function configureAudioStreamServer(obj, sampleRate, ...
+                numFramesPerChunk, numChunksOnPort)
             % CONFIGUREAUDIOSTREAMSERVER
             
             % Check input arguments
@@ -75,74 +77,78 @@ classdef JidoInterface < simulator.RobotInterface
             
             p.addRequired('SampleRate', @(x) validateattributes(x, ...
                 {'numeric'}, {'scalar', 'real'}));
-            p.addRequired('FrameSize', @(x) validateattributes(x, ...
+            p.addRequired('NumFramesPerChunk', @(x) validateattributes(x, ...
                 {'numeric'}, {'scalar', 'integer'}));
-            p.addRequired('BufferSizeSec', @(x) validateattributes(x, ...
-                {'numeric'}, {'scalar', 'real'}));
-            p.parse(sampleRate, frameSize, bufferSizeSec);
-            
-            % Compute number of frames per chunk
-            numFramesPerChunk = ceil(p.Results.BufferSizeSec * ...
-                p.Results.SampleRate / p.Results.FrameSize);
+            p.addRequired('NumChunksOnPort', @(x) validateattributes(x, ...
+                {'numeric'}, {'scalar', 'integer'}));
+            p.parse(sampleRate, numFramesPerChunk, numChunksOnPort);
             
             % Setup audio stream server
             obj.bass.Acquire('-a', 'hw:1,0', p.Results.SampleRate, ...
-                p.Results.FrameSize, numFramesPerChunk);
+                p.Results.NumFramesPerChunk, ...
+                p.Results.NumChunksOnPort);
             
             % Update block size
-            obj.BlockSize = round(numFramesPerChunk * p.Results.FrameSize);
+            %obj.BlockSize = round(numFramesPerChunk * p.Results.FrameSize);
         end
         
         
         %% Grab binaural audio of a specified length
-        function [sig, durSec, durSamples, orientationTrajectory] = ...
+        function [earSignals, durSec, durSamples, orientationTrajectory] = ...
                 getSignal(obj, durSec)
-        %
-        % Due to the frame-wise processing length of the output signal can
-        % vary from the requested signal length
-        %
-        % Input Parameters
-        %       durSec : length of signal in seconds @type double
-        %
-        % Output Parameters
-        %          sig : audio signal [durSamples x 2]
-        %       durSec : length of signal in seconds @type double
-        %   durSamples : length of signal in samples @type integer
-
+            %
+            % Due to the frame-wise processing length of the output signal can
+            % vary from the requested signal length
+            %
+            % Input Parameters
+            %       durSec : length of signal in seconds @type double
+            %
+            % Output Parameters
+            %          sig : audio signal [durSamples x 2]
+            %       durSec : length of signal in seconds @type double
+            %   durSamples : length of signal in samples @type integer
+            
             % Read audio buffer
             audioBuffer = obj.bass.Audio();
             
             % Get binaural signals
-%             % Sclaing factor estimated empirically
-%             earSignals = [cell2mat(audioBuffer.Audio.left) ./ (2^31); ...
-%                 0.7612 .* (cell2mat(audioBuffer.Audio.right) ./ (2^31))]';
-            sig = [cell2mat(audioBuffer.Audio.left); ...
-                   cell2mat(audioBuffer.Audio.right)]';
-            sig = sig ./ (2^31);
-
-            % Get default buffer size of the audio stream server
-            bufferSize = size(sig, 1);
+            earSignals = [cell2mat(audioBuffer.Audio.left); ...
+                cell2mat(audioBuffer.Audio.right)]';
+            earSignals = earSignals ./ (2^31);
             
-            % Convert desired chunk length into samples
-            if nargin == 2
-                chunkLength = round(durSec * obj.SampleRate);
+            % Get default buffer size of the audio stream server and
+            % compute block size in samples.
+            bufferSize = size(earSignals, 1);
+            blockSizeSamples = round(durSec * obj.SampleRate);
+            
+            % Get difference of current time stamp.
+            sampleDifference = audioBuffer.Audio.lastFrameIndex - obj.sampleIndex;
+            obj.sampleIndex = audioBuffer.Audio.lastFrameIndex;
+            
+            if sampleDifference > blockSizeSamples
+                earSignals = earSignals(end - blockSizeSamples + 1 : end, :);
             else
-                chunkLength = bufferSize;
+                earSignals = earSignals(end - sampleDifference + 1 : end, :);
             end
             
-            % Check if chunk length is smaller than buffer length
-            if chunkLength > bufferSize
-                error(['Desired chunk length exceeds length of the ', ...
-                    'audio buffer.']);
-            end
-            
-            % Get corresponding signal chunk
-            sig = sig(end - chunkLength + 1 : end, :);
-            
-            audioBuffer.Audio.lastFrameIndex
+            %             % Convert desired chunk length into samples
+            %             if nargin == 2
+            %                 chunkLength = round(durSec * obj.SampleRate);
+            %             else
+            %                 chunkLength = bufferSize;
+            %             end
+            %
+            %             % Check if chunk length is smaller than buffer length
+            %             if chunkLength > bufferSize
+            %                 error(['Desired chunk length exceeds length of the ', ...
+            %                     'audio buffer.']);
+            %             end
+            %
+            %             % Get corresponding signal chunk
+            %             sig = sig(end - chunkLength + 1 : end, :);
             
             % Get signal length
-            durSamples = size(sig, 1);
+            durSamples = size(earSignals, 1);
             durSec = durSamples / audioBuffer.Audio.sampleRate;
             
             % Interpolate head orientation within frame.
