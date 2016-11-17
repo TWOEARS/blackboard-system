@@ -21,6 +21,10 @@ classdef JidoInterface < simulator.RobotInterface
         bass                    % Interface to the audio stream server.
     end
     
+    properties (Access = private)
+        headOrientation
+    end
+    
     methods (Access = public)
         function obj = JidoInterface(pathToGenomix)
             % JIDOINTERFACE Constructor...
@@ -55,6 +59,7 @@ classdef JidoInterface < simulator.RobotInterface
             [obj.maxHeadLeft, obj.maxHeadRight] = getHeadTurnLimits(obj);
             obj.maxHeadLeft = obj.maxHeadLeft - rem(obj.maxHeadLeft,5);
             obj.maxHeadRight = obj.maxHeadRight - rem(obj.maxHeadRight,5);
+            obj.headOrientation = obj.getCurrentHeadOrientation();
             
             % Set robot active
             obj.bActive = true;
@@ -90,7 +95,8 @@ classdef JidoInterface < simulator.RobotInterface
         
         
         %% Grab binaural audio of a specified length
-        function [sig, durSec, durSamples] = getSignal(obj, durSec)
+        function [sig, durSec, durSamples, orientationTrajectory] = ...
+                getSignal(obj, durSec)
         %
         % Due to the frame-wise processing length of the output signal can
         % vary from the requested signal length
@@ -133,9 +139,15 @@ classdef JidoInterface < simulator.RobotInterface
             % Get corresponding signal chunk
             sig = sig(end - chunkLength + 1 : end, :);
             
+            audioBuffer.Audio.lastFrameIndex
+            
             % Get signal length
-            durSamples = size(sig,1);
+            durSamples = size(sig, 1);
             durSec = durSamples / audioBuffer.Audio.sampleRate;
+            
+            % Interpolate head orientation within frame.
+            orientationTrajectory = linspace(obj.headOrientation, ...
+                obj.getCurrentHeadOrientation(), durSamples);
         end
   
         
@@ -180,7 +192,7 @@ classdef JidoInterface < simulator.RobotInterface
                 absoluteAngle = obj.maxHeadRight;
             end
 
-            obj.kemar.MoveAbsolutePosition(absoluteAngle);
+            obj.kemar.MoveAbsolutePosition('-a', absoluteAngle);
         end
         
         
