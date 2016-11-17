@@ -27,7 +27,7 @@ classdef AudioWriteKS < AuditoryFrontEndDepKS
         end
 
         function [b, wait] = canExecute(obj)
-            b = true;
+            b = obj.hasEnoughNewSignal(obj.blackboardSystem.dataConnect.timeStep);
             wait = false;
         end
 
@@ -39,12 +39,10 @@ classdef AudioWriteKS < AuditoryFrontEndDepKS
             
             blockSize = obj.blackboardSystem.dataConnect.timeStep;
             
-            afeData = obj.getAFEdata();
-            timeSig = afeData(1);
-            earSignals = [timeSig{1}.getSignalBlock(blockSize, 0), ...
-                timeSig{2}.getSignalBlock(blockSize, 0)];
+            earSignals = obj.getNextSignalBlock(1, blockSize, blockSize);
             
-            obj.signalBuffer = [obj.signalBuffer; earSignals];
+            obj.signalBuffer = [obj.signalBuffer; ...
+                [earSignals{1}, earSignals{2}]];
         end
     end
 end
