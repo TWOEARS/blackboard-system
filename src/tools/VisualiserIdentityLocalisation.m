@@ -239,10 +239,11 @@ classdef VisualiserIdentityLocalisation < handle
         end
         
         function obj = plotTextIdxAtAngle(obj, ...
-                idx, label, angle, color, radiusDelta)
+                idx, label, angle, radiusDelta)
             angle = angle - 4;
             sn = sin(-2*pi*angle/360);
             cs = cos(-2*pi*angle/360);
+            radiusDelta = obj.getIdentityRadius(label);
             radius = obj.MARKER_RADIUS + radiusDelta;
             radiusInner = obj.INNER_RADIUS + radiusDelta;
             x2 = radius * sn;
@@ -250,20 +251,20 @@ classdef VisualiserIdentityLocalisation < handle
             x1 = radiusInner * sn;
             y1 = radiusInner * cs;
             set(obj.TextHandles(idx), ...
-                'Color', color, ...
+                'Color', obj.getIdentityColor(label), ...
                 'Position', [x2, y2], ...
                 'String', label, ...
                 'rotation', angle);
         end
         
         function obj = plotIdTextIdxAtAngle(obj, ...
-                idx, label, angle, color, prob)
-            x2 = 400;
-            y2 = 450 + 20*idx;
+                idx, label, prob)
+            x2 = 450;
+            y2 = 590 + obj.getIdentityRadius(label);
             set(obj.TextHandles(idx), ...
-                'Color', color, ...
+                'Color', obj.getIdentityColor(label), ...
                 'Position', [x2, y2], ...
-                'String', [label, ':', num2str(int16(prob*100)), '%']);
+                'String', [num2str(int16(prob*100)), '% ', label]);
         end
         
         function obj = setHeadRotation(obj,val)
@@ -333,6 +334,7 @@ classdef VisualiserIdentityLocalisation < handle
             y1 = obj.INNER_RADIUS;
             color = [0.9 0.9 0.9];
             
+            % first clear handles
             for ii=1:55
                 set(obj.MarkerHandles(ii), 'FaceColor', color, ...
                     'XData', 15*sin(-linspace(0,2*pi,30)), ...
@@ -343,13 +345,14 @@ classdef VisualiserIdentityLocalisation < handle
                     'String', '');
             end
             
+            % populate with new info
             for idx = 1:numel(labels)
                 if ds{idx} == 1
-                    radius = obj.getIdentityRadius(labels{idx});
-                    color = obj.getIdentityColor(labels{idx});
                     obj.plotTextIdxAtAngle(idx, ...
                         labels{idx}, ...
-                        locs{idx}+obj.HeadRotationDegrees, color, radius);
+                        locs{idx}+obj.HeadRotationDegrees);
+                    radius = obj.getIdentityRadius(labels{idx});
+                    color = obj.getIdentityColor(labels{idx});
                     obj.plotMarkerIdxAtAngle(idx, ...
                         locs{idx}+obj.HeadRotationDegrees, ...
                         probs{idx}, ...
@@ -375,10 +378,9 @@ classdef VisualiserIdentityLocalisation < handle
             
             for idx = 1:numel(labels)
                 if ds{idx} == 1
-                    color = obj.getIdentityColor(labels{idx});
                     obj.plotIdTextIdxAtAngle(idx, ...
                         labels{idx}, ...
-                        -45, color, probs{idx});
+                        probs{idx});
                 end
             end
         end
