@@ -3,8 +3,8 @@ classdef JidoInterface < simulator.RobotInterface
     %   Detailed explanation goes here
     
     properties (GetAccess = public, SetAccess = private)
-%         BlockSize               % Block size used by the audio stream 
-%                                 % server in samples.
+        BlockSize               % Block size used by the audio stream 
+                                % server in samples.
         SampleRate              % Sample rate of the audio stream server 
                                 % in Hz.
         bIsFinished = false;    
@@ -53,8 +53,8 @@ classdef JidoInterface < simulator.RobotInterface
             % Get BASS status info
             audioObj = obj.bass.Audio();
             obj.SampleRate = audioObj.Audio.sampleRate;
-%             obj.BlockSize = audioObj.Audio.nFramesPerChunk * ...
-%                 audioObj.Audio.nChunksOnPort;
+            obj.BlockSize = audioObj.Audio.nFramesPerChunk * ...
+                audioObj.Audio.nChunksOnPort;
             obj.sampleIndex = audioObj.Audio.lastFrameIndex;
             
             % Get KEMAR properties
