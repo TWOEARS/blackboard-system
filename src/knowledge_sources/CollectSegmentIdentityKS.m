@@ -106,8 +106,49 @@ classdef CollectSegmentIdentityKS < AbstractKS
     end
     
     methods (Access = protected)        
+
+        function ds = applyClassSpecificThresholds( obj, labels, ps )
+            ds = zeros( size( ps ) );
+            for ii = 1 : numel( labels )
+                if isfield( obj.classThresholds, labels{ii} )
+                    thr = obj.classThresholds.(labels{ii});
+                else
+                    thr = obj.generalThreshold;
+                end
+                if ps(ii) >= thr
+                    ds(ii) = 1;
+                else
+                    ds(ii) = -1;
+                end
+            end
+        end
+
+        function locMaxedObjects = onlyAllowNobjectsPerLocation( obj, locMaxedObjects )
+            for ll = 1 : numel( locMaxedObjects )
+                locObjs = locMaxedObjects{ll};
+                locObjs.labels(obj.maxObjectsAtLocation+1:end) = [];
+                locObjs.ps(obj.maxObjectsAtLocation+1:end) = [];
+                locObjs.ds(obj.maxObjectsAtLocation+1:end) = [];
+                locMaxedObjects{ll} = locObjs;
+            end
+        end
+        
     end
     
     methods (Static)
+
+        function locMaxedObjects = sortIntoBinsPerLocation( locs, labels, ps, ds )
+            uniqueLocs = unique( locs );
+            locMaxedObjects = cell( size( uniqueLocs ) );
+            for ll = 1 : numel( uniqueLocs )
+                hypsAtLoc = locs == uniqueLocs(ll);
+                locMaxedObjects{ll} = struct( ...
+                    'loc', {uniqueLocs(ll)},...
+                    'labels', {labels(hypsAtLoc)},...
+                    'ps', {ps(hypsAtLoc)},...
+                    'ds', {ds(hypsAtLoc)} );
+            end
+        end
+        
     end % static methods
 end

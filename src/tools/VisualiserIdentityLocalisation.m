@@ -303,6 +303,7 @@ classdef VisualiserIdentityLocalisation < handle
             p = obj.Posteriors*obj.ScaleFactor;
             % clip, otherwise color calculation could crash
             p(p>1.0)=1.0;
+            p(p<0.0)=0.0;
             numPosteriors = length(obj.Posteriors);
             angDiff = 360/numPosteriors/2;
             for i=1:numPosteriors
