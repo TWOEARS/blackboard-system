@@ -1,6 +1,7 @@
 classdef IdentityLocationDecisionKS < AbstractKS
     
     properties (SetAccess = private)
+        count = 0
     end
 
     methods
@@ -22,6 +23,7 @@ classdef IdentityLocationDecisionKS < AbstractKS
             idloc = obj.blackboard.getData( ...
                 'identityLocationHypotheses', ...
                 obj.trigger.tmIdx).data;
+            obj.count = 0;
             for ii = 1:numel(idloc)
                 tmp = idloc(ii);
                 if tmp.d >= 1
@@ -30,15 +32,27 @@ classdef IdentityLocationDecisionKS < AbstractKS
                         hyp = IdentityHypothesis( tmp.label, ...
                             tmp.sourcesDistribution(locIdx), ...
                             1, ... # decision
-                            obj.blockCreator.blockSize_s, ...
+                            tmp.concernsBlocksize_s, ...
                             tmp.azimuths(locIdx) );
-                        dstIdx = dstIdx+1;
                         obj.blackboard.addData( 'identityHypotheses', ...
                              hyp, true, obj.trigger.tmIdx );
+                        obj.count = obj.count + 1;
                     end
                 end
             end
-            notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+            disp(obj.count)
+            if obj.count > 0
+                notify( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+            end
+        end
+        
+        function visualise(obj)
+            if ~isempty(obj.blackboardSystem.locVis) && obj.count > 0
+                idloc = obj.blackboard.getData( ...
+                    'identityHypotheses', obj.trigger.tmIdx).data;
+                obj.blackboardSystem.locVis.setLocationIdentity(...
+                    {idloc(:).label}, {idloc(:).p}, {idloc(:).d}, {idloc(:).loc});
+            end
         end
     end
 end

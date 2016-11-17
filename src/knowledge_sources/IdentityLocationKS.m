@@ -20,29 +20,29 @@ classdef IdentityLocationKS < AbstractAMLTTPKS
             obj.model = inputContent.model;
         end
         
-        function visualise(obj)
-            if ~isempty(obj.blackboardSystem.locVis)
-                idloc = obj.blackboard.getData( ...
-                'identityLocationHypotheses', obj.trigger.tmIdx).data;
-            
-                dstIdx = 1;
-                for ii = 1:numel(idloc)
-                    tmp = idloc(ii);
-                    if tmp.d >= 1
-                        locIdxs = find(tmp.azimuthDecisions>=1);
-                        for locIdx = 1:numel(locIdxs)
-                            idloc2(dstIdx) = IdentityHypothesis( tmp.label, ...
-                                tmp.sourcesDistribution(locIdx), 1, obj.blockCreator.blockSize_s, tmp.azimuths(locIdx) );
-                            dstIdx = dstIdx+1;
-                        end
-                    end
-                end
-                if dstIdx > 1
-                    obj.blackboardSystem.locVis.setLocationIdentity({idloc2(:).label}, ...
-                            {idloc2(:).p}, {idloc2(:).d}, {idloc2(:).loc});
-                end
-            end
-        end
+%         function visualise(obj)
+%             if ~isempty(obj.blackboardSystem.locVis)
+%                 idloc = obj.blackboard.getData( ...
+%                 'identityLocationHypotheses', obj.trigger.tmIdx).data;
+%             
+%                 dstIdx = 1;
+%                 for ii = 1:numel(idloc)
+%                     tmp = idloc(ii);
+%                     if tmp.d >= 1
+%                         locIdxs = find(tmp.azimuthDecisions>=1);
+%                         for locIdx = 1:numel(locIdxs)
+%                             idloc2(dstIdx) = IdentityHypothesis( tmp.label, ...
+%                                 tmp.sourcesDistribution(locIdx), 1, obj.blockCreator.blockSize_s, tmp.azimuths(locIdx) );
+%                             dstIdx = dstIdx+1;
+%                         end
+%                     end
+%                 end
+%                 if dstIdx > 1
+%                     obj.blackboardSystem.locVis.setLocationIdentity({idloc2(:).label}, ...
+%                             {idloc2(:).p}, {idloc2(:).d}, {idloc2(:).loc});
+%                 end
+%             end
+%         end
     end
     
     methods (Access = protected)
@@ -53,8 +53,8 @@ classdef IdentityLocationKS < AbstractAMLTTPKS
             [blobs_in, blobs_in_names] = obj.reshape2Blob( x{1}, x{2} );
             [d, score] = obj.model.applyModel( {blobs_in, blobs_in_names} );
             blobs_out_names = fieldnames(score);
-            score_blob = score.(blobs_out_names{1}); % use only first one
-            d_blob = d.(blobs_out_names{1}); % use only first one
+            score_blob = squeeze(score.(blobs_out_names{1})); % use only first one
+            d_blob = squeeze(d.(blobs_out_names{1})); % use only first one
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             for ii = 1:numel(obj.classnames)
                 % invert void bin output

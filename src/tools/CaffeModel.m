@@ -100,6 +100,7 @@ classdef CaffeModel < handle
                 else
                     thr_tmp = 0.5;
                 end
+                d = squeeze(d);
                 mask_neg = d < thr_tmp;
                 d(d >= thr_tmp) = 1;
                 d(mask_neg) = -1;
