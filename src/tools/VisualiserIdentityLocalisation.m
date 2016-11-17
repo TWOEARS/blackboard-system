@@ -198,14 +198,6 @@ classdef VisualiserIdentityLocalisation < handle
         function obj = setLabels(obj, labels)
            
             obj.labels = labels;
-            y2 = obj.MARKER_RADIUS;
-%             y1 = obj.INNER_RADIUS;
-            col = [1 1 1];
-%             for ii=1:numel(obj.labels)
-%                 obj.MarkerHandles(ii) = fill(15*sin(-linspace(0,2*pi,30)), ...
-%                     y2+15*cos(-linspace(0,2*pi,30)), ...
-%                     col,'linestyle','none');
-%             end
         end
         
         function obj = plotMarkerAtAngle(obj,angle,hue)
@@ -219,13 +211,10 @@ classdef VisualiserIdentityLocalisation < handle
             x1 = obj.INNER_RADIUS * sn;
             y1 = obj.INNER_RADIUS * cs;
             col = hsv2rgb(hue/360,0.9,0.6);
-%             set(obj.MarkerHandle(1), 'Color', col, 'XData', [x1 x2], 'YData', [y1 y2]);
-%             set(obj.MarkerHandle(2), 'FaceColor', col, ...
-%                 'XData', x2+15*sin(-linspace(0,2*pi,30)), ...
-%                 'YData', y2+15*cos(-linspace(0,2*pi,30)));
-            %plot([x1 x2], [y1 y2], 'Color', col, 'LineStyle', '--');
-            %fill(x2+15*sin(-linspace(0,2*pi,30)),y2+15*cos(-linspace(0,2*pi,30)),col,'linestyle','none');
-            %text(x,y,str,'HorizontalAlignment','Center','VerticalAlignment','Middle','fontsize',18,'Color',[1 1 1]);
+            set(obj.MarkerHandle(1), 'Color', col, 'XData', [x1 x2], 'YData', [y1 y2]);
+             set(obj.MarkerHandle(2), 'FaceColor', col, ...
+                 'XData', x2+15*sin(-linspace(0,2*pi,30)), ...
+                 'YData', y2+15*cos(-linspace(0,2*pi,30)));
         end
         
         function obj = plotMarkerIdxAtAngle(obj,...
@@ -236,17 +225,9 @@ classdef VisualiserIdentityLocalisation < handle
                 radiusDelta)
             sn = sin(-2*pi*angle/360);
             cs = cos(-2*pi*angle/360);
-%             radius = prob*(obj.MARKER_RADIUS-obj.INNER_RADIUS)+obj.INNER_RADIUS;
-%             x2 = radius * sn;
-%             y2 = radius * cs;
             radius = obj.MARKER_RADIUS + radiusDelta;
             x2 = radius * sn;
             y2 = radius * cs;
-%             x1 = obj.INNER_RADIUS * sn;
-%             y1 = obj.INNER_RADIUS * cs;
-%             set(obj.MarkerHandle(idx), 'Color', color, ...
-%                 'XData', [x1 x2], ...
-%                 'YData', [y1 y2]);
             set(obj.MarkerHandles(idx), 'FaceColor', color, ...
                 'XData', x2+15*sin(-linspace(0,2*pi,30)), ...
                 'YData', y2+15*cos(-linspace(0,2*pi,30)));
@@ -263,16 +244,11 @@ classdef VisualiserIdentityLocalisation < handle
             y2 = radius * cs;
             x1 = radiusInner * sn;
             y1 = radiusInner * cs;
-            %text(x2, y2, label);
-            %text(x2,y2,label,'HorizontalAlignment','Center','VerticalAlignment','Middle','fontsize',18,'Color', col);
             set(obj.TextHandles(idx), ...
                 'Color', color, ...
                 'Position', [x2, y2], ...
                 'String', label, ...
                 'rotation', angle);
-            %plot([x1 x2], [y1 y2], 'Color', col, 'LineStyle', '--');
-            %fill(x2+15*sin(-linspace(0,2*pi,30)),y2+15*cos(-linspace(0,2*pi,30)),col,'linestyle','none');
-            %text(x,y,str,'HorizontalAlignment','Center','VerticalAlignment','Middle','fontsize',18,'Color',[1 1 1]);
         end
         
         function obj = setHeadRotation(obj,val)
@@ -387,49 +363,5 @@ classdef VisualiserIdentityLocalisation < handle
                 'FontSize', 17, ...
                 'String', str);
         end
-        
-%         function obj = setLocationIdentity(obj, ...
-%                 label, probability, decision, location)
-%             
-%             for idx = 1:numel(label)
-%                 label_idx = find(strcmp(obj.labels_cur, label(idx)), 1);
-%                 if ~isempty(label_idx)
-%                     obj.Posteriors = zeros(size(obj.Posteriors));
-%                     obj.labels_cur = {label};
-%                     obj.Posteriors(obj.Angles==location) = probability;
-%                     obj.locations(1) = location;
-%                     obj.probabilities(1) = probability;
-%     %                 if decision >= 1
-%     %                     plotMarkerAtAngle(obj, location, 70);
-%     %                     plotTextAtAngle(obj, label, location, 70);
-%     %                 end
-%                 else
-%                     obj.labels_cur{end+1} = label;
-%                     obj.locations(end+1) = location;
-%                     obj.Posteriors(obj.Angles==location) = probability;
-%                     obj.probabilities(end+1) = probability;
-%                     if decision >= 1
-%                         plotMarkerAtAngle(obj, location, 70);
-%                     end
-%                 end
-% 
-%                 if numel(obj.labels_cur) == numel(obj.labels)
-%                     for ii=1:numel(obj.labels_cur)
-%                         color = getIdentityColor(label);
-%                         obj.plotTextIdxAtAngle(ii, ...
-%                             obj.labels_cur{ii}, ...
-%                             obj.locations(ii), color);
-%                         obj.plotMarkerIdxAtAngle(ii, ...
-%                             obj.locations(ii), ...
-%                             obj.probabilities(ii), ...
-%                             color);
-%     %                      plotMarkerAtAngle(obj, location, hue_value);
-%                     end
-%                     draw(obj);
-%                 end
-%             end
-% 
-%         end
-        
     end
 end
