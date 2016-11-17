@@ -49,14 +49,14 @@ classdef IntegrateFullstreamIdentitiesKS < AbstractKS
             labels = {idloc.label};
             ps = [idloc.p]; 
             ds = [idloc.d];
-            % get headOrientation and nSrcs estimate
-            nsrcsHypos = obj.blackboard.getData( ...
-                               'NumberOfSourcesHypotheses', obj.trigger.tmIdx );
-            assert( numel( nsrcsHypos.data ) == 1 );
-            numSrcs = nsrcsHypos.data.n;
-            % leaky integrate nSrcs
-            obj.integratedNsrcs = obj.leakFactor * numSrcs + ...
-                                  (1 - obj.leakFactor) * obj.integratedNsrcs;
+%             % get nSrcs estimate
+%             nsrcsHypos = obj.blackboard.getData( ...
+%                                'NumberOfSourcesHypotheses', obj.trigger.tmIdx );
+%             assert( numel( nsrcsHypos.data ) == 1 );
+%             numSrcs = nsrcsHypos.data.n;
+%             % leaky integrate nSrcs
+%             obj.integratedNsrcs = obj.leakFactor * numSrcs + ...
+%                                   (1 - obj.leakFactor) * obj.integratedNsrcs;
             % create current map
             currentProbs = struct();
             for ii = 1 : numel( labels )
@@ -95,9 +95,9 @@ classdef IntegrateFullstreamIdentitiesKS < AbstractKS
             % create objectHypotheses
             for oo = 1 : numel( maxedObjects )
                 objectHyp = IdentityHypothesis( ...
-                    locObjs.labels{oo}, ...
-                    locObjs.ps(oo), ...
-                    locObjs.ds(oo), ...
+                    maxedObjects.labels{oo}, ...
+                    maxedObjects.ps(oo), ...
+                    maxedObjects.ds(oo), ...
                     idloc(1).concernsBlocksize_s, ...
                     nan );
                 obj.blackboard.addData( 'integratedIdentityHypotheses', ...
@@ -142,11 +142,10 @@ classdef IntegrateFullstreamIdentitiesKS < AbstractKS
         end
 
         function maxedObjects = onlyAllowNobjectsPerLocation( obj, objects )
-            objs = objects;
-            objs.labels(obj.maxObjects+1:end) = [];
-            objs.ps(obj.maxObjects+1:end) = [];
-            objs.ds(obj.maxObjects+1:end) = [];
-            maxedObjects = objs;
+            objects.labels(obj.maxObjects+1:end) = [];
+            objects.ps(obj.maxObjects+1:end) = [];
+            objects.ds(obj.maxObjects+1:end) = [];
+            maxedObjects = objects;
         end
         
     end

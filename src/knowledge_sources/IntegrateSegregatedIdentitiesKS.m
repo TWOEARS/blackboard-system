@@ -54,7 +54,7 @@ classdef IntegrateSegregatedIdentitiesKS < AbstractKS
         function execute(obj)
             % get all identityHypotheses
             idloc = obj.blackboard.getData( ...
-                                  'identityHypotheses', obj.trigger.tmIdx).data;
+                                  'segIdentityHypotheses', obj.trigger.tmIdx).data;
             labels = {idloc.label};
             ps = [idloc.p]; 
             ds = [idloc.d];

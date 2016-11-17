@@ -46,7 +46,7 @@ classdef IdentityLocationDecisionKS < AbstractKS
                             1, ... # decision
                             tmp.concernsBlocksize_s, ...
                             tmp.azimuths(locIdx) );
-                        obj.blackboard.addData( 'identityHypotheses', ...
+                        obj.blackboard.addData( 'segIdentityHypotheses', ...
                              hyp, true, obj.trigger.tmIdx );
                         obj.count = obj.count + 1;
                     end
@@ -61,7 +61,7 @@ classdef IdentityLocationDecisionKS < AbstractKS
         function visualise(obj)
             if obj.doVisualise && ~isempty(obj.blackboardSystem.locVis) && obj.count > 0
                 idloc = obj.blackboard.getData( ...
-                    'identityHypotheses', obj.trigger.tmIdx).data;
+                    'segIdentityHypotheses', obj.trigger.tmIdx).data;
                 obj.blackboardSystem.locVis.setLocationIdentity(...
                     {idloc(:).label}, {idloc(:).p}, {idloc(:).d}, {idloc(:).loc});
             end
