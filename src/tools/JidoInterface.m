@@ -142,6 +142,10 @@ classdef JidoInterface < simulator.RobotInterface
             obj.headOrientation = obj.getCurrentHeadOrientation();
         end
   
+        function output = getVisualData (obj)
+            output = obj.object_detection.Detections();
+            output = output.Detections;
+        end
         
         %% Rotate the head with mode = {'absolute', 'relative'}
         function rotateHead(obj, angleDeg, mode)
