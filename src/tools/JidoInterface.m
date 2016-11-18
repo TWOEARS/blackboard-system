@@ -71,6 +71,8 @@ classdef JidoInterface < simulator.RobotInterface
             
             % Set robot active
             obj.bActive = true;
+
+            obj.rotateHead(0, 'absolute');
         end
         
         
