@@ -16,6 +16,7 @@ classdef JidoInterface < simulator.RobotInterface
     
     properties (Access = public)
         client                  % Handle to the genomix client.
+        client_vision
         kemar                   % KEMAR control interface.
         jido                    % Jido interface.
         bass                    % Interface to the audio stream server.
@@ -40,6 +41,7 @@ classdef JidoInterface < simulator.RobotInterface
             
             % Set up genomix client
             obj.client = genomix.client('jido-base.laas.fr:8080');
+            obj.client_vision = genomix.client('cochlee:8080');
             
             % Load KEMAR module
             obj.kemar = obj.client.load('kemar');
@@ -49,6 +51,9 @@ classdef JidoInterface < simulator.RobotInterface
             
             % Load BASS module
             obj.bass = obj.client.load('bass');
+
+            % --- Load object detection
+            obj.object_detection = obj.client_vision.load('objectdetection');
             
             % Get BASS status info
             audioObj = obj.bass.Audio();
