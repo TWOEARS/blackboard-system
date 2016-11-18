@@ -17,6 +17,7 @@ classdef JidoInterface < simulator.RobotInterface
     properties (Access = public)
         client                  % Handle to the genomix client.
         client_vision
+        object_detection
         kemar                   % KEMAR control interface.
         jido                    % Jido interface.
         bass                    % Interface to the audio stream server.
