@@ -23,6 +23,10 @@ classdef BlackboardSystem < handle
             obj.scheduler = Scheduler( obj.blackboardMonitor );
         end
 
+        function setEnergyThreshold(obj, energyThreshold)
+            obj.blackboard.setEnergyThreshold(energyThreshold);
+        end
+        
         % Set blackboard visualiser
         function setVisualiser(obj, visualiser)
             obj.scheduler.setVisualiser(visualiser);
@@ -54,11 +58,8 @@ classdef BlackboardSystem < handle
             obj.robotConnect = robotConnect;
         end
 
-        function setDataConnect( obj, connectorClassName, dataFs )
-            dataConnectArgs = {obj.robotConnect};
-            if nargin > 2 
-                dataConnectArgs{end+1} = dataFs; 
-            end
+        function setDataConnect( obj, connectorClassName, varargin )
+            dataConnectArgs = [{obj.robotConnect} varargin];
             % Connect to the Two!Ears Auditory Front-End module
             obj.dataConnect = obj.createKS( connectorClassName, dataConnectArgs );
         end

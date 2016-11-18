@@ -1,5 +1,5 @@
-classdef DnnLocationTopdownKS < AuditoryFrontEndDepKS
-    % DnnLocationTopdownKS calculates posterior probabilities for each azimuth angle and
+classdef SpeakerIdUbmKS < AuditoryFrontEndDepKS
+    % SpeakerIdUbmKS calculates posterior probabilities for each azimuth angle and
     % generates SourcesAzimuthsDistributionHypothesis when provided with spatial
     % observation
 
@@ -20,13 +20,10 @@ classdef DnnLocationTopdownKS < AuditoryFrontEndDepKS
                                     % frames
         freqRange;                  % Frequency range to be considered
         channels = [];              % Frequency channels to be used
-        gmm_x;                      % Target GMM
-        gmm_n;                      % Noise GMM
-        maskFloor = 0.5;            % Mask values below this floor are set to 0
     end
 
     methods
-        function obj = DnnLocationTopdownKS(preset, highFreq, lowFreq, azRes)
+        function obj = DnnLocationKS(preset, highFreq, lowFreq, azRes)
             if nargin < 1
                 % Default preset is 'MCT-DIFFUSE'. For localisation in the
                 % front hemifield only, use 'MCT-DIFFUSE-FRONT'
@@ -73,7 +70,7 @@ classdef DnnLocationTopdownKS < AuditoryFrontEndDepKS
             obj.nChannels = nChannels;
             obj.freqRange = freqRange;
             
-            % Load localiastion DNNs
+            % Load localisation DNNs
             obj.DNNs = cell(nChannels, 1);
             obj.normFactors = cell(nChannels, 1);
 
@@ -89,30 +86,6 @@ classdef DnnLocationTopdownKS < AuditoryFrontEndDepKS
             end
             obj.angles = C.azimuths;
             
-            % Load source GMMs
-            sourcePreset = 'QU_ANECHOIC';
-            strSourceGMMs = fullfile('sourceGMMs', sprintf('Source_%s_ratemap', sourcePreset));
-            load(strSourceGMMs);
-            targetSource = 'target';
-
-            obj.gmm_x = C.sourceGMMs{strcmp(targetSource,C.sourceList)};
-
-            % Load the specific source model
-%              strResult = strcat(strResult, '_interfererKnown');
-%              gmm_n = C.sourceGMMs{strcmp(interfererSource,C.sourceList)};
-
-            % Pool all interferer models to form a universal background model
-            gmms_interferer = C.sourceGMMs(strcmp(targetSource,C.sourceList)==0);
-            gmm_n = gmms_interferer{1};
-            for n = 2:numel(gmms_interferer)
-                gmm_n.ncentres = gmm_n.ncentres + gmms_interferer{n}.ncentres;
-                gmm_n.priors = [gmm_n.priors gmms_interferer{n}.priors];
-                gmm_n.centres = [gmm_n.centres; gmms_interferer{n}.centres];
-                gmm_n.covars = [gmm_n.covars; gmms_interferer{n}.covars];
-            end
-            gmm_n.priors = gmm_n.priors ./ sum(gmm_n.priors);
-            gmm_n.nwts = gmm_n.ncentres + gmm_n.ncentres*gmm_n.nin*2;
-            obj.gmm_n = gmm_n;
         end
 
 
@@ -137,25 +110,22 @@ classdef DnnLocationTopdownKS < AuditoryFrontEndDepKS
             mlag = 16; % only use -1 ms to 1 ms
             cc = cc(:,:,idx-mlag:idx+mlag);
             ild = obj.getNextSignalBlock( 2, obj.blockSize, obj.blockSize, false );
-
             ratemap = obj.getNextSignalBlock( 3, obj.blockSize, obj.blockSize, false );
-            ratemap = (ratemap{1}' + ratemap{2}') ./ 2;
-            % log compression
-            ratemap = log(max(ratemap, eps));
-                        
+            ratemap = (ratemap{1} + ratemap{2}) ./ 2;
+            frameEnergy = mean(ratemap,2);
+            %fprintf('%E\n', frameEnergy);
+            validFrames = frameEnergy > obj.blackboard.energyThreshold;
+            if sum(validFrames) < 2
+                return;
+            end
+            
             % Only consider those channels within obj.freqRange
             if isempty(obj.channels)
                 afe = obj.getAFEdata;
                 obj.channels = find(afe(1).cfHz >= obj.freqRange(1) & afe(1).cfHz <= obj.freqRange(2));
             end
-            
-            % Estimate a mask using mixed observation and source GMMs
-            mask = estimateMaskGmm(ratemap, obj.gmm_x, obj.gmm_n);
-            % subplot(211); imagesc(ratemap); axis xy;
-            % subplot(212); imagesc(mask); axis xy;
-            mask = mask(obj.channels, :);
-            mask(mask<obj.maskFloor) = 0;
-            
+
+
             % Compute posterior distributions for each frequency channel and time frame
             [nFrames] = size(ild,1);
             nAzimuths = numel(obj.angles);
@@ -178,36 +148,50 @@ classdef DnnLocationTopdownKS < AuditoryFrontEndDepKS
                 obj.DNNs{ch}.testing = 0;
             end
 
-            % Integrate over time-frequency by applying the mask
-            mask2 = reshape(mask', size(mask,2), 1, size(mask,1));
-
-            % Integrate probabilities across all frequency channel
-            prob_AF = exp(squeeze(nanSum(bsxfun(@times,log(post),mask2),3)));
-
-            % Normalize such that probabilities sum up to one for each frame
-            prob_AFN = transpose(prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]));
-
-            % Integrate across all frames
-            %prob_AFN_F = nanmean(prob_AFN,2);
-            mask3 = sum(mask);
-            prob_AFN_F = nanSum(bsxfun(@times,prob_AFN,mask3./sum(mask3)),2);
+            % Only process valid frames
+            post = post(validFrames, :, :);
             
-%             % Average posterior distributions over frequency
-%             prob_AF = exp(squeeze(nanSum(log(post),3)));
-% 
-%             % Normalise each frame such that probabilities sum up to one
-%             prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
-% 
-%             % Average posterior distributions over time
-%             prob_AFN_F = nanMean(prob_AFN, 1);
+            % Get segregation mask
+            segHyp = obj.blackboard.getData( ...
+                'sourceSegregationHypothesis', obj.trigger.tmIdx);
+            if isempty(segHyp) 
+                % Average posterior distributions over frequency
+                prob_AF = exp(squeeze(nanSum(log(post),3)));
+
+                % Normalise each frame such that probabilities sum up to one
+                prob_AFN = prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]);
+
+                % Average posterior distributions over time
+                prob_AFN_F = nanMean(prob_AFN, 1);
+
+            else
+                mask = segHyp.data.mask;
+                mask = mask(:, validFrames);
+                
+                % Integrate over time-frequency by applying the mask
+                mask2 = reshape(mask', size(mask,2), 1, size(mask,1));
+
+                % Integrate probabilities across all frequency channel
+                prob_AF = exp(squeeze(nanSum(bsxfun(@times,log(post),mask2),3)));
+
+                % Normalize such that probabilities sum up to one for each frame
+                prob_AFN = transpose(prob_AF ./ repmat(sum(prob_AF,2),[1 nAzimuths]));
+
+                % Integrate across all frames
+                %prob_AFN_F = nanmean(prob_AFN,2);
+                mask3 = sum(mask);
+                prob_AFN_F = nanSum(bsxfun(@times,prob_AFN,mask3./sum(mask3)),2);
+            
+            end
 
             % Create a new location hypothesis
             currentHeadOrientation = obj.blackboard.getLastData('headOrientation').data;
             aziHyp = SourcesAzimuthsDistributionHypothesis( ...
-                currentHeadOrientation, obj.angles, prob_AFN_F);
+                currentHeadOrientation, obj.angles(:), prob_AFN_F(:));
             obj.blackboard.addData( ...
                 'sourcesAzimuthsDistributionHypotheses', aziHyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
+            
         end
 
     end

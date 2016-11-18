@@ -1,4 +1,4 @@
-classdef IdentityHypothesis < Hypothesis
+classdef SingleBlockObjectHypothesis < Hypothesis
     
     properties (SetAccess = private)
         label;
@@ -9,10 +9,7 @@ classdef IdentityHypothesis < Hypothesis
     end
     
     methods
-        function obj = IdentityHypothesis( label, p, d, blocksize_s, loc )
-            if nargin < 5
-                loc = [];
-            end
+        function obj = SingleBlockObjectHypothesis( label, loc, p, d, blocksize_s )
             obj = obj@Hypothesis();
             obj.label = label;
             obj.p = p;

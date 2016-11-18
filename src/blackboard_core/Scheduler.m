@@ -76,6 +76,7 @@ classdef Scheduler < handle
                         nextKsi.ks.execute();
                         if ~isempty(obj.visualiser)
                             dur = toc(t);
+                            nextKsi.ks.visualise();
                             obj.visualiser.setKsDuration(dur); % draw stops
                         end
                         break;

@@ -74,7 +74,7 @@ classdef CaffeModel < handle
                         batch_sz_data = sz_data(numel(sz_data));
                         
                         expected_sz_data = obj.net.blobs(obj.net.inputs{ii}).shape;
-                        expected_batch_sz_data = expected_sz_data();
+                        expected_batch_sz_data = expected_sz_data;
                         % reshape input blob if necessary
                         if batch_sz_data ~= expected_batch_sz_data
                             batch_sz_data_new = expected_batch_sz_data;
@@ -100,6 +100,7 @@ classdef CaffeModel < handle
                 else
                     thr_tmp = 0.5;
                 end
+                d = squeeze(d);
                 mask_neg = d < thr_tmp;
                 d(d >= thr_tmp) = 1;
                 d(mask_neg) = -1;

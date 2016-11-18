@@ -1,0 +1,122 @@
+classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
+    % FactorialSourceModelKS uses factorial source models to jointly 
+    % estimate a mask for the target source
+
+    % TODO: make this KS work with synthesized sound sources, see qoe_localisation folder
+    % in TWOEARS/examples repo
+    
+    properties (SetAccess = private)
+        nChannels;                  % Number of frequency channels
+        blockSize                   % The size of one data block that
+                                    % should be processed by this KS in
+                                    % [s].
+        dataPath = fullfile('learned_models', 'FactorialSourceModelKS');
+        freqRange;                  % Frequency range to be considered
+        channels = [];              % Frequency channels to be used
+        sourceGMMs;
+        sourceList;
+        gmm_x;                      % Target GMM
+        gmm_n;                      % Background GMM
+        maskFloor = 0.5;            % Mask values below this floor are set to 0
+        targetSource;
+    end
+
+    methods
+        function obj = FactorialSourceModelKS(targetSource, highFreq, lowFreq)
+
+            defaultFreqRange = [80 8000];
+            freqRange = defaultFreqRange;
+            % Frequency range to be considered
+            if exist('highFreq', 'var')   
+                freqRange(2) = highFreq;
+            end
+            if exist('lowFreq', 'var')
+                freqRange(1) = lowFreq;
+            end
+            nChannels = 32;
+            param = genParStruct(...
+                'fb_type', 'gammatone', ...
+                'fb_lowFreqHz', defaultFreqRange(1), ...
+                'fb_highFreqHz', defaultFreqRange(2), ...
+                'fb_nChannels', nChannels, ...
+                'ihc_method', 'halfwave', ...
+                'ild_wSizeSec', 20E-3, ...
+                'ild_hSizeSec', 10E-3, ...
+                'rm_wSizeSec', 20E-3, ...
+                'rm_hSizeSec', 10E-3, ...
+                'rm_scaling', 'power', ...
+                'rm_decaySec', 8E-3, ...
+                'cc_wSizeSec', 20E-3, ...
+                'cc_hSizeSec', 10E-3, ...
+                'cc_wname', 'hann');
+            requests{1}.name = 'ratemap';
+            requests{1}.params = param;
+            obj = obj@AuditoryFrontEndDepKS(requests);
+            obj.blockSize = 0.5;
+            obj.invocationMaxFrequency_Hz = 10;
+            obj.nChannels = nChannels;
+            obj.freqRange = freqRange;
+            
+            % Load source GMMs
+            if exist('targetSource', 'var')
+                obj.targetSource = targetSource;
+            else
+                obj.targetSource = 'speech';
+            end
+            
+            sourcePreset = 'JIDO-REC';
+            strSourceGMMs = fullfile(obj.dataPath, sprintf('%s_ratemap.mat', sourcePreset));
+            load(db.getFile(strSourceGMMs));
+
+            obj.sourceGMMs = C.sourceGMMs;
+            obj.sourceList = C.sourceList;
+            obj.gmm_x = obj.sourceGMMs{strcmp(obj.targetSource, obj.sourceList)};
+            obj.gmm_n = C.UBM;
+            
+        end
+
+
+        function setTargetSource(obj, targetSource)
+            obj.targetSource = targetSource;
+            obj.gmm_x = obj.sourceGMMs{strcmp(targetSource, obj.sourceList)};
+        end
+        
+        
+        function [bExecute, bWait] = canExecute(obj)
+            % Execute KS if a sufficient amount of data for one block has
+            % been gathered
+            bExecute = obj.hasEnoughNewSignal( obj.blockSize );
+            bWait = false;
+        end
+
+        function execute(obj)
+            ratemap = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
+            ratemap = (ratemap{1}' + ratemap{2}') ./ 2;
+            % log compression
+            ratemap = log(max(ratemap, eps));
+                        
+            % Only consider those channels within obj.freqRange
+            if isempty(obj.channels)
+                afe = obj.getAFEdata;
+                afe = afe(1);
+                obj.channels = find(afe{1}.cfHz >= obj.freqRange(1) & afe{1}.cfHz <= obj.freqRange(2));
+            end
+            
+            % Estimate a mask using mixed observation and source GMMs
+            mask = estimateMaskGmm(ratemap, obj.gmm_x, obj.gmm_n);
+            % subplot(211); imagesc(ratemap); axis xy;
+            % subplot(212); imagesc(mask); axis xy;
+            mask = mask(obj.channels, :);
+            mask(mask<obj.maskFloor) = 0;
+            
+            % Create a new source segregation hypothesis
+            hyp = SourceSegregationHypothesis(mask, obj.targetSource);
+            obj.blackboard.addData( ...
+                'sourceSegregationHypothesis', hyp, false, obj.trigger.tmIdx);
+            notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
+        end
+
+    end
+end
+
+% vim: set sw=4 ts=4 et tw=90 cc=+1:

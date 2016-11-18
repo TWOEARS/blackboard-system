@@ -11,6 +11,7 @@ classdef Blackboard < handle
         currentSoundTimeIdx = 0;        % the current "sound time". 
                                         % Has to be set when a new signal
                                         % chunk arrives
+        energyThreshold = 0;            % For detecting a valid frame
     end
     
     methods
@@ -158,6 +159,10 @@ classdef Blackboard < handle
             sndTimeIdxs = sort( cell2mat( keys( obj.data ) ) );
             sndTimeIdxs = sndTimeIdxs( sndTimeIdxs(end) - sndTimeIdxs <= blockSize_s );
             requestedData = obj.getData( dataLabel, sndTimeIdxs );
+        end
+        
+        function setEnergyThreshold(obj, energyThreshold)
+            obj.energyThreshold = energyThreshold;
         end
         
     end

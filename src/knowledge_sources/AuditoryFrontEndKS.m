@@ -38,19 +38,21 @@ classdef AuditoryFrontEndKS < AbstractKS
 
     methods
         %% constructor
-        function obj = AuditoryFrontEndKS(robotInterfaceObj,afeFs)
+        function obj = AuditoryFrontEndKS(robotInterfaceObj, afeFs, timeStep)
             obj = obj@AbstractKS();
-            if nargin < 2 
-                obj.afeFs = robotInterfaceObj.SampleRate; 
-            else
-                obj.afeFs = afeFs;
+            if nargin < 2 || isempty( afeFs )
+                afeFs = robotInterfaceObj.SampleRate; 
             end
+            obj.afeFs = afeFs;
             dataObj = dataObject([], obj.afeFs, ...
                 obj.bufferSize_s, 2);  % Last input (2) indicates a stereo signal
             obj.managerObject = manager(dataObj);
             obj.robotInterfaceObj = robotInterfaceObj;
-            obj.timeStep = obj.robotInterfaceObj.BlockSize / ...
-                obj.robotInterfaceObj.SampleRate;
+            if nargin < 3 || isempty( timeStep )
+                timeStep = obj.robotInterfaceObj.BlockSize / ...
+                    obj.robotInterfaceObj.SampleRate;
+            end
+            obj.timeStep = timeStep;
             obj.invocationMaxFrequency_Hz = inf;
         end
 
@@ -76,7 +78,10 @@ classdef AuditoryFrontEndKS < AbstractKS
             % Trigger event
             notify(obj, 'KsFiredEvent');
             
-            % Visualisation
+        end
+
+        %% Visualisation
+        function visualise(obj)
             if ~isempty(obj.blackboardSystem.afeVis)
                 t = obj.lastExecutionTime_s + obj.timeStep;
                 if mod(t, obj.blackboardSystem.afeVis.updateTime) < obj.timeStep
@@ -84,7 +89,7 @@ classdef AuditoryFrontEndKS < AbstractKS
                 end
             end
         end
-
+        
         %% KS utilities
         function createProcsForDepKS(obj, auditoryFrontEndDepKs)
             for z = 1:length( auditoryFrontEndDepKs.requests )

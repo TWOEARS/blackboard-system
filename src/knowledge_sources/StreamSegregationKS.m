@@ -57,6 +57,8 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
             
             % Assign block size.
             obj.blockSize = p.Results.BlockSize;
+
+            obj.invocationMaxFrequency_Hz = inf;
             
             % Load observation model for the specified set of parameters.
             obj.observationModel = ObservationModel( trainingParameters );
@@ -77,16 +79,18 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
         end
         
         function [bExecute, bWait] = canExecute(obj)
-            bExecute = obj.hasEnoughNewSignal( obj.blockSize );
+            bExecute = obj.blackboard.currentSoundTimeIdx > obj.blockSize;
+            % allow overlapped executions
+            % bExecute = obj.hasEnoughNewSignal( obj.blockSize );
             bWait = false;
         end
         
         function execute(obj)
             % Get binaural features.
-            itds = obj.getNextSignalBlock( 1, obj.blockSize, ...
-                obj.blockSize, false );
-            ilds = obj.getNextSignalBlock( 2, obj.blockSize, ...
-                obj.blockSize, false );
+            itds = obj.getSignalBlock( 1, ...
+                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
+            ilds = obj.getSignalBlock( 2, ...
+                [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
             
             % Get current look direction.
             lookDirection = obj.blackboard.getLastData( 'headOrientation' );
@@ -104,7 +108,8 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                     refAzm(azimuthIdx) = headRelativeAzimuth;
                 end
             else
-                locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
+%                 locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
+                locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
                 assert( numel( locHypos.data ) == 1 );
                 locData = locHypos.data;
                 if obj.useFixedNoSrcs
@@ -116,19 +121,23 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                     % segregating into 0 streams seems pointless
                 end
                 refAzm = zeros( 1, numAzimuths );
+%                 posteriors = locData.sourcesDistribution;
+                posteriors = locData.sourcesPosteriors;
                 [locPeaks, locPeaksIdxs] = findpeaks( ...
-                    [locData.sourcesDistribution(end) ...
-                     locData.sourcesDistribution ...
-                     locData.sourcesDistribution(1)] );
+                    [posteriors(end) ...
+                     posteriors(:)' ...
+                     posteriors(1)] );
                 locPeaksIdxs = locPeaksIdxs - 1;
                 assert( ...
                     all( locPeaksIdxs > 0 ) && ...
-                    all( locPeaksIdxs <= numel( locData.sourcesDistribution ) ) );
+                    all( locPeaksIdxs <= numel( posteriors ) ) );
                 [~, locPeaksSortedAzmIdxs] = sort( locPeaks, 'descend' );
                 locSortedAzmIdxs = locPeaksIdxs(locPeaksSortedAzmIdxs);
                 for azimuthIdx = 1 : numAzimuths
+%                     refAzm(azimuthIdx) = wrapTo180( ...
+%                           locData.azimuths(locSortedAzmIdxs(azimuthIdx)) );
                     refAzm(azimuthIdx) = wrapTo180( ...
-                          locData.azimuths(locSortedAzmIdxs(azimuthIdx)) );
+                          locData.sourceAzimuths(locSortedAzmIdxs(azimuthIdx)) );
                 end
             end
             likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
