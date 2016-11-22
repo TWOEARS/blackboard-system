@@ -1,6 +1,7 @@
 classdef NumberOfSourcesKS < AbstractAMLTTPKS
     
     properties (SetAccess = private)
+        locDataKey = 'locationHypothesis' % 'locationHypothesis'(default) or 'sourcesAzimuthsDistributionHypotheses'
     end
 
     methods
@@ -20,10 +21,17 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
     
     methods (Access = protected)        
         function amlttpExecute( obj, afeBlock )
-%             locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
-            locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
-            assert( numel( locHypos.data ) == 1 );
-            afeBlock = DataProcs.DnnLocKsWrapper.addLocData( afeBlock, locHypos.data );
+            if strcmp( obj.locDataKey, 'locationHypothesis' )
+                % use more robust localisationDecision output -- recommended
+                locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
+                assert( numel( locHypos.data ) == 1 );
+                afeBlock = DataProcs.DnnLocKsWrapper.addLocDecisionData( afeBlock, locHypos.data );
+            elseif strcmp( obj.locDataKey, 'sourcesAzimuthsDistributionHypotheses' )
+                % fall back on raw localisation data
+                locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
+                assert( numel( locHypos.data ) == 1 );
+                afeBlock = DataProcs.DnnLocKsWrapper.addLocData( afeBlock, locHypos.data );
+            end
             
             obj.featureCreator.setAfeData( afeBlock );
             
