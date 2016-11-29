@@ -13,16 +13,17 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
         dataPath = fullfile('learned_models', 'FactorialSourceModelKS');
         freqRange;                  % Frequency range to be considered
         channels = [];              % Frequency channels to be used
-        sourceGMMs;
+        sourceGMMs;                 % source GMMs
+        UBM;                        % universal background model
         sourceList;
         gmm_x;                      % Target GMM
         gmm_n;                      % Background GMM
-        maskFloor = 0.5;            % Mask values below this floor are set to 0
-        targetSource;
+        maskFloor = 0.4;            % Mask values below this floor are set to 0
+        targetSource = [];
     end
 
     methods
-        function obj = FactorialSourceModelKS(targetSource, highFreq, lowFreq)
+        function obj = FactorialSourceModelKS(targetSource, sourcePreset, highFreq, lowFreq)
 
             defaultFreqRange = [80 8000];
             freqRange = defaultFreqRange;
@@ -63,24 +64,37 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             else
                 obj.targetSource = 'speech';
             end
+            if ~exist('sourcePreset', 'var')
+                sourcePreset = 'JIDO-REC';
+            end
             
-            sourcePreset = 'JIDO-REC';
-            strSourceGMMs = fullfile(obj.dataPath, sprintf('%s_ratemap.mat', sourcePreset));
+            strSourceGMMs = fullfile(obj.dataPath, sprintf('SourceGMMs_%s_ratemap.mat', sourcePreset));
             load(db.getFile(strSourceGMMs));
 
             obj.sourceGMMs = C.sourceGMMs;
             obj.sourceList = C.sourceList;
-            obj.gmm_x = obj.sourceGMMs{strcmp(obj.targetSource, obj.sourceList)};
+            obj.UBM = C.UBM;
+            obj.gmm_x = C.UBM; % default no target
             obj.gmm_n = C.UBM;
             
         end
 
-
         function setTargetSource(obj, targetSource)
             obj.targetSource = targetSource;
-            obj.gmm_x = obj.sourceGMMs{strcmp(targetSource, obj.sourceList)};
+            if isempty(targetSource)
+                obj.gmm_x = obj.UBM;
+            else
+                obj.gmm_x = obj.sourceGMMs{strcmp(targetSource, obj.sourceList)};
+            end
         end
         
+        function setBackgroundSource(obj, bgSource)
+            if isempty(bgSource)
+                obj.gmm_n = obj.UBM;
+            else
+                obj.gmm_n = obj.sourceGMMs{strcmp(bgSource, obj.sourceList)};
+            end
+        end
         
         function [bExecute, bWait] = canExecute(obj)
             % Execute KS if a sufficient amount of data for one block has
@@ -104,6 +118,7 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             
             % Estimate a mask using mixed observation and source GMMs
             mask = estimateMaskGmm(ratemap, obj.gmm_x, obj.gmm_n);
+            
             % subplot(211); imagesc(ratemap); axis xy;
             % subplot(212); imagesc(mask); axis xy;
             mask = mask(obj.channels, :);
@@ -116,6 +131,15 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
         end
 
+        % Visualisation
+        function visualise(obj)
+            if ~isempty(obj.blackboardSystem.afeVis)
+                hyp = obj.blackboard.getData( ...
+                'sourceSegregationHypothesis', obj.trigger.tmIdx).data;
+                obj.blackboardSystem.afeVis.drawMask(hyp.mask);
+            end
+        end
+        
     end
 end
 
