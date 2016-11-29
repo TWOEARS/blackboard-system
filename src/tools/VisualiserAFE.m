@@ -106,6 +106,7 @@ classdef VisualiserAFE < handle
             colormap default;
             map = colormap;
             map(1,:) = [1 1 1];
+            map(2,:) = [0 0 0];
             colormap(map);
         end
         
@@ -120,7 +121,7 @@ classdef VisualiserAFE < handle
             obj.maskBuffer = circshift(obj.maskBuffer, -nFrames, 2);
             obj.maskBuffer(:, end-nFrames+1:end) = mask;
 
-            mask = (obj.maskBuffer(:,end-obj.nMaskFrames+1:end) > 0.4) .* 10;
+            mask = (obj.maskBuffer(:,end-obj.nMaskFrames+1:end) > 0.4) .* 2;
             set(obj.hMask, 'cdata', mask);
             
             %drawnow;

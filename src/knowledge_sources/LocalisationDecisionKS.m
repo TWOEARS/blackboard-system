@@ -121,6 +121,10 @@ classdef LocalisationDecisionKS < AbstractKS
             
         end
         
+        function setSolveConfusion(obj, bSolveConfusion)
+            obj.bSolveConfusion = bSolveConfusion;
+        end
+        
         % Visualisation
         function visualise(obj)
             if ~isempty(obj.blackboardSystem.locVis)
