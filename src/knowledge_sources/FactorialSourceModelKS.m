@@ -99,6 +99,7 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             
             % Estimate a mask using mixed observation and source GMMs
             mask = estimateMaskGmm(ratemap, obj.gmm_x, obj.gmm_n);
+            %[source, mask, score] = obj.identifySource(ratemap);
             
             % subplot(211); imagesc(ratemap); axis xy;
             % subplot(212); imagesc(mask); axis xy;
@@ -115,6 +116,19 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
         end
 
+        function [source, mask, score] = identifySource(obj, ratemap)
+            nSources = length(obj.sourceGMMs);
+            masks = cell(nSources,1);
+            scores = zeros(nSources,1);
+            for n=1:nSources
+                [masks{n}, score] = estimateMaskGmm(ratemap, obj.sourceGMMs{n}, obj.UBM);
+                scores(n)= mean(score);
+            end
+            [score,idx] = max(scores);
+            source = obj.sourceList{idx};
+            mask = masks{idx};
+        end
+        
         % Visualisation
         function visualise(obj)
             if ~isempty(obj.blackboardSystem.afeVis)
