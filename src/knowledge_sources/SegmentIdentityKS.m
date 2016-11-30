@@ -52,6 +52,7 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
     end
     
     methods (Static)
+        % mask should be of [time x frequency]
         function afeBlock = maskAFEData( afeData, mask, cfHz, maskHopSize )
             afeBlock = containers.Map( 'KeyType', 'int32', 'ValueType', 'any' );
             for afeKey = afeData.keys
