@@ -21,7 +21,7 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = FactorialSourceModelKS(targetSource, sourcePreset)
+        function obj = FactorialSourceModelKS(sourcePreset, targetSource)
 
             defaultFreqRange = [80 8000];
             nChannels = 32;
@@ -50,7 +50,7 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             if exist('targetSource', 'var')
                 obj.targetSource = targetSource;
             else
-                obj.targetSource = 'speech';
+                obj.targetSource = [];
             end
             if ~exist('sourcePreset', 'var')
                 sourcePreset = 'JIDO-REC';
