@@ -100,8 +100,22 @@ classdef LocalisationDecisionKS < AbstractKS
             obj.prevTimeIdx = obj.trigger.tmIdx;
             aziHyp.seenByLocalisationDecisionKS;
             
+
+            % Add segmentation hypothesis to the blackboard for
+            % SegmentIdentityKS
+            segHyp = obj.blackboard.getData( ...
+                'sourceSegregationHypothesis', obj.trigger.tmIdx);
+            if ~isempty(segHyp)
+                % SourceSegregationHypothesis uses masks of [nChannels x nFrames]
+                % SegmentationHypothesis uses masks of [nFrames x nChannels]
+                segHyp = SegmentationHypothesis(segHyp.data.source, ...
+                    'SoundSource', segHyp.data.mask', segHyp.data.cfHz, segHyp.data.hopSize, ploc.relativeAzimuth);
+                obj.blackboard.addData('segmentationHypotheses', ...
+                    segHyp, false, obj.trigger.tmIdx);
+            end
             
-            
+            notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
+                  
             % Request head rotation to solve front-back confusion
             bRotateHead = false;
             if obj.bSolveConfusion
@@ -115,9 +129,6 @@ classdef LocalisationDecisionKS < AbstractKS
             if bRotateHead
                 notify(obj, 'RotateHead', BlackboardEventData(obj.trigger.tmIdx));
             end
-            %else
-            notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
-            %end
             
         end
         

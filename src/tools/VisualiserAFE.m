@@ -187,7 +187,7 @@ classdef VisualiserAFE < handle
             
             % Plot Ratemap
             if isprop(data, 'ratemap')
-                ratemap = (data.ratemap{1}.Data(:) + data.ratemap{2}.Data(:)) ./ 2;
+                ratemap = (data.ratemap{1,1}.Data(:) + data.ratemap{1,2}.Data(:)) ./ 2;
                 % log compression
                 ratemap = log(max(ratemap, eps))';
             
