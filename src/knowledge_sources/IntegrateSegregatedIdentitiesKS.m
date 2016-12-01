@@ -30,7 +30,7 @@ classdef IntegrateSegregatedIdentitiesKS < AbstractKS
                 classThresholds = struct();
             end
             if nargin < 5 || isempty( generalThreshold )
-                generalThreshold = 0.5*max( npdf );
+                generalThreshold = 0.5;
             end
             obj.leakFactor = leakFactor;
             obj.hypSpread = hypSpread;
@@ -181,7 +181,7 @@ classdef IntegrateSegregatedIdentitiesKS < AbstractKS
                 else
                     thr = obj.generalThreshold;
                 end
-                if ps(ii) >= thr
+                if ps(ii) >= thr*max( obj.npdf )
                     ds(ii) = 1;
                 else
                     ds(ii) = -1;

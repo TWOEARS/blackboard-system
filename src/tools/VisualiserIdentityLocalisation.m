@@ -368,11 +368,11 @@ classdef VisualiserIdentityLocalisation < handle
             end
             
             for idx = 1:numel(labels)
-                if ds{idx} == 1
+%                 if ds{idx} == 1
                     obj.plotIdTextIdxAtAngle(idx, ...
                         labels{idx}, ...
                         probs{idx});
-                end
+%                 end
             end
         end
         
