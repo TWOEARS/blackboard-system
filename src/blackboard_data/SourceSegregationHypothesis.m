@@ -5,14 +5,17 @@ classdef SourceSegregationHypothesis < Hypothesis
     properties (SetAccess = private)
         mask                % segregation mask for target source
         source = 'target';  % source name
+        cfHz
+        hopSize
     end
 
     methods
-        function obj = SourceSegregationHypothesis(mask, source)
+        function obj = SourceSegregationHypothesis(mask, source, cfHz, hopSize)
             obj.mask = mask;
-            if nargin > 1
-                obj.source = source;
-            end
+            obj.source = source;
+            obj.cfHz = cfHz;
+            obj.hopSize = hopSize;
+            
         end
     end
 

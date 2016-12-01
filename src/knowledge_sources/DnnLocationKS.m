@@ -118,11 +118,7 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
             frameEnergy = mean(ratemap,2);
             %fprintf('%E\n', frameEnergy);
             inactiveFrames = frameEnergy < obj.blackboard.energyThreshold;
-            
-            %if sum(validFrames) < 2
-            %    return;
-            %end
-            
+
             % Only consider those channels within obj.freqRange
             if isempty(obj.channels)
                 afe = obj.getAFEdata;

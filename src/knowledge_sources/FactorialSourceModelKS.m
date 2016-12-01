@@ -6,33 +6,24 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
     % in TWOEARS/examples repo
     
     properties (SetAccess = private)
-        nChannels;                  % Number of frequency channels
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
         dataPath = fullfile('learned_models', 'FactorialSourceModelKS');
-        freqRange;                  % Frequency range to be considered
-        channels = [];              % Frequency channels to be used
-        sourceGMMs;
+
+        sourceGMMs;                 % source GMMs
+        UBM;                        % universal background model
         sourceList;
         gmm_x;                      % Target GMM
         gmm_n;                      % Background GMM
-        maskFloor = 0.5;            % Mask values below this floor are set to 0
-        targetSource;
+        maskFloor = 0.4;            % Mask values below this floor are set to 0
+        targetSource = [];
     end
 
     methods
-        function obj = FactorialSourceModelKS(targetSource, highFreq, lowFreq)
+        function obj = FactorialSourceModelKS(sourcePreset, targetSource)
 
             defaultFreqRange = [80 8000];
-            freqRange = defaultFreqRange;
-            % Frequency range to be considered
-            if exist('highFreq', 'var')   
-                freqRange(2) = highFreq;
-            end
-            if exist('lowFreq', 'var')
-                freqRange(1) = lowFreq;
-            end
             nChannels = 32;
             param = genParStruct(...
                 'fb_type', 'gammatone', ...
@@ -54,33 +45,44 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             obj = obj@AuditoryFrontEndDepKS(requests);
             obj.blockSize = 0.5;
             obj.invocationMaxFrequency_Hz = 10;
-            obj.nChannels = nChannels;
-            obj.freqRange = freqRange;
             
             % Load source GMMs
             if exist('targetSource', 'var')
                 obj.targetSource = targetSource;
             else
-                obj.targetSource = 'speech';
+                obj.targetSource = [];
+            end
+            if ~exist('sourcePreset', 'var')
+                sourcePreset = 'JIDO-REC';
             end
             
-            sourcePreset = 'JIDO-REC';
-            strSourceGMMs = fullfile(obj.dataPath, sprintf('%s_ratemap.mat', sourcePreset));
+            strSourceGMMs = fullfile(obj.dataPath, sprintf('SourceGMMs_%s_ratemap.mat', sourcePreset));
             load(db.getFile(strSourceGMMs));
 
             obj.sourceGMMs = C.sourceGMMs;
             obj.sourceList = C.sourceList;
-            obj.gmm_x = obj.sourceGMMs{strcmp(obj.targetSource, obj.sourceList)};
+            obj.UBM = C.UBM;
+            obj.gmm_x = C.UBM; % default no target
             obj.gmm_n = C.UBM;
             
         end
 
-
         function setTargetSource(obj, targetSource)
             obj.targetSource = targetSource;
-            obj.gmm_x = obj.sourceGMMs{strcmp(targetSource, obj.sourceList)};
+            if isempty(targetSource)
+                obj.gmm_x = obj.UBM;
+            else
+                obj.gmm_x = obj.sourceGMMs{strcmp(targetSource, obj.sourceList)};
+            end
         end
         
+        function setBackgroundSource(obj, bgSource)
+            if isempty(bgSource)
+                obj.gmm_n = obj.UBM;
+            else
+                obj.gmm_n = obj.sourceGMMs{strcmp(bgSource, obj.sourceList)};
+            end
+        end
         
         function [bExecute, bWait] = canExecute(obj)
             % Execute KS if a sufficient amount of data for one block has
@@ -94,28 +96,48 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
             ratemap = (ratemap{1}' + ratemap{2}') ./ 2;
             % log compression
             ratemap = log(max(ratemap, eps));
-                        
-            % Only consider those channels within obj.freqRange
-            if isempty(obj.channels)
-                afe = obj.getAFEdata;
-                afe = afe(1);
-                obj.channels = find(afe{1}.cfHz >= obj.freqRange(1) & afe{1}.cfHz <= obj.freqRange(2));
-            end
             
             % Estimate a mask using mixed observation and source GMMs
             mask = estimateMaskGmm(ratemap, obj.gmm_x, obj.gmm_n);
+            %[source, mask, score] = obj.identifySource(ratemap);
+            
             % subplot(211); imagesc(ratemap); axis xy;
             % subplot(212); imagesc(mask); axis xy;
-            mask = mask(obj.channels, :);
-            mask(mask<obj.maskFloor) = 0;
-            
+
+            %mask(mask<obj.maskFloor) = 0;
+
+            afe = obj.getAFEdata;
+            afe = afe(1);
+                
             % Create a new source segregation hypothesis
-            hyp = SourceSegregationHypothesis(mask, obj.targetSource);
+            hyp = SourceSegregationHypothesis(mask, obj.targetSource, afe{1}.cfHz, 1/afe{1}.FsHz);
             obj.blackboard.addData( ...
                 'sourceSegregationHypothesis', hyp, false, obj.trigger.tmIdx);
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
         end
 
+        function [source, mask, score] = identifySource(obj, ratemap)
+            nSources = length(obj.sourceGMMs);
+            masks = cell(nSources,1);
+            scores = zeros(nSources,1);
+            for n=1:nSources
+                [masks{n}, score] = estimateMaskGmm(ratemap, obj.sourceGMMs{n}, obj.UBM);
+                scores(n)= mean(score);
+            end
+            [score,idx] = max(scores);
+            source = obj.sourceList{idx};
+            mask = masks{idx};
+        end
+        
+        % Visualisation
+        function visualise(obj)
+            if ~isempty(obj.blackboardSystem.afeVis)
+                hyp = obj.blackboard.getData( ...
+                'sourceSegregationHypothesis', obj.trigger.tmIdx).data;
+                obj.blackboardSystem.afeVis.drawMask(hyp.mask);
+            end
+        end
+        
     end
 end
 

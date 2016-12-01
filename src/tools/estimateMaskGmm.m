@@ -87,7 +87,9 @@ postProb4d = reshape(postProb', [1 nFrames K_x K_n]);
 mask = sum(sum(bsxfun(@times, w, postProb4d), 4), 3); 
 mask(isnan(mask) | isinf(mask)) = 1;
 mask(mask<0.01) = 0.01;
+postProb(postProb<eps) = eps;
 logLikelihood = sum(log(postProb));
+logLikelihood = logLikelihood ./ size(postProb,1); % normalise by num mixtures
 
 %subplot(211); imagesc(data); axis xy; title('Binaural Mixture'); colorbar
 %subplot(212); imagesc(mask); axis xy; title('Soft mask'); colorbar
