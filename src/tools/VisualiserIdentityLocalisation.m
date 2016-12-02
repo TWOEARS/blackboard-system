@@ -26,7 +26,7 @@ classdef VisualiserIdentityLocalisation < handle
     properties (SetAccess = private)
         ksColourMap = containers.Map; % identity colour map
         idRadiusMap = containers.Map; % identity radius map
-        radiusList = -150:40:250;
+        radiusList = -200:40:200;
         colourList = [0.4660    0.6740    0.1880
                       0.8500    0.3250    0.0980
                       0.0000    0.4470    0.7410
