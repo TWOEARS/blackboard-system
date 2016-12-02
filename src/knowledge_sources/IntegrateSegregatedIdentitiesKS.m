@@ -9,6 +9,7 @@ classdef IntegrateSegregatedIdentitiesKS < AbstractKS
         leakFactor;
         hypSpread;
         npdf;
+        maxnpdf;
     end
 
     methods
@@ -40,6 +41,7 @@ classdef IntegrateSegregatedIdentitiesKS < AbstractKS
             obj.integratedNsrcs = 0;
             obj.integratedMap = struct();
             obj.npdf = npdf;
+            obj.maxnpdf = max( npdf );
         end
         
         function setInvocationFrequency( obj, newInvocationFrequency_Hz )
@@ -144,7 +146,7 @@ classdef IntegrateSegregatedIdentitiesKS < AbstractKS
                     objectHyp = SingleBlockObjectHypothesis( ...
                         locObjs.labels{oo}, ...
                         locObjs.loc, ...
-                        locObjs.ps(oo), ...
+                        locObjs.ps(oo) / obj.maxnpdf, ...
                         locObjs.ds(oo), ...
                         idloc(1).concernsBlocksize_s );
                     obj.blackboard.addData( 'singleBlockObjectHypotheses', ...
@@ -181,7 +183,7 @@ classdef IntegrateSegregatedIdentitiesKS < AbstractKS
                 else
                     thr = obj.generalThreshold;
                 end
-                if ps(ii) >= thr*max( obj.npdf )
+                if ps(ii) >= thr* obj.maxnpdf
                     ds(ii) = 1;
                 else
                     ds(ii) = -1;

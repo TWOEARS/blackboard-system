@@ -12,14 +12,20 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
             
         % Visualisation
         function visualise(obj)
+
 %             if ~isempty(obj.blackboardSystem.locVis)
 %                 idloc = obj.blackboard.getData( ...
-%                 'identityHypotheses', obj.trigger.tmIdx).data;
-%                 idxs = find(strcmp({idloc(:).label}, obj.modelname));
-%                 obj.blackboardSystem.locVis.setLocationIdentity(idloc(idxs).label, ...
-%                         idloc(idxs).p, idloc(idxs).d, idloc(idxs).loc);
+%                     'segIdentityHypotheses', obj.trigger.tmIdx);
+%                 if isempty( idloc )
+%                     obj.blackboardSystem.locVis.setLocationIdentity(...
+%                         {}, {}, {}, {});
+%                 else
+%                     idloc = idloc.data;
+%                     obj.blackboardSystem.locVis.setLocationIdentity(...
+%                         {idloc(:).label}, {idloc(:).p}, {idloc(:).d}, {idloc(:).loc});
 %                 end
 %             end
+            
         end
     end
     
