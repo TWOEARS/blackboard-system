@@ -8,14 +8,12 @@ classdef LocalisationDecisionKS < AbstractKS
                                    % SourcesAzimuthsDistributionHypothesis
         leakItFactor = 0.5;       % Importance of presence [0,1]
         bSolveConfusion = false;    % Invoke ConfusionSolvingKS
-        bIdentifySources = true;
         prevTimeIdx = 0;
     end
     
     events
       RotateHead          % Trigger HeadRotationKS
       TopdownSegment      % Indicate topdown models are used, trigger SegmentIdentityKS
-      StreamSegregation   % Trigger NumberOfSourcesKS, StreamSegregationKS etc for stream segregation
     end
     
     methods
@@ -103,28 +101,24 @@ classdef LocalisationDecisionKS < AbstractKS
             obj.prevTimeIdx = obj.trigger.tmIdx;
             aziHyp.seenByLocalisationDecisionKS;
             
-            if obj.bIdentifySources
-                % Add segmentation hypothesis to the blackboard for
-                % SegmentIdentityKS
-                segHyp = obj.blackboard.getData( ...
-                    'sourceSegregationHypothesis', obj.trigger.tmIdx);
-                if isempty(segHyp)
-                    % Perform stream segregation
-                    notify(obj, 'StreamSegregation', BlackboardEventData(obj.trigger.tmIdx));
-                else
-                    % Use top-down segregation mask directly
-                    %
-                    % SourceSegregationHypothesis uses masks of [nChannels x nFrames]
-                    % SegmentationHypothesis uses masks of [nFrames x nChannels]
-                    segHyp = SegmentationHypothesis(segHyp.data.source, ...
-                        'SoundSource', segHyp.data.mask', segHyp.data.cfHz, segHyp.data.hopSize, ploc.relativeAzimuth);
-                    obj.blackboard.addData('segmentationHypotheses', ...
-                        segHyp, false, obj.trigger.tmIdx);
-                    notify(obj, 'TopdownSegment', BlackboardEventData(obj.trigger.tmIdx));
-                end
-            else
-                % Do not perform source identification
+
+            % Add segmentation hypothesis to the blackboard for
+            % SegmentIdentityKS
+            segHyp = obj.blackboard.getData( ...
+                'sourceSegregationHypothesis', obj.trigger.tmIdx);
+            
+            if isempty(segHyp)
                 notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
+            else
+                % Indicate to use top-down segregation masks directly
+                %
+                % SourceSegregationHypothesis uses masks of [nChannels x nFrames]
+                % SegmentationHypothesis uses masks of [nFrames x nChannels]
+                segHyp = SegmentationHypothesis(segHyp.data.source, ...
+                    'SoundSource', segHyp.data.mask', segHyp.data.cfHz, segHyp.data.hopSize, ploc.relativeAzimuth);
+                obj.blackboard.addData('segmentationHypotheses', ...
+                    segHyp, false, obj.trigger.tmIdx);
+                notify(obj, 'TopdownSegment', BlackboardEventData(obj.trigger.tmIdx));
             end
             
             % Request head rotation to solve front-back confusion
@@ -145,10 +139,6 @@ classdef LocalisationDecisionKS < AbstractKS
         
         function setSolveConfusion(obj, bSolveConfusion)
             obj.bSolveConfusion = bSolveConfusion;
-        end
-        
-        function setIdentifySources(obj, bIdentifySources)
-            obj.bIdentifySources = bIdentifySources;
         end
         
         % Visualisation
