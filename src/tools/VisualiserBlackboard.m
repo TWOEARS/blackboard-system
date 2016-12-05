@@ -142,7 +142,9 @@ classdef VisualiserBlackboard < handle
         end
         
         % Set duration in sec of the latest KS
-        function setKsDuration(obj, dur)
+        function setKsDuration(obj, ksLabel, dur)
+            
+            str = sprintf('%s (%.0f msec)', ksLabel, dur*1000);
             
             % Map duration in seconds to bubble width
             minDur = 0.005;
@@ -159,7 +161,8 @@ classdef VisualiserBlackboard < handle
             set(obj.bubbleHandle(obj.bubbleIndex), ...
                 'Position', [bbXpos 0 bbWidth obj.bbHeight]);
             set(obj.bubbleLabelHandle(obj.bubbleIndex), ...
-                'Position', [bbXpos+obj.labelOffset 0.4 0]);
+                'Position', [bbXpos+obj.labelOffset 0.4 0], ...
+                'String', str);
             
             drawnow;
         end

@@ -70,14 +70,15 @@ classdef Scheduler < handle
                         obj.monitor.executing = obj.monitor.agenda(exctdKsi);
                         obj.monitor.agenda(exctdKsi) = []; % take out of agenda before executing
                         if ~isempty(obj.visualiser)
-                            obj.visualiser.addKS(class(nextKsi.ks)); % draw starts
+                            ksLabel = class(nextKsi.ks);
+                            obj.visualiser.addKS(ksLabel); % draw starts
                             t = tic;
                         end
                         nextKsi.ks.execute();
                         if ~isempty(obj.visualiser)
                             dur = toc(t);
                             nextKsi.ks.visualise();
-                            obj.visualiser.setKsDuration(dur); % draw stops
+                            obj.visualiser.setKsDuration(ksLabel, dur); % draw stops
                         end
                         break;
                     elseif ~waitForExec
