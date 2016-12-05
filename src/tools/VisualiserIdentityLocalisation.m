@@ -380,19 +380,21 @@ classdef VisualiserIdentityLocalisation < handle
         
         function obj = setNumberOfSourcesText(obj, ...
                 numSrcs)
-            angle = 50;
-            radius = obj.MARKER_RADIUS+270;
+            angle = 45;
+            radius = obj.MARKER_RADIUS+220;
             sn = sin(-2*pi*angle/360);
             cs = cos(-2*pi*angle/360);
             x2 = radius * sn;
             y2 = radius * cs;
-            if numSrcs > 1
+            if ischar(numSrcs)
+                str = sprintf('Attended to "%s" source', numSrcs);
+            elseif numSrcs > 1
                 str = sprintf('%d sources', numSrcs);
             else
                 str = sprintf('%d source', numSrcs);
             end
             set(obj.TextHandle, ...
-                'Color', [0, 0, 0.7], ...
+                'Color', [0.0000    0.4470    0.7410], ...
                 'Position', [x2, y2], ...
                 'FontSize', 17, ...
                 'String', str);

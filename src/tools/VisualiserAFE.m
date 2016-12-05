@@ -77,7 +77,7 @@ classdef VisualiserAFE < handle
             ylabel('Centre Freq. (Hz)', 'FontSize', 14);
             set(gca,'XTick', [], 'XTickLabel',{}, ...
                'YTick', [1 8 16 24 32], 'YTickLabel', {'80','420','1300', '3300', '8000'});
-            title('Segregation Mask', 'FontSize', 14);
+            title('Top-down segregation mask', 'FontSize', 14);
 
             % Plot ITD
             subplot(2,2,3,'Parent',obj.drawHandle);

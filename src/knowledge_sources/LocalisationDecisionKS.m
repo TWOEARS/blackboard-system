@@ -12,7 +12,8 @@ classdef LocalisationDecisionKS < AbstractKS
     end
     
     events
-      RotateHead
+      RotateHead      % Trigger HeadRotationKS
+      TopdownSegment  % Indicate topdown models are used, trigger SegmentIdentityKS
     end
     
     methods
@@ -100,7 +101,6 @@ classdef LocalisationDecisionKS < AbstractKS
             obj.prevTimeIdx = obj.trigger.tmIdx;
             aziHyp.seenByLocalisationDecisionKS;
             
-
             % Add segmentation hypothesis to the blackboard for
             % SegmentIdentityKS
             segHyp = obj.blackboard.getData( ...
@@ -112,10 +112,11 @@ classdef LocalisationDecisionKS < AbstractKS
                     'SoundSource', segHyp.data.mask', segHyp.data.cfHz, segHyp.data.hopSize, ploc.relativeAzimuth);
                 obj.blackboard.addData('segmentationHypotheses', ...
                     segHyp, false, obj.trigger.tmIdx);
+                notify(obj, 'TopdownSegment', BlackboardEventData(obj.trigger.tmIdx));
+            else
+                notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
             end
             
-            notify(obj, 'KsFiredEvent', BlackboardEventData(obj.trigger.tmIdx));
-                  
             % Request head rotation to solve front-back confusion
             bRotateHead = false;
             if obj.bSolveConfusion

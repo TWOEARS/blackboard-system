@@ -1,5 +1,5 @@
-classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
-    % FactorialSourceModelKS uses factorial source models to jointly 
+classdef TopdownSourceModelKS < AuditoryFrontEndDepKS
+    % TopdownSourceModelKS uses factorial source models to jointly 
     % estimate a mask for the target source
 
     % TODO: make this KS work with synthesized sound sources, see qoe_localisation folder
@@ -9,7 +9,7 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
         blockSize                   % The size of one data block that
                                     % should be processed by this KS in
                                     % [s].
-        dataPath = fullfile('learned_models', 'FactorialSourceModelKS');
+        dataPath = fullfile('learned_models', 'TopdownSourceModelKS');
 
         sourceGMMs;                 % source GMMs
         UBM;                        % universal background model
@@ -21,7 +21,7 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
     end
 
     methods
-        function obj = FactorialSourceModelKS(sourcePreset, targetSource)
+        function obj = TopdownSourceModelKS(sourcePreset, targetSource)
 
             defaultFreqRange = [80 8000];
             nChannels = 32;
@@ -92,27 +92,29 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
         end
 
         function execute(obj)
-            ratemap = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
-            ratemap = (ratemap{1}' + ratemap{2}') ./ 2;
-            % log compression
-            ratemap = log(max(ratemap, eps));
-            
-            % Estimate a mask using mixed observation and source GMMs
-            mask = estimateMaskGmm(ratemap, obj.gmm_x, obj.gmm_n);
-            %[source, mask, score] = obj.identifySource(ratemap);
-            
-            % subplot(211); imagesc(ratemap); axis xy;
-            % subplot(212); imagesc(mask); axis xy;
+            if ~isempty(obj.targetSource)
+                ratemap = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
+                ratemap = (ratemap{1}' + ratemap{2}') ./ 2;
+                % log compression
+                ratemap = log(max(ratemap, eps));
 
-            %mask(mask<obj.maskFloor) = 0;
+                % Estimate a mask using mixed observation and source GMMs
+                mask = estimateMaskGmm(ratemap, obj.gmm_x, obj.gmm_n);
+                %[source, mask, score] = obj.identifySource(ratemap);
 
-            afe = obj.getAFEdata;
-            afe = afe(1);
-                
-            % Create a new source segregation hypothesis
-            hyp = SourceSegregationHypothesis(mask, obj.targetSource, afe{1}.cfHz, 1/afe{1}.FsHz);
-            obj.blackboard.addData( ...
-                'sourceSegregationHypothesis', hyp, false, obj.trigger.tmIdx);
+                % subplot(211); imagesc(ratemap); axis xy;
+                % subplot(212); imagesc(mask); axis xy;
+
+                %mask(mask<obj.maskFloor) = 0;
+
+                afe = obj.getAFEdata;
+                afe = afe(1);
+
+                % Create a new source segregation hypothesis
+                hyp = SourceSegregationHypothesis(mask, obj.targetSource, afe{1}.cfHz, 1/afe{1}.FsHz);
+                obj.blackboard.addData( ...
+                    'sourceSegregationHypothesis', hyp, false, obj.trigger.tmIdx);
+            end
             notify(obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ));
         end
 
@@ -132,9 +134,17 @@ classdef FactorialSourceModelKS < AuditoryFrontEndDepKS
         % Visualisation
         function visualise(obj)
             if ~isempty(obj.blackboardSystem.afeVis)
-                hyp = obj.blackboard.getData( ...
-                'sourceSegregationHypothesis', obj.trigger.tmIdx).data;
-                obj.blackboardSystem.afeVis.drawMask(hyp.mask);
+                if isempty(obj.targetSource)
+                    ratemap = obj.getNextSignalBlock( 1, obj.blockSize, obj.blockSize, false );
+                    obj.blackboardSystem.afeVis.drawMask(zeros(size(ratemap{1}')));
+                else
+                    hyp = obj.blackboard.getData( ...
+                    'sourceSegregationHypothesis', obj.trigger.tmIdx).data;
+                    obj.blackboardSystem.afeVis.drawMask(hyp.mask);
+                    if ~isempty(obj.blackboardSystem.locVis)
+                        obj.blackboardSystem.locVis.setNumberOfSourcesText(obj.targetSource);
+                    end
+                end
             end
         end
         

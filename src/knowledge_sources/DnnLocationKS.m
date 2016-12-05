@@ -192,6 +192,15 @@ classdef DnnLocationKS < AuditoryFrontEndDepKS
                 mask3 = sum(mask);
                 prob_AFN_F = nanSum(bsxfun(@times,prob_AFN,mask3./sum(mask3)),2);
             
+%                 % Add segmentation hypothesis to the blackboard for
+%                 % SegmentIdentityKS. SourceSegregationHypothesis uses masks
+%                 % of [nChannels x nFrames]. SegmentationHypothesis uses 
+%                 % masks of [nFrames x nChannels]
+%                 [~,idx] = max(prob_AFN_F(:));
+%                 segHyp = SegmentationHypothesis(segHyp.data.source, ...
+%                     'SoundSource', mask', segHyp.data.cfHz, segHyp.data.hopSize, obj.angles(idx));
+%                 obj.blackboard.addData('segmentationHypotheses', ...
+%                     segHyp, false, obj.trigger.tmIdx);
             end
 
             % Create a new location hypothesis
