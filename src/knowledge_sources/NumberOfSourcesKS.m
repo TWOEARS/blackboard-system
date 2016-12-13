@@ -1,13 +1,20 @@
 classdef NumberOfSourcesKS < AbstractAMLTTPKS
     
     properties (SetAccess = private)
-        locDataKey = 'locationHypothesis' % 'locationHypothesis'(default) or 'sourcesAzimuthsDistributionHypotheses'
+        locDataKey; % 'locationHypothesis'(default) or 'sourcesAzimuthsDistributionHypotheses'
+        useIdModels;
     end
 
     methods
-        function obj = NumberOfSourcesKS( modelName, modelDir, ppRemoveDc )
+        function obj = NumberOfSourcesKS( modelName, modelDir, ppRemoveDc, varargin )
             obj@AbstractAMLTTPKS( modelName, modelDir, ppRemoveDc );
             obj.setInvocationFrequency(inf);
+            ip = inputParser();
+            ip.addOptional( 'locDataKey', 'locationHypothesis' );
+            ip.addOptional( 'useIdModels', false );
+            ip.parse( varargin{:} );
+            obj.locDataKey = ip.Results.locDataKey;
+            obj.useIdModels = ip.Results.useIdModels;
         end
         
         function visualise(obj)
@@ -21,16 +28,31 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
     
     methods (Access = protected)        
         function amlttpExecute( obj, afeBlock )
+            locHypos = [];
             if strcmp( obj.locDataKey, 'locationHypothesis' )
                 % use more robust localisationDecision output -- recommended
                 locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
                 assert( numel( locHypos.data ) == 1 );
                 afeBlock = DataProcs.DnnLocKsWrapper.addLocDecisionData( afeBlock, locHypos.data );
-            elseif strcmp( obj.locDataKey, 'sourcesAzimuthsDistributionHypotheses' )
+            end
+            if strcmp( obj.locDataKey, 'sourcesAzimuthsDistributionHypotheses' ) ...
+                    || isempty( locHypos )
                 % fall back on raw localisation data
                 locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
                 assert( numel( locHypos.data ) == 1 );
                 afeBlock = DataProcs.DnnLocKsWrapper.addLocData( afeBlock, locHypos.data );
+            end
+            if obj.useIdModels
+                idHypos = obj.blackboard.getLastData( 'identityHypotheses' );
+                idData.names = {};
+                idData.scores = [];
+                for ii = 1 : numel( idHypos.data )
+                    idData.names{ii} = idHypos.data(ii).label;
+                    idData.scores(ii) = idHypos.data(ii).p;
+                end
+                [idData.names,idSort] = sort( idData.names );
+                idData.scores = idData.scores(idSort);
+                afeBlock = DataProcs.LocIdKsWrapper.addIdData( afeBlock, idData );
             end
             
             obj.featureCreator.setAfeData( afeBlock );
