@@ -117,6 +117,7 @@ classdef Blackboard < handle
             k = 1;
             requestedData = [];
             for sndTmIdx = reqSndTimeIdxs
+                if ~isKey( obj.data, sndTmIdx ), continue; end;
                 if ~isfield( obj.data(sndTmIdx), dataLabel ), continue; end;
                 requestedData(k).sndTmIdx = sndTmIdx;
                 dtmp = obj.data(sndTmIdx);

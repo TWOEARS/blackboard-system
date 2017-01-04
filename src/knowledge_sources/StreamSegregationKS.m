@@ -108,8 +108,10 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                     refAzm(azimuthIdx) = headRelativeAzimuth;
                 end
             else
-%                 locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
                 locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
+                if isempty( locHypos )
+                    locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
+                end
                 assert( numel( locHypos.data ) == 1 );
                 locData = locHypos.data;
                 if obj.useFixedNoSrcs
@@ -121,8 +123,11 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                     % segregating into 0 streams seems pointless
                 end
                 refAzm = zeros( 1, numAzimuths );
-%                 posteriors = locData.sourcesDistribution;
-                posteriors = locData.sourcesPosteriors;
+                if isfield( locData, 'sourcesPosteriors' )
+                    posteriors = locData.sourcesPosteriors;
+                else
+                    posteriors = locData.sourcesDistribution;
+                end
                 [locPeaks, locPeaksIdxs] = findpeaks( ...
                     [posteriors(end) ...
                      posteriors(:)' ...
@@ -134,10 +139,13 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 [~, locPeaksSortedAzmIdxs] = sort( locPeaks, 'descend' );
                 locSortedAzmIdxs = locPeaksIdxs(locPeaksSortedAzmIdxs);
                 for azimuthIdx = 1 : numAzimuths
-%                     refAzm(azimuthIdx) = wrapTo180( ...
-%                           locData.azimuths(locSortedAzmIdxs(azimuthIdx)) );
-                    refAzm(azimuthIdx) = wrapTo180( ...
-                          locData.sourceAzimuths(locSortedAzmIdxs(azimuthIdx)) );
+                    if isfield( locData, 'sourceAzimuths' )
+                        refAzm(azimuthIdx) = wrapTo180( ...
+                            locData.sourceAzimuths(locSortedAzmIdxs(azimuthIdx)) );
+                    else
+                        refAzm(azimuthIdx) = wrapTo180( ...
+                            locData.azimuths(locSortedAzmIdxs(azimuthIdx)) );
+                    end
                 end
             end
             likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );

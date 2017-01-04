@@ -32,8 +32,10 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
             if strcmp( obj.locDataKey, 'locationHypothesis' )
                 % use more robust localisationDecision output -- recommended
                 locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
-                assert( numel( locHypos.data ) == 1 );
-                afeBlock = DataProcs.DnnLocKsWrapper.addLocDecisionData( afeBlock, locHypos.data );
+                if ~isempty( locHypos )
+                    assert( numel( locHypos.data ) == 1 );
+                    afeBlock = DataProcs.DnnLocKsWrapper.addLocDecisionData( afeBlock, locHypos.data );
+                end
             end
             if strcmp( obj.locDataKey, 'sourcesAzimuthsDistributionHypotheses' ) ...
                     || isempty( locHypos )
@@ -59,7 +61,7 @@ classdef NumberOfSourcesKS < AbstractAMLTTPKS
             
             x = obj.featureCreator.constructVector();
             [d, score] = obj.model.applyModel( x{1} );
-            d = round( d(1) );
+            d = round( d(1) + 0.3 );
             bbprintf(obj, '[NumberOfSourcesKS:] %s detecting %i sources.\n', ...
                      obj.modelname, int16(d) );
             identHyp = NumberOfSourcesHypothesis( ...
