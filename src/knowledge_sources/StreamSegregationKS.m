@@ -109,8 +109,10 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 end
             else
                 locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
+                isLocHyp = true;
                 if isempty( locHypos )
                     locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
+                    isLocHyp = false;
                 end
                 assert( numel( locHypos.data ) == 1 );
                 locData = locHypos.data;
@@ -123,7 +125,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                     % segregating into 0 streams seems pointless
                 end
                 refAzm = zeros( 1, numAzimuths );
-                if isfield( locData, 'sourcesPosteriors' )
+                if isLocHyp
                     posteriors = locData.sourcesPosteriors;
                 else
                     posteriors = locData.sourcesDistribution;
@@ -139,7 +141,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 [~, locPeaksSortedAzmIdxs] = sort( locPeaks, 'descend' );
                 locSortedAzmIdxs = locPeaksIdxs(locPeaksSortedAzmIdxs);
                 for azimuthIdx = 1 : numAzimuths
-                    if isfield( locData, 'sourceAzimuths' )
+                    if isLocHyp
                         refAzm(azimuthIdx) = wrapTo180( ...
                             locData.sourceAzimuths(locSortedAzmIdxs(azimuthIdx)) );
                     else
