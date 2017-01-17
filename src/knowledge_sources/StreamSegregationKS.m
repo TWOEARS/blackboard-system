@@ -123,11 +123,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                     % segregating into 0 streams seems pointless
                 end
                 refAzm = zeros( 1, numAzimuths );
-                if isfield( locData, 'sourcesPosteriors' )
-                    posteriors = locData.sourcesPosteriors;
-                else
-                    posteriors = locData.sourcesDistribution;
-                end
+                posteriors = locData.sourcesDistribution;
                 [locPeaks, locPeaksIdxs] = findpeaks( ...
                     [posteriors(end) ...
                      posteriors(:)' ...
