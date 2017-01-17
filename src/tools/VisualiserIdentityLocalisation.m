@@ -26,7 +26,7 @@ classdef VisualiserIdentityLocalisation < handle
     properties (SetAccess = private)
         ksColourMap = containers.Map; % identity colour map
         idRadiusMap = containers.Map; % identity radius map
-        radiusList = -200:40:200;
+        radiusList = -250:35:200;
         colourList = [0.4660    0.6740    0.1880
                       0.8500    0.3250    0.0980
                       0.0000    0.4470    0.7410
@@ -141,8 +141,8 @@ classdef VisualiserIdentityLocalisation < handle
             obj.MarkerHandle(1) = plot([y1 y2], [y1 y2], 'Color', col, 'LineStyle', '--');
             obj.MarkerHandle(2) = fill(15*sin(-linspace(0,2*pi,30)),y2+15*cos(-linspace(0,2*pi,30)),col,'linestyle','none');
             
-            obj.TextHandle = text(y1,y2, '', 'Color', col, 'FontSize', 12);
-            obj.TextHandle2 = text(y1,y2, '', 'Color', col, 'FontSize', 12);
+            obj.TextHandle = text(y1,y2, '', 'Color', col, 'FontSize', 11);
+            obj.TextHandle2 = text(y1,y2, '', 'Color', col, 'FontSize', 11);
             
             for ii=1:55
                 obj.MarkerHandles(ii) = fill(15*sin(-linspace(0,2*pi,30)), ...
@@ -339,11 +339,19 @@ classdef VisualiserIdentityLocalisation < handle
             % populate with new info
             for idx = 1:numel(labels)
                 if ds{idx} == 1
-                    radius = obj.getIdentityRadius(labels{idx});
-                    color = obj.getIdentityColor(labels{idx});
+                    label = labels{idx};
+                    if strcmp(label, 'maleSpeech')
+                        label = 'male';
+                    elseif strcmp(label, 'femaleSpeech')
+                        label = 'female';
+                    elseif strcmp(label, 'femaleScreammaleScream')
+                        label = 'scream';
+                    end
+                    radius = obj.getIdentityRadius(label);
+                    color = obj.getIdentityColor(label);
                     
                     obj.plotTextIdxAtAngle(idx, ...
-                        sprintf('%s (%.0f%%)', labels{idx}, probs{idx}*100), ...
+                        sprintf('%.0f%% %s', probs{idx}*100, label), ...
                         locs{idx}+obj.HeadRotationDegrees, radius, color);
                     
                     obj.plotMarkerIdxAtAngle(idx, ...
