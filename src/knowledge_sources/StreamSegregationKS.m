@@ -109,10 +109,9 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 end
             else
                 locHypos = obj.blackboard.getLastData( 'locationHypothesis' );
-                isLocHyp = true;
-                if isempty( locHypos )
+                isLocHyp = ~isempty( locHypos );
+                if ~isLocHyp
                     locHypos = obj.blackboard.getLastData( 'sourcesAzimuthsDistributionHypotheses' );
-                    isLocHyp = false;
                 end
                 assert( numel( locHypos.data ) == 1 );
                 locData = locHypos.data;
