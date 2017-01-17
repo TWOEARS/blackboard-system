@@ -84,16 +84,16 @@ classdef VisualiserIdentityLocalisation < handle
             
             % add a grid if required
             if (obj.SHOW_GRID)
-                for i=1:obj.NUM_GRID_LINES
-                    angle_degrees = wrapTo180((i-1)*360/obj.NUM_GRID_LINES);
+                for ii=1:obj.NUM_GRID_LINES
+                    angle_degrees = wrapTo180((ii-1)*360/obj.NUM_GRID_LINES);
                     angle_rad = -2*pi*angle_degrees/360;
                     sn = sin(angle_rad); cs = cos(angle_rad);
                     plot([obj.INNER_RADIUS*sn 520*sn],[obj.INNER_RADIUS*cs 520*cs],'Color',c);
                     text(560*sn,560*cs,num2str(angle_degrees),'HorizontalAlignment','Center','Color',[0.7 0.7 0.7]);
                 end
                 % circles
-                for i=0:4
-                    r=obj.INNER_RADIUS+i*(500-obj.INNER_RADIUS)/4;
+                for ii=0:4
+                    r=obj.INNER_RADIUS+ii*(500-obj.INNER_RADIUS)/4;
                 plot(r*sin(linspace(0,2*pi,50)),r*cos(linspace(0,2*pi,50)),'Color',c);
                 end
             end
@@ -111,6 +111,29 @@ classdef VisualiserIdentityLocalisation < handle
             axis off;
             box on;
             
+            % add probability bars
+            obj.Posteriors = zeros(1,obj.NumPosteriors);
+            obj.Angles = 0:(360/obj.NumPosteriors):359;
+            obj.HeadRotationDegrees = 0;
+            [x,y] = deal(zeros(1,4));
+            for ii=1:obj.NumPosteriors
+                angle_rad1 = -2*pi*(ii-1.5)/obj.NumPosteriors;
+                angle_rad2 = -2*pi*(ii-0.5)/obj.NumPosteriors;
+                
+                sn = sin(angle_rad1); cs = cos(angle_rad1);
+                x(1) = obj.INNER_RADIUS*sn;
+                y(1) = obj.INNER_RADIUS*cs;
+                x(2) = (obj.INNER_RADIUS+obj.OUTER_RADIUS*obj.Posteriors(ii))*sn;
+                y(2) = (obj.INNER_RADIUS+obj.OUTER_RADIUS*obj.Posteriors(ii))*cs;
+                sn = sin(angle_rad2); cs = cos(angle_rad2);
+                x(3) = (obj.INNER_RADIUS+obj.OUTER_RADIUS*obj.Posteriors(ii))*sn;
+                y(3) = (obj.INNER_RADIUS+obj.OUTER_RADIUS*obj.Posteriors(ii))*cs;
+                x(4) = obj.INNER_RADIUS*sn;
+                y(4) = obj.INNER_RADIUS*cs;
+                % obj.BarHandle(i) = plot([x1 x2],[y1 y2],'Color',[1.0 0.6471 0],'LineWidth',obj.LINE_WIDTH);
+                obj.BarHandle(ii) = patch('XData',x,'YData',y,'LineStyle','none');
+            end
+            
             % add markers
             y2 = obj.MARKER_RADIUS;
             y1 = obj.INNER_RADIUS;
@@ -126,34 +149,11 @@ classdef VisualiserIdentityLocalisation < handle
                     y2+15*cos(-linspace(0,2*pi,30)), ...
                     col,'linestyle','none');
                 
-                obj.TextHandles(ii) = text(y1,y2, '', 'Color', col, 'FontSize', 14);
+                obj.TextHandles(ii) = text(y1,y2, '', 'Color', col, 'FontSize', 11);
             end
             
             for ii=1:13
-                obj.idTextHandles(ii) = text(y1,y2, '', 'Color', col, 'FontSize', 12);
-            end
-            
-            % add probability bars
-            obj.Posteriors = zeros(1,obj.NumPosteriors);
-            obj.Angles = 0:(360/obj.NumPosteriors):359;
-            obj.HeadRotationDegrees = 0;
-            [x,y] = deal(zeros(1,4));
-            for i=1:obj.NumPosteriors
-                angle_rad1 = -2*pi*(i-1.5)/obj.NumPosteriors;
-                angle_rad2 = -2*pi*(i-0.5)/obj.NumPosteriors;
-                
-                sn = sin(angle_rad1); cs = cos(angle_rad1);
-                x(1) = obj.INNER_RADIUS*sn;
-                y(1) = obj.INNER_RADIUS*cs;
-                x(2) = (obj.INNER_RADIUS+obj.OUTER_RADIUS*obj.Posteriors(i))*sn;
-                y(2) = (obj.INNER_RADIUS+obj.OUTER_RADIUS*obj.Posteriors(i))*cs;
-                sn = sin(angle_rad2); cs = cos(angle_rad2);
-                x(3) = (obj.INNER_RADIUS+obj.OUTER_RADIUS*obj.Posteriors(i))*sn;
-                y(3) = (obj.INNER_RADIUS+obj.OUTER_RADIUS*obj.Posteriors(i))*cs;
-                x(4) = obj.INNER_RADIUS*sn;
-                y(4) = obj.INNER_RADIUS*cs;
-                % obj.BarHandle(i) = plot([x1 x2],[y1 y2],'Color',[1.0 0.6471 0],'LineWidth',obj.LINE_WIDTH);
-                obj.BarHandle(i) = patch('XData',x,'YData',y,'LineStyle','none');
+                obj.idTextHandles(ii) = text(y1,y2, '', 'Color', col, 'FontSize', 11);
             end
             hold off;
             drawnow;
