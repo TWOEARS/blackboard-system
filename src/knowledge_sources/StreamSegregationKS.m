@@ -137,13 +137,8 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 [~, locPeaksSortedAzmIdxs] = sort( locPeaks, 'descend' );
                 locSortedAzmIdxs = locPeaksIdxs(locPeaksSortedAzmIdxs);
                 for azimuthIdx = 1 : numAzimuths
-                    if isLocHyp
-                        refAzm(azimuthIdx) = wrapTo180( ...
-                            locData.sourceAzimuths(locSortedAzmIdxs(azimuthIdx)) );
-                    else
-                        refAzm(azimuthIdx) = wrapTo180( ...
-                            locData.azimuths(locSortedAzmIdxs(azimuthIdx)) );
-                    end
+                    refAzm(azimuthIdx) = wrapTo180( ...
+                        locData.azimuths(locSortedAzmIdxs(azimuthIdx)) );
                 end
             end
             likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
