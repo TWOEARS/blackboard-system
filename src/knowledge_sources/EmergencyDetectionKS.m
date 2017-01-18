@@ -5,21 +5,19 @@ classdef EmergencyDetectionKS < AbstractKS
     properties (SetAccess = private)
         accumulatedIdProbs = zeros(3, 1);
         smoothingFactor
+        forgettingFactor = 0.99;
         emergencyThreshold
+        emergencyProbability = 0;
         isEmergencyDetected = false;
     end
     
-    properties (Access = private)
-        firstCall = true;
-    end
-
     methods
         function obj = EmergencyDetectionKS(varargin)
             obj = obj@AbstractKS();
             obj.invocationMaxFrequency_Hz = inf;
             
-            defaultSmoothingFactor = 0.9;
-            defaultEmergencyThreshold = 0.75;
+            defaultSmoothingFactor = 0.75;
+            defaultEmergencyThreshold = 0.5;
             
             p = inputParser();
             p.addOptional('SmoothingFactor', defaultSmoothingFactor, ...
@@ -44,16 +42,17 @@ classdef EmergencyDetectionKS < AbstractKS
 
         function [bExecute, bWait] = canExecute(obj)
             sndTimeIdx = sort(cell2mat(keys(obj.blackboard.data)));
-            bExecute = isfield(obj.blackboard.data(sndTimeIdx(end)), 'singleBlockObjectHypotheses');
+            bExecute = isfield(obj.blackboard.data(sndTimeIdx(end)), ...
+                'singleBlockObjectHypotheses');
             bWait = false;
         end
 
         function execute(obj)
-            singleBlockObjHyp = obj.blackboard.getData('singleBlockObjectHypotheses', ...
-                obj.trigger.tmIdx).data;
+            singleBlockObjHyp = obj.blackboard.getData( ...
+                'singleBlockObjectHypotheses', obj.trigger.tmIdx).data;
             
             numHyps = length(singleBlockObjHyp);
-            
+
             for idx = 1 : numHyps
                 hypLabel = singleBlockObjHyp(idx).label;
                 
@@ -74,17 +73,27 @@ classdef EmergencyDetectionKS < AbstractKS
             end
             
             obj.accumulatedIdProbs(1) = ...
-                obj.smoothingFactor * obj.accumulatedIdProbs(1);
+                obj.forgettingFactor * obj.accumulatedIdProbs(1);
             obj.accumulatedIdProbs(2) = ...
-                obj.smoothingFactor * obj.accumulatedIdProbs(2);
+                obj.forgettingFactor * obj.accumulatedIdProbs(2);
             obj.accumulatedIdProbs(3) = ...
-                obj.smoothingFactor * obj.accumulatedIdProbs(3);
+                obj.forgettingFactor * obj.accumulatedIdProbs(3);
+
+            obj.emergencyProbability = ( ...
+                obj.accumulatedIdProbs(1) + ...
+                obj.accumulatedIdProbs(2)) / 2;
             
-            meanProb = mean(obj.accumulatedIdProbs);
-            
-            if meanProb >= obj.emergencyThreshold
+            obj.emergencyProbability
+
+            if obj.emergencyProbability >= obj.emergencyThreshold
                 obj.isEmergencyDetected = true;
-                disp('!!! EMERGENCY !!!');
+            end
+        end
+        
+        function visualise(obj)
+            if ~isempty(obj.blackboardSystem.emDetVis)
+                obj.blackboardSystem.emDetVis.draw( ...
+                    obj.emergencyProbability, obj.isEmergencyDetected );
             end
         end
     end
