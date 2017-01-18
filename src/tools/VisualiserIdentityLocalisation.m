@@ -154,7 +154,7 @@ classdef VisualiserIdentityLocalisation < handle
             end
             
             for ii=1:13
-                obj.idTextHandles(ii) = text(y1,y2, '', 'Color', col, 'FontSize', 11);
+                obj.idTextHandles(ii) = text(y1, y2, '', 'Color', col, 'FontSize', 11);
             end
             hold off;
             drawnow;
@@ -205,11 +205,12 @@ classdef VisualiserIdentityLocalisation < handle
             cs = cos(-2*pi*angle/360);
             x2 = (obj.MARKER_RADIUS-20) * sn;
             y2 = (obj.MARKER_RADIUS-20) * cs;
-            col = hsv2rgb(hue/360,0.9,0.6);
+            col = obj.getIdentityColor(str);
             set(obj.MarkerHandle(idx), 'EdgeColor', col, ...
              'XData', x2+15*sin(-linspace(0,2*pi,30)), ...
              'YData', y2+15*cos(-linspace(0,2*pi,30)));
             r = (obj.MARKER_RADIUS+20);
+            str = VisualiserIdentityLocalisation.getShortName(str);
             set(obj.MarkerTextHandle(idx), ...
                 'Color', col, ...
                 'Position', [r*sn, r*cs], ...
@@ -254,8 +255,8 @@ classdef VisualiserIdentityLocalisation < handle
         
         function obj = plotIdTextIdxAtAngle(obj, ...
                 idx, label, prob)
-            x2 = 450;
-            y2 = 590 + obj.getIdentityRadius(label);
+            x2 = 480;
+            y2 = 570 + obj.getIdentityRadius(label);
             set(obj.idTextHandles(idx), ...
                 'Color', obj.getIdentityColor(label), ...
                 'Position', [x2, y2], ...
@@ -330,7 +331,7 @@ classdef VisualiserIdentityLocalisation < handle
             color = [0.9 0.9 0.9];
             
             % first clear handles
-            for ii=1:55
+            for ii=1:numel(obj.MarkerHandles)
                 set(obj.MarkerHandles(ii), 'FaceColor', color, ...
                     'XData', 15*sin(-linspace(0,2*pi,30)), ...
                     'YData', 15*cos(-linspace(0,2*pi,30)));
@@ -343,17 +344,9 @@ classdef VisualiserIdentityLocalisation < handle
             % populate with new info
             for idx = 1:numel(labels)
                 if ds{idx} == 1
-                    label = labels{idx};
-                    if strcmp(label, 'maleSpeech')
-                        label = 'male';
-                    elseif strcmp(label, 'femaleSpeech')
-                        label = 'female';
-                    elseif strcmp(label, 'femaleScreammaleScream')
-                        label = 'scream';
-                    end
+                    label = VisualiserIdentityLocalisation.getShortName(labels{idx});
                     radius = obj.getIdentityRadius(label);
                     color = obj.getIdentityColor(label);
-                    
                     obj.plotTextIdxAtAngle(idx, ...
                         sprintf('%.0f%% %s', probs{idx}*100, label), ...
                         locs{idx}+obj.HeadRotationDegrees, radius, color);
@@ -374,7 +367,7 @@ classdef VisualiserIdentityLocalisation < handle
             y1 = obj.INNER_RADIUS;
             color = [0.9 0.9 0.9];
             
-            for ii=1:13
+            for ii=1:numel(obj.idTextHandles)
                 set(obj.idTextHandles(ii), ...
                     'Color', color, ...
                     'Position', [y1, y2], ...
@@ -384,7 +377,7 @@ classdef VisualiserIdentityLocalisation < handle
             for idx = 1:numel(labels)
 %                 if ds{idx} == 1
                     obj.plotIdTextIdxAtAngle(idx, ...
-                        labels{idx}, ...
+                        VisualiserIdentityLocalisation.getShortName(labels{idx}), ...
                         probs{idx});
 %                 end
             end
@@ -410,6 +403,20 @@ classdef VisualiserIdentityLocalisation < handle
                 'Position', [x2, y2], ...
                 'FontSize', 17, ...
                 'String', str);
+        end
+    end
+    
+    methods (Static)
+        function newName = getShortName(label)
+            if strcmp(label, 'maleSpeech')
+                newName = 'male';
+            elseif strcmp(label, 'femaleSpeech')
+                newName = 'female';
+            elseif strcmp(label, 'femaleScreammaleScream')
+                newName = 'scream';
+            else
+                newName = label;
+            end
         end
     end
 end
