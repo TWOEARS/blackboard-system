@@ -42,11 +42,11 @@ classdef VisualiserIdentityLocalisation < handle
         NumPosteriors = 72
         drawHandle
         HeadHandle
+        TextHandle
         MarkerHandle
+        MarkerTextHandle
         MarkerHandles
         BarHandle
-        TextHandle
-        TextHandle2
         TextHandles
         idTextHandles
         Hue = 50 % hue in HSV space, default is orangey yellow
@@ -115,11 +115,11 @@ classdef VisualiserIdentityLocalisation < handle
             y2 = obj.MARKER_RADIUS;
             y1 = obj.INNER_RADIUS;
             col = [1 1 1];
-            obj.MarkerHandle(1) = plot([y1 y2], [y1 y2], 'Color', col, 'LineStyle', '--');
-            obj.MarkerHandle(2) = fill(15*sin(-linspace(0,2*pi,30)),y2+15*cos(-linspace(0,2*pi,30)),col,'linestyle','none');
-            
+            for ii = 1:4
+                obj.MarkerHandle(ii) = fill(15*sin(-linspace(0,2*pi,30)),y2+15*cos(-linspace(0,2*pi,30)),col,'EdgeColor',col);
+                obj.MarkerTextHandle(ii) = text(y1,y2, '', 'Color', col, 'FontSize', 12);
+            end
             obj.TextHandle = text(y1,y2, '', 'Color', col, 'FontSize', 12);
-            obj.TextHandle2 = text(y1,y2, '', 'Color', col, 'FontSize', 12);
             
             for ii=1:55
                 obj.MarkerHandles(ii) = fill(15*sin(-linspace(0,2*pi,30)), ...
@@ -196,21 +196,24 @@ classdef VisualiserIdentityLocalisation < handle
             end
         end
         
-        function obj = plotMarkerAtAngle(obj,angle,hue)
-            if nargin < 3
+        function obj = plotMarkerAtAngle(obj,idx,angle,str,hue)
+            if nargin < 5
                 hue = 100;
             end
             sn = sin(-2*pi*angle/360);
             cs = cos(-2*pi*angle/360);
-            x2 = obj.MARKER_RADIUS * sn;
-            y2 = obj.MARKER_RADIUS * cs;
-            x1 = obj.INNER_RADIUS * sn;
-            y1 = obj.INNER_RADIUS * cs;
+            x2 = (obj.MARKER_RADIUS-20) * sn;
+            y2 = (obj.MARKER_RADIUS-20) * cs;
             col = hsv2rgb(hue/360,0.9,0.6);
-            set(obj.MarkerHandle(1), 'Color', col, 'XData', [x1 x2], 'YData', [y1 y2]);
-             set(obj.MarkerHandle(2), 'FaceColor', col, ...
-                 'XData', x2+15*sin(-linspace(0,2*pi,30)), ...
-                 'YData', y2+15*cos(-linspace(0,2*pi,30)));
+            set(obj.MarkerHandle(idx), 'EdgeColor', col, ...
+             'XData', x2+15*sin(-linspace(0,2*pi,30)), ...
+             'YData', y2+15*cos(-linspace(0,2*pi,30)));
+            r = (obj.MARKER_RADIUS+20);
+            set(obj.MarkerTextHandle(idx), ...
+                'Color', col, ...
+                'Position', [r*sn, r*cs], ...
+                'String', str, ...
+                'rotation', angle);
         end
         
         function obj = plotMarkerIdxAtAngle(obj,...
