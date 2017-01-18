@@ -87,8 +87,6 @@ classdef EmergencyDetectionKS < AbstractKS
                 obj.accumulatedIdProbs(1) + ...
                 obj.accumulatedIdProbs(2)) / 2;
             
-            obj.emergencyProbability
-
             if obj.emergencyProbability >= obj.emergencyThreshold
                 obj.isEmergencyDetected = true;
             end
