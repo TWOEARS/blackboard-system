@@ -392,7 +392,7 @@ classdef VisualiserIdentityLocalisation < handle
             x2 = radius * sn;
             y2 = radius * cs;
             if ischar(numSrcs)
-                str = sprintf('Attended to "%s" source', numSrcs);
+                str = ''; %sprintf('Attended to "%s" source', numSrcs);
             elseif numSrcs > 1
                 str = sprintf('%d sources', numSrcs);
             else
