@@ -236,7 +236,12 @@ classdef VisualiserIdentityLocalisation < handle
         
         function obj = plotTextIdxAtAngle(obj, ...
                 idx, label, angle, radiusDelta, color)
-            angle = angle - 4;
+            
+            if angle > 90 && angle <= 270
+                angle = angle + 4;
+            else
+                angle = angle - 4;
+            end
             sn = sin(-2*pi*angle/360);
             cs = cos(-2*pi*angle/360);
             %radiusDelta = obj.getIdentityRadius(label);
@@ -244,8 +249,11 @@ classdef VisualiserIdentityLocalisation < handle
             radiusInner = obj.INNER_RADIUS + radiusDelta;
             x2 = radius * sn;
             y2 = radius * cs;
-            x1 = radiusInner * sn;
-            y1 = radiusInner * cs;
+            
+            if angle > 90 && angle <= 270
+                angle = angle + 180; % let text appear upright
+            end
+            
             set(obj.TextHandles(idx), ...
                 'Color', color, ... % obj.getIdentityColor(label), ...
                 'Position', [x2, y2], ...
@@ -347,12 +355,14 @@ classdef VisualiserIdentityLocalisation < handle
                     label = VisualiserIdentityLocalisation.getShortName(labels{idx});
                     radius = obj.getIdentityRadius(label);
                     color = obj.getIdentityColor(label);
+                    theta = locs{idx}+obj.HeadRotationDegrees;
+                    
                     obj.plotTextIdxAtAngle(idx, ...
                         sprintf('%.0f%% %s', probs{idx}*100, label), ...
-                        locs{idx}+obj.HeadRotationDegrees, radius, color);
+                        theta, radius, color);
                     
                     obj.plotMarkerIdxAtAngle(idx, ...
-                        locs{idx}+obj.HeadRotationDegrees, ...
+                        theta, ...
                         probs{idx}, ...
                         color,...
                         radius);
