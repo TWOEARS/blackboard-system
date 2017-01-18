@@ -154,7 +154,7 @@ classdef VisualiserIdentityLocalisation < handle
             end
             
             for ii=1:13
-                obj.idTextHandles(ii) = text(y1,y2, '', 'Color', col, 'FontSize', 11);
+                obj.idTextHandles(ii) = text(y1, y2, '', 'Color', col, 'FontSize', 11);
             end
             hold off;
             drawnow;
@@ -255,8 +255,8 @@ classdef VisualiserIdentityLocalisation < handle
         
         function obj = plotIdTextIdxAtAngle(obj, ...
                 idx, label, prob)
-            x2 = 450;
-            y2 = 590 + obj.getIdentityRadius(label);
+            x2 = 480;
+            y2 = 570 + obj.getIdentityRadius(label);
             set(obj.idTextHandles(idx), ...
                 'Color', obj.getIdentityColor(label), ...
                 'Position', [x2, y2], ...
@@ -331,7 +331,7 @@ classdef VisualiserIdentityLocalisation < handle
             color = [0.9 0.9 0.9];
             
             % first clear handles
-            for ii=1:55
+            for ii=1:numel(obj.MarkerHandles)
                 set(obj.MarkerHandles(ii), 'FaceColor', color, ...
                     'XData', 15*sin(-linspace(0,2*pi,30)), ...
                     'YData', 15*cos(-linspace(0,2*pi,30)));
@@ -367,7 +367,7 @@ classdef VisualiserIdentityLocalisation < handle
             y1 = obj.INNER_RADIUS;
             color = [0.9 0.9 0.9];
             
-            for ii=1:13
+            for ii=1:numel(obj.idTextHandles)
                 set(obj.idTextHandles(ii), ...
                     'Color', color, ...
                     'Position', [y1, y2], ...
