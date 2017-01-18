@@ -4,12 +4,13 @@ classdef RobotNavigationKS < AbstractKS
     
     properties (SetAccess = private)
         movingScheduled = false;
+        robot
         targetSource = [];
         robotPositions = [
             95, 97.5; % Outside kitchen
             91, 98; % Kitchen
-            91, 102; % Bed room
-            86, 102]; % Living room
+            91, 102]; % Bed room
+            %86, 102]; % Living room
     end
 
     methods
@@ -56,7 +57,7 @@ classdef RobotNavigationKS < AbstractKS
                 bMove = false;
                 if ~isempty(obj.targetSource)
                     idx = strcmp({idloc(:).label}, obj.targetSource);
-                    if idloc(idx).d == 1
+                    if idx > 0 && idloc(idx).d == 1
                         bMove = true;
                     end
                 end
@@ -66,7 +67,7 @@ classdef RobotNavigationKS < AbstractKS
 
                     % idloc(idx).loc is source location relative to head
                     %targetLocBase = idloc(idx).loc + obj.robot.getCurrentHeadOrientation;
-                    [posX, posY, theta] = getCurrentRobotPosition(obj);
+                    [posX, posY, theta] = obj.robot.getCurrentRobotPosition;
                     nRobotPositions = size(obj.robotPositions,1);
                     while true
                         idxLoc = randperm(nRobotPositions,1);
@@ -77,7 +78,7 @@ classdef RobotNavigationKS < AbstractKS
                     end
                     
                     % Need to work out which angle to move to
-                    robot.moveRobot(obj.robotPositions(idxLoc,1), obj.robotPositions(idxLoc,2), theta, 'absolute');
+                    obj.robot.moveRobot(obj.robotPositions(idxLoc,1), obj.robotPositions(idxLoc,2), theta, 'absolute');
                 else
                     % Not identified the target
                     % Stay put
