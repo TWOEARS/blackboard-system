@@ -5,7 +5,7 @@ classdef EmergencyDetectionKS < AbstractKS
     properties (SetAccess = private)
         accumulatedIdProbs = zeros(3, 1);
         smoothingFactor
-        forgettingFactor = 0.99;
+        forgettingFactor = 0.9;
         emergencyThreshold
         emergencyProbability = 0;
         isEmergencyDetected = false;
@@ -16,7 +16,7 @@ classdef EmergencyDetectionKS < AbstractKS
             obj = obj@AbstractKS();
             obj.invocationMaxFrequency_Hz = inf;
             
-            defaultSmoothingFactor = 0.75;
+            defaultSmoothingFactor = 0.25;
             defaultEmergencyThreshold = 0.5;
             
             p = inputParser();
@@ -54,21 +54,25 @@ classdef EmergencyDetectionKS < AbstractKS
             numHyps = length(singleBlockObjHyp);
 
             for idx = 1 : numHyps
+                % Get class label and detection probability.
                 hypLabel = singleBlockObjHyp(idx).label;
+                detProb = singleBlockObjHyp(idx).p;
                 
-                switch hypLabel
-                    case 'fire'
-                        obj.accumulatedIdProbs(1) = ...
-                            obj.smoothingFactor * obj.accumulatedIdProbs(1) + ...
-                            (1 - obj.smoothingFactor) * singleBlockObjHyp(idx).p;
-                    case 'alarm'
-                        obj.accumulatedIdProbs(2) = ...
-                            obj.smoothingFactor * obj.accumulatedIdProbs(2) + ...
-                            (1 - obj.smoothingFactor) * singleBlockObjHyp(idx).p;
-                    case 'baby'
-                        obj.accumulatedIdProbs(3) = ...
-                            obj.smoothingFactor * obj.accumulatedIdProbs(3) + ...
-                            (1 - obj.smoothingFactor) * singleBlockObjHyp(idx).p;
+                if detProb >= 0.5                    
+                    switch hypLabel
+                        case 'fire'
+                            obj.accumulatedIdProbs(1) = ...
+                                obj.smoothingFactor * obj.accumulatedIdProbs(1) + ...
+                                (1 - obj.smoothingFactor) * singleBlockObjHyp(idx).p;
+                        case 'alarm'
+                            obj.accumulatedIdProbs(2) = ...
+                                obj.smoothingFactor * obj.accumulatedIdProbs(2) + ...
+                                (1 - obj.smoothingFactor) * singleBlockObjHyp(idx).p;
+                        case 'femaleScreammaleScream'
+                            obj.accumulatedIdProbs(3) = ...
+                                obj.smoothingFactor * obj.accumulatedIdProbs(3) + ...
+                                (1 - obj.smoothingFactor) * singleBlockObjHyp(idx).p;
+                    end
                 end
             end
             
