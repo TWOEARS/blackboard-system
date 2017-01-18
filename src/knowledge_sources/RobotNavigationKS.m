@@ -7,10 +7,10 @@ classdef RobotNavigationKS < AbstractKS
         robot
         targetSource = [];
         robotPositions = [
-            95, 97.5; % Outside kitchen
+            %95, 97.5; % Outside kitchen
             91, 98; % Kitchen
-            91, 102]; % Bed room
-            %86, 102]; % Living room
+            91, 102;  % Bed room
+            86, 102]; % Living room
     end
 
     methods
@@ -57,8 +57,9 @@ classdef RobotNavigationKS < AbstractKS
                 bMove = false;
                 if ~isempty(obj.targetSource)
                     idx = strcmp({idloc(:).label}, obj.targetSource);
-                    if idx > 0 && idloc(idx).d == 1
+                    if max(idx) > 0 && any(cell2mat({idloc(idx).d}) == 1)
                         bMove = true;
+                        idx =  argmax(cell2mat({idloc.p}));
                     end
                 end
                 if bMove
@@ -66,19 +67,31 @@ classdef RobotNavigationKS < AbstractKS
                     % move the robot towards the source
 
                     % idloc(idx).loc is source location relative to head
-                    %targetLocBase = idloc(idx).loc + obj.robot.getCurrentHeadOrientation;
+                    targetLocBase = idloc(idx).loc + obj.robot.getCurrentHeadOrientation;
                     [posX, posY, theta] = obj.robot.getCurrentRobotPosition;
                     nRobotPositions = size(obj.robotPositions,1);
-                    while true
-                        idxLoc = randperm(nRobotPositions,1);
-                        dist = sqrt((posX-obj.robotPositions(idxLoc,1))^2 + (posY-obj.robotPositions(idxLoc,2))^2);
-                        if dist > 1
-                            break;
-                        end
+                    
+                    relativeAngles = zeros(nRobotPositions, 1);
+                    for idx = 1 : nRobotPositions
+                        currentTargetPos = obj.robotPositions(idx, :);
+                        relativeAngles(idx) = atan2(posY - currentTargetPos(2), ...
+                            posX - currentTargetPos(1)); 
                     end
                     
+                    distances = 1 - cos(relativeAngles - targetLocBase);
+                    [~, bestPosIdx] = min(distances);
+                    
+%                     while true
+%                         idxLoc = randperm(nRobotPositions,1);
+%                         dist = sqrt((posX-obj.robotPositions(idxLoc,1))^2 + (posY-obj.robotPositions(idxLoc,2))^2);
+%                         if dist > 1
+%                             break;
+%                         end
+%                     end
+                    
                     % Need to work out which angle to move to
-                    obj.robot.moveRobot(obj.robotPositions(idxLoc,1), obj.robotPositions(idxLoc,2), theta, 'absolute');
+                    obj.robot.moveRobot(obj.robotPositions(bestPosIdx,1), obj.robotPositions(bestPosIdx,2), theta, 'absolute');
+                     obj.movingScheduled = true;
                 else
                     % Not identified the target
                     % Stay put
