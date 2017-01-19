@@ -42,7 +42,7 @@ classdef RobotNavigationKS < AbstractKS
                 if ~isempty(obj.targetSource)
                     idloc = hyp.data;
                     idx = strcmp({idloc(:).label}, obj.targetSource);
-                    if max(idx) > 0 && any(cell2mat({idloc(idx).d}) == 1) 
+                    if max(idx) > 0 && any(cell2mat({idloc(idx).p}) == 0.7) 
                         bExecute = true;
                         obj.idlocIdx =  argmax(cell2mat({idloc.p}));
                     end
@@ -74,7 +74,7 @@ classdef RobotNavigationKS < AbstractKS
                     currentTargetPos(1) - posX); 
             end
 
-            distances = 1 - cosd(relativeAngles - targetLocBase);
+            distances = 1 - cosd(relativeAngles - targetLocBase + theta*180/pi);
             [~, bestPosIdx] = min(distances);
 
             % Check if the target position is less than 1 metre away from
