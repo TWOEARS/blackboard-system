@@ -72,6 +72,8 @@ classdef VisualiserIdentityLocalisation < handle
         end
         
         function reset(obj)
+            obj.radiusIndex = 1;
+            obj.colourIndex = 1;
             axes(obj.drawHandle);
             
             obj.ksColourMap = containers.Map;
