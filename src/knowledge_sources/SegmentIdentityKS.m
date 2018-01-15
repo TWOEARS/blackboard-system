@@ -64,12 +64,15 @@ classdef SegmentIdentityKS < AbstractAMLTTPKS
             for afeKey = afeData.keys
                 afeSignal = afeData(afeKey{1});
                 if isa( afeSignal, 'cell' )
+                    mask_ch = mask;
+                    cfHz_ch = cfHz;
+                    maskHopSize_ch = maskHopSize;
                     for ii = 1 : numel( afeSignal )
                         if isa( afeSignal{ii}, 'TimeFrequencySignal' ) || ...
                                 isa( afeSignal{ii}, 'CorrelationSignal' ) || ...
                                 isa( afeSignal{ii}, 'ModulationSignal' )
-                            afeSignalExtract{ii} = ...
-                                   afeSignal{ii}.maskSignalCopy( mask, cfHz, maskHopSize );
+                            [afeSignalExtract{ii},mask_ch,cfHz_ch,maskHopSize_ch] = ...
+                                   afeSignal{ii}.maskSignalCopy( mask_ch, cfHz_ch, maskHopSize_ch );
                         else
                             afeSignalExtract{ii} = afeSignal{ii};
                         end
