@@ -50,13 +50,14 @@ error(nargchk(1,Inf,nargin)) ;
 % check for empty inputs
 q = ~cellfun('isempty',varargin) ;
 if any(~q),
-%    warning('ALLCOMB:EmptyInput','Empty inputs result in an empty output.') ;
+    warning('ALLCOMB:EmptyInput','Empty inputs result in an empty output.') ;
     A = zeros(0,nargin) ;
 else
     
     ni = sum(q) ;
     
     argn = varargin{end} ;
+    ischar(argn)
     if ischar(argn) && (strcmpi(argn,'matlab') || strcmpi(argn,'john')),
         % based on a suggestion by JD on the FEX
         ni = ni-1 ;
