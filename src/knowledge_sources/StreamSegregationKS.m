@@ -141,17 +141,21 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                         locData.azimuths(locSortedAzmIdxs(azimuthIdx)) );
                 end
             end
-            likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
-            for azimuthIdx = 1 : numAzimuths
-                likelihoods(:, :, azimuthIdx) = ...
-                    obj.observationModel.computeLikelihood( ...
-                    itds, ilds, refAzm(azimuthIdx) / 180 * pi );
+            if numAzimuths == 1
+                softMasks = ones( size( itds ) );
+            else
+                likelihoods = zeros( size(itds, 1), size(itds, 2), numAzimuths );
+                for azimuthIdx = 1 : numAzimuths
+                    likelihoods(:, :, azimuthIdx) = ...
+                        obj.observationModel.computeLikelihood( ...
+                        itds, ilds, refAzm(azimuthIdx) / 180 * pi );
+                end
+                
+                % Normalize likelihoods and put hypotheses on the blackboard.
+                likelihoodSum = squeeze( sum(permute(likelihoods, [3 2 1]),1) )';
+                likelihoodSum(likelihoodSum == 0) = 1; % do not divide by 0
+                softMasks = bsxfun( @rdivide, likelihoods, likelihoodSum );
             end
-            
-            % Normalize likelihoods and put hypotheses on the blackboard.
-            likelihoodSum = squeeze( sum(permute(likelihoods, [3 2 1]),1) )';
-            likelihoodSum(likelihoodSum == 0) = 1; % do not divide by 0
-            softMasks = bsxfun( @rdivide, likelihoods, likelihoodSum );
             numSoftMasks = size( softMasks, 3 );
             
             afeData = obj.getAFEdata();
