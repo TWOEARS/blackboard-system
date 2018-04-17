@@ -128,6 +128,12 @@ classdef BlackboardMonitor < handle
             end
         end
         
+        function reset( obj )
+            obj.resetFocus();
+            obj.pastAgenda = KSInstantiation.empty;
+            obj.agenda = KSInstantiation.empty;
+        end
+        
     end
     
 end
