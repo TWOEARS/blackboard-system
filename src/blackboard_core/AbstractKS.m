@@ -40,6 +40,17 @@ classdef AbstractKS < handle & matlab.mixin.Heterogeneous
             obj.blackboardSystem = blackboardSystem;
         end
 
+        %% Notify method that checks if listeners are there
+        function notifyIfListeners( obj, eventName, eventData )
+            if any( event.hasListener( obj, eventName ) )
+                if nargin < 3
+                    notify( obj, eventName );
+                else
+                    notify( obj, eventName, eventData );
+                end
+            end
+        end
+
         %% Set arguments for execution after triggering
         function setActiveArgument(obj, triggerSrc, triggerTmIdx, eventName)
             obj.trigger.src = triggerSrc;
