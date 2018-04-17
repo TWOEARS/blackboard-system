@@ -83,7 +83,7 @@ classdef AbstractAMLTTPKS < AuditoryFrontEndDepKS
             % calls KS-specific execute imeplementations and notifies the blackboard system 
             afeBlock = obj.cutAFEBlock();
             obj.amlttpExecute( afeBlock );
-            obj.notifyIfListeners( obj, 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
+            obj.notifyIfListeners( 'KsFiredEvent', BlackboardEventData( obj.trigger.tmIdx ) );
         end
         
         function delete( obj )
