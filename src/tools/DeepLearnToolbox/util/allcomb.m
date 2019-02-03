@@ -57,7 +57,7 @@ else
     ni = sum(q) ;
     
     argn = varargin{end} ;
-    ischar(argn)
+    ischar(argn);
     if ischar(argn) && (strcmpi(argn,'matlab') || strcmpi(argn,'john')),
         % based on a suggestion by JD on the FEX
         ni = ni-1 ;
