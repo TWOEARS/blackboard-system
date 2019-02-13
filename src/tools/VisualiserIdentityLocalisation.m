@@ -170,6 +170,10 @@ classdef VisualiserIdentityLocalisation < handle
         end
         
         function colourVector = getIdentityColor(obj, label)
+            if strcmp( label, 'CLEAR' )
+                colourVector = [1 1 1];
+                return
+            end
             if obj.ksColourMap.isKey(label)
                 % If we've seen this sound type, try to use the same colour
                 colourVector = obj.colourList(obj.ksColourMap(label),:);
@@ -353,7 +357,7 @@ classdef VisualiserIdentityLocalisation < handle
             
             % populate with new info
             for idx = 1:numel(labels)
-                if ds{idx} == 1
+%                 if ds{idx} == 1
                     label = VisualiserIdentityLocalisation.getShortName(labels{idx});
                     radius = obj.getIdentityRadius(label);
                     color = obj.getIdentityColor(label);
@@ -368,7 +372,7 @@ classdef VisualiserIdentityLocalisation < handle
                         probs{idx}, ...
                         color,...
                         radius);
-                end
+%                 end
             end
         end
         
