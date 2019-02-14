@@ -54,7 +54,7 @@ classdef GroundTruthKS < AuditoryFrontEndDepKS
                     ((obj.onOffsets{nn}(:,1) <= obj.curTimeRange(1)) & (obj.onOffsets{nn}(:,2) >= obj.curTimeRange(2)));
                 obj.curActiveLabels{nn} = obj.labels{nn}(isEventInTimeRange);
                 sampleRange = max( [1 1;round( obj.curTimeRange * 44100 )], [], 1 );
-                obj.curActivity{nn} = any( obj.activity{nn}(sampleRange(1):sampleRange(2)) );
+                obj.curActivity{nn} = any( obj.activity{nn}(sampleRange(1):min(end,sampleRange(2))) );
             end
             if obj.bPropagateNsrcsGroundtruth
                 nsrcs = sum( [obj.curActivity{:}] );
