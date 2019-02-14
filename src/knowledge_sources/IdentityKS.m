@@ -3,6 +3,10 @@ classdef IdentityKS < AbstractAMLTTPKS
     % deployment system
     properties (SetAccess = private)
     end
+    
+    events
+        SoundEventDetected
+    end
 
     methods
         function obj = IdentityKS( modelName, modelDir, ppRemoveDc )
@@ -22,6 +26,9 @@ classdef IdentityKS < AbstractAMLTTPKS
             identHyp = IdentityHypothesis( ...
                 obj.modelname, score(1), d(1), obj.blockCreator.blockSize_s );
             obj.blackboard.addData( 'identityHypotheses', identHyp, true, obj.trigger.tmIdx );
+            if d(1) > 0
+                notify( obj, 'SoundEventDetected', BlackboardEventData( obj.trigger.tmIdx ) );
+            end
         end
     end
 end
