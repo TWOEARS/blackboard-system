@@ -1,4 +1,4 @@
-classdef GroundTruthPlotKS < AuditoryFrontEndDepKS
+classdef GroundTruthKS < AuditoryFrontEndDepKS
 
     properties (SetAccess = private)
         labels;
@@ -8,10 +8,16 @@ classdef GroundTruthPlotKS < AuditoryFrontEndDepKS
         curActiveLabels;
         curActivity;
         curTimeRange;
+        bPropagateNsrcsGroundtruth;
+    end
+    
+    events
+        NSrcsTruth
     end
 
+
     methods
-        function obj = GroundTruthPlotKS(labels,onOffsets,activity,azms)
+        function obj = GroundTruthKS(labels,onOffsets,activity,azms,bPropagateNsrcsGroundtruth)
             requests{1}.name = 'time';
             requests{1}.params = genParStruct();
             obj = obj@AuditoryFrontEndDepKS(requests);
@@ -21,6 +27,7 @@ classdef GroundTruthPlotKS < AuditoryFrontEndDepKS
             obj.activity = activity;
             obj.azms = azms;
             obj.curTimeRange = [0 0];
+            obj.bPropagateNsrcsGroundtruth = bPropagateNsrcsGroundtruth;
         end
 
         function delete(obj)
@@ -49,6 +56,13 @@ classdef GroundTruthPlotKS < AuditoryFrontEndDepKS
                 sampleRange = max( [1 1;round( obj.curTimeRange * 44100 )], [], 1 );
                 obj.curActivity{nn} = any( obj.activity{nn}(sampleRange(1):sampleRange(2)) );
             end
+            if obj.bPropagateNsrcsGroundtruth
+                nsrcs = sum( [obj.curActivity{:}] );
+                nsrcsHyp = NumberOfSourcesHypothesis( ...
+                    'GroundTruth', 1, nsrcs, obj.curTimeRange(2) - obj.curTimeRange(1) );
+                obj.blackboard.addData( 'NumberOfSourcesHypotheses', nsrcsHyp, true, obj.trigger.tmIdx );
+                notify( obj, 'NSrcsTruth', BlackboardEventData( obj.trigger.tmIdx ) );
+            end
         end
         
         % Visualisation
@@ -67,6 +81,10 @@ classdef GroundTruthPlotKS < AuditoryFrontEndDepKS
                         obj.blackboardSystem.locVis.plotMarkerAtAngle(...
                             nn, obj.azms(nn), 'CLEAR');
                     end
+                end
+                if obj.bPropagateNsrcsGroundtruth
+                    nsrcs = sum( [obj.curActivity{:}] );
+                    obj.blackboardSystem.locVis.setNumberOfSourcesText(nsrcs);
                 end
             end
         end
