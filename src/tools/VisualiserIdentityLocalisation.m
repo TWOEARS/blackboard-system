@@ -143,13 +143,13 @@ classdef VisualiserIdentityLocalisation < handle
             y1 = obj.INNER_RADIUS;
             col = [1 1 1];
 
-            for ii = 1:4
+            for ii = 1:5
                 obj.MarkerHandle(ii) = fill(15*sin(-linspace(0,2*pi,30)),y2+15*cos(-linspace(0,2*pi,30)),col,'EdgeColor',col, 'EdgeAlpha', 0);
                 obj.MarkerTextHandle(ii) = text(y1,y2, '', 'Color', col, 'FontSize', 12, 'Visible', 'off');
             end
             obj.TextHandle = text(y1,y2, '', 'Color', col, 'FontSize', 12, 'Visible', 'off');
             
-            for ii=1:55
+            for ii=1:100
                 obj.MarkerHandles(ii) = fill(15*sin(-linspace(0,2*pi,30)), ...
                     y2+15*cos(-linspace(0,2*pi,30)), ...
                     col,'linestyle','none', 'FaceAlpha', 0);
