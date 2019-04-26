@@ -91,11 +91,7 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
             ilds = obj.getSignalBlock( 2, ...
                 [obj.trigger.tmIdx-obj.blockSize obj.trigger.tmIdx], false );
-            
-            % Get current look direction.
-            lookDirection = obj.blackboard.getLastData( 'headOrientation' );
-            lookDirection = lookDirection.data;
-            
+                        
             % Check if azimuth angles are fixed and compute soft-masks.
             if obj.useFixedAzimuths
                 numAzimuths = length( obj.fixedAzimuths );
@@ -103,6 +99,8 @@ classdef StreamSegregationKS < AuditoryFrontEndDepKS
                 for azimuthIdx = 1 : numAzimuths
                     % Get relative azimuths -- obj.fixedAzimuths thus contains absolute
                     % azimuths
+                    lookDirection = obj.blackboard.getLastData( 'headOrientation' );
+                    lookDirection = lookDirection.data;
                     headRelativeAzimuth = wrapTo180( obj.fixedAzimuths(azimuthIdx) - ...
                         lookDirection );
                     refAzm(azimuthIdx) = headRelativeAzimuth;
