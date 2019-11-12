@@ -5,6 +5,7 @@ classdef AudioWriteKS < AuditoryFrontEndDepKS
         robot
         pathToSoundFile
         samplingRate
+        writtenAt = 0;
     end
     
     properties (Access = private)
@@ -22,8 +23,7 @@ classdef AudioWriteKS < AuditoryFrontEndDepKS
         end
         
         function delete(obj)
-            audiowrite(obj.pathToSoundFile, obj.signalBuffer, ...
-                obj.samplingRate);
+            obj.writeEarsignals();
         end
 
         function [b, wait] = canExecute(obj)
@@ -36,13 +36,20 @@ classdef AudioWriteKS < AuditoryFrontEndDepKS
                 obj.samplingRate = obj.blackboardSystem.dataConnect.afeFs;
                 obj.firstCall = false;
             end
-            
-            blockSize = obj.blackboardSystem.dataConnect.timeStep;
-            
-            earSignals = obj.getNextSignalBlock(1, blockSize, blockSize);
-            
-            obj.signalBuffer = [obj.signalBuffer; ...
-                [earSignals{1}, earSignals{2}]];
+%             earSignals = obj.getNextSignalBlock(1, obj.blackboardSystem.dataConnect.timeStep);
+            earSignals = obj.getSignalBlock( 1, ...
+                                             [obj.lastBlockEnd(1), obj.trigger.tmIdx], ...
+                                             false, false );
+            obj.signalBuffer = [obj.signalBuffer; [earSignals{1}, earSignals{2}]];
         end
+        
+        function writeEarsignals( obj )
+            if obj.lastBlockEnd > obj.writtenAt
+                obj.signalBuffer = obj.signalBuffer ./ max( abs( obj.signalBuffer(:) ) );
+                audiowrite(obj.pathToSoundFile, obj.signalBuffer, obj.samplingRate);
+                obj.writtenAt = obj.lastBlockEnd;
+            end
+        end
+            
     end
 end
